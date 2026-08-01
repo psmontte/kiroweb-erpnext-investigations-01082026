@@ -48,8 +48,8 @@ Anchor commits for everything so far: `erpnext@ceefd4add7` (v17.0.0-dev), `frapp
 Consolidated target design: **`docs/design/FINAL-SCHEMA.md`** (finalised tables, data flow,
 business rules, lifecycle state machine, fulfilment views, settlement model, invariant register).
 
-Citation verification across `docs/logic/`: superseded — see the closure block below
-(**3,674 citations, 0 problems**, shorthand included).
+Citation verification across `docs/logic/`: superseded — see the current coverage matrix
+(**4,248 citations, 0 problems**, shorthand included).
 
 ~~**Still named but not chased**~~: putaway rules (doc 27 §3), warehouse capacity (doc 27 §3, doc 16
 §4), stock closing entry (doc 27, S05 §6), loyalty program internals (doc 31 §4), payment-gateway
@@ -74,9 +74,9 @@ invoice → payment → FX revaluation — plus everything needed to call the th
 | Period close and opening balances, walked through | S05 | scenario |
 | Multi-currency: invoice → payment → FX revaluation | S06 | scenario |
 
-**Coverage: `Accounts`, `Stock`, `Selling` and `Buying` are at zero uncited DocTypes** — submittable
-and configuration alike (`docs/COVERAGE.md`, generated). Citations: **3,674 verified, 0 problems**,
-including the shorthand form.
+**Coverage: `Accounts`, `Stock`, `Selling`, `Buying` and now `Manufacturing` are at zero uncited
+DocTypes** — submittable and configuration alike (`docs/COVERAGE.md`, generated). Citations:
+**4,248 verified, 0 problems**, including the shorthand form.
 
 Three findings from this closure changed how confident we are in earlier decisions:
 
@@ -113,8 +113,8 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 | ~~**A**~~ | ~~**Accounts remainder**~~ — budget controller, deferred revenue/expense, POS lifecycle, bank matching + reconciliation, payment requests, dunning, invoice discounting, inter-company + common party, repost subsystems, `Unreconcile Payment`, statements | ~60 of the 191 | **DONE** — `docs/logic/11`–`15` |
 | ~~**A**~~ | ~~**Stock remainder**~~ — stock reservation entries, pick-list allocation, reorder / auto material request, batch expiry + FEFO picking, item variants & attributes, UOM conversion precision, warehouse structure | ~35 of the 77 | **DONE** — `docs/logic/16`–`17` |
 | ~~**A**~~ | ~~**Trade / inventory / accounts closure**~~ — Journal Entry + CoA + dimensions, remaining stock documents, tax determination, pricing determination, upstream trade + parties, batch processes + instruments + recurring, stock configuration | the remainder | **DONE** — `docs/logic/26`–`32`, `docs/scenarios/S04`–`S06`. Accounts/Stock/Selling/Buying at **zero uncited DocTypes** |
-| **B** | **Manufacturing** — BOM (+ cost roll-up, exploded items, update-cost job), Work Order, Job Card, Operations/Routing, Workstation capacity, Production Plan, Master Production Schedule, scrap & rework, WIP accounting | 48 total / 18 parents (8 submittable) | **IN PROGRESS** — first Tranche B scope |
-| **B** | **Subcontracting deep dive** — order/receipt lifecycle, supplied-item consumption, RM transfer, `Subcontracting BOM`, customer-owned inward flow | 13 total / 4 parents (3 submittable) | follows manufacturing. Partially covered by doc 03 §3.6 and S04; the 3 current coverage gaps are here |
+| ~~**B**~~ | ~~**Manufacturing** — BOM (+ cost roll-up, exploded items, update-cost job), Work Order, Job Card, Operations/Routing, Workstation capacity, Production Plan, Master Production Schedule, scrap & rework, WIP accounting~~ | 48 total / 18 parents (8 submittable) | **DONE** — docs 33–37 + S07; 18/18 parent controllers cited, 0 gaps |
+| **B** | **Subcontracting deep dive** — order/receipt lifecycle, supplied-item consumption, RM transfer, `Subcontracting BOM`, customer-owned inward flow | 13 total / 4 parents (3 submittable) | **IN PROGRESS — next**. Partially covered by doc 03 §3.6 and S04; the 3 current coverage gaps are here |
 | **C** | **Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement | 26 (8 submittable) | **DEFERRED by decision** — revisit after Tranche B and before implementation |
 | ~~**D**~~ | ~~**Projects, Support, Maintenance, CRM**~~ — project costing, timesheet → billing, Support (11), Maintenance (5), CRM lead/opportunity/prospect (28) | ~75 | **OUT OF SCOPE** — dropped by decision. Not investigated, not built. |
 | **B** | **Quality Management + operational quality** — Quality Management records plus Stock-owned inspection templates/readings and gates on receipts, deliveries, Stock Entry and Job Card | 16 total / 8 module parents, plus 4 Stock parents | follows subcontracting; the gate interacts with receipt and work-order posting |
@@ -146,7 +146,7 @@ quality-gated receipt/production; **S10** customer-owned subcontracting inward.
    remaining items (report view library, front end, localisation data) are not framework.
    See `25-our-platform-spec.md` §6.
 3. **Scenario walkthroughs** (`docs/scenarios/`) — cross-cutting flow traces tying the subsystem
-   documents together. S01–S06 cover trade/inventory/accounts.
+   documents together. S01–S07 cover trade/inventory/accounts and in-house manufacturing.
 4. **Tranche B** — **in progress**, in the confirmed order:
    1. manufacturing,
    2. subcontracting,

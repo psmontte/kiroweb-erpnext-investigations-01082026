@@ -29,8 +29,16 @@ from collections import defaultdict
 CATALOG = "schema/catalog_tables.csv"
 DOC_GLOBS = ("docs/**/*.md",)
 
-# Modules that constitute "trade + inventory + accounts"
-CORE_MODULES = ("Accounts", "Stock", "Selling", "Buying", "Subcontracting")
+# Modules covered by the completed trade core and active Tranche B investigation.
+AUDITED_MODULES = (
+    "Accounts",
+    "Stock",
+    "Selling",
+    "Buying",
+    "Subcontracting",
+    "Manufacturing",
+    "Quality Management",
+)
 
 # DocTypes deliberately excluded from the investigation, with the reason.
 # Keeping this explicit means an uncovered DocType is either a gap or a decision,
@@ -105,7 +113,7 @@ def controller_cited(doctype: str, corpus: str) -> bool:
     return f"/{f}.py" in corpus or f"{f}.py:" in corpus
 
 
-def audit(modules: tuple[str, ...] = CORE_MODULES) -> dict:
+def audit(modules: tuple[str, ...] = AUDITED_MODULES) -> dict:
     rows = load_catalog()
     corpus = load_corpus()
 
@@ -141,7 +149,7 @@ def audit(modules: tuple[str, ...] = CORE_MODULES) -> dict:
 
 def print_report(data: dict) -> None:
     t = data["totals"]
-    print(f"Parent DocTypes in {', '.join(CORE_MODULES)}: {t['parents']}")
+    print(f"Parent DocTypes in {', '.join(data['modules'])}: {t['parents']}")
     print(f"  controller cited in docs/     : {t['cited']}")
     print(f"  uncited, submittable (GAPS)   : {t['uncited_submittable']}")
     print(f"  uncited, masters/config       : {t['uncited_other']}")
@@ -189,7 +197,7 @@ def main() -> None:
     ap.add_argument("--markdown", action="store_true", help="emit a markdown coverage table")
     args = ap.parse_args()
 
-    modules = tuple(args.module) if args.module else CORE_MODULES
+    modules = tuple(args.module) if args.module else AUDITED_MODULES
     data = audit(modules)
 
     if args.json:

@@ -90,12 +90,11 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 
 ### Tranche B — production investigation (in progress)
 
-Confirmed order: **manufacturing → subcontracting → quality**. Planned outputs are docs **33–40**:
-BOM/costing; operations and capacity; Work Orders/Job Cards; production planning/MPS;
-manufacturing Stock Entry/WIP/GL; subcontracting; operational quality gates; then the Tranche B
-coverage closure and target production specification. Scenarios **S07–S10** will walk through
-make-to-order, supplier subcontracting, quality gating, and customer-owned inward subcontracting.
-Assets/depreciation are deferred until after this tranche and before implementation.
+Confirmed order: **manufacturing → subcontracting → quality**. Manufacturing is complete in docs
+**33–37** plus **S07**: all 18 parent controllers are cited with zero coverage gaps. The active scope is
+now subcontracting (doc 38, S08 and S10), followed by operational quality (doc 39 and S09), then doc 40
+closes coverage and consolidates the target production specification. Assets/depreciation are deferred
+until after this tranche and before implementation.
 
 Consolidated target schema: **[../design/FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md)** —
 finalised tables, data flow, business rules, lifecycle state machine, fulfilment views,
@@ -133,8 +132,8 @@ Last run against the anchor commits:
 
 | Directory | Citations | Confirmed by symbol name | Problems |
 |---|---|---|---|
-| `docs/logic` | 3215 | 1574 | 0 |
-| `docs/scenarios` | 459 | 164 | 0 |
+| `docs/logic` | 3734 | 1574 | 0 |
+| `docs/scenarios` | 514 | 164 | 0 |
 
 Name notes under `--strict-names` are advisory: the doc line may legitimately name a symbol defined
 elsewhere in the same file. Frappe-side citations are prefixed `frappe/`.

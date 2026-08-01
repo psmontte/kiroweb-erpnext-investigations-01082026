@@ -1,4 +1,4 @@
-# Coverage matrix — trade, inventory, accounts
+# Coverage matrix — trade, inventory, accounts and production
 
 **Purpose:** make "fully covered" a *verifiable* claim rather than an assertion.
 
@@ -30,7 +30,9 @@ The table is generated, so it cannot drift from reality. `--check` belongs in CI
 | Selling | 12 | 9 | 0 | 0 | 3 |
 | Buying | 10 | 5 | 0 | 0 | 5 |
 | Subcontracting | 4 | 1 | 2 | 1 | 0 |
-| **Total** | **163** | **131** | **2** | **1** | **29** |
+| Manufacturing | 18 | 18 | 0 | 0 | 0 |
+| Quality Management | 8 | 0 | 0 | 8 | 0 |
+| **Total** | **189** | **149** | **2** | **9** | **29** |
 <!-- END COVERAGE TABLE -->
 
 Counts are **parent** DocTypes only (child tables are covered with their parent — the 99 child
@@ -54,7 +56,7 @@ oversight:
 |---|---|---|
 | Equity / cap table | `Share Transfer`, `Share Type`, `Shareholder`, `Share Balance` | not ERP core |
 | Vendor rating | `Supplier Scorecard` + 4 related | no ledger impact |
-| Quality | `Quality Inspection` + 3 related | deferred to **Tranche B (quality)** by decision |
+| Operational quality (Stock module) | `Quality Inspection` + 3 related | temporary exclusion until **doc 39**; then these become audited coverage |
 | Debug / maintenance | `Bisect Accounting Statements`, `Bisect Nodes`, `Ledger Health`, `Ledger Health Monitor` | diagnostic tooling; the *reason they exist* is covered in doc 22 §2.3 |
 | Import tools | `Chart of Accounts Importer`, `Bank Statement Import` (+log) | one-time import paths |
 | Trivial lookups | `Industry Type`, `Sales Partner Type`, `UOM Category`, `Warehouse Type`, `Bank Account Type/Subtype`, `Account Category`, `Dunning Type`, `SMS Center`, `Quick Stock Balance` | single-column lookups with no behaviour |
@@ -73,7 +75,8 @@ oversight:
 | ~~`Advance Payment Ledger Entry`~~ | Accounts | **DONE** — doc 26 |
 | ~~`Payment Order`, `Bank Guarantee`~~ | Accounts | **DONE** — [doc 31](logic/31-batch-processes-instruments-recurring.md) |
 | ~~`Process Deferred Accounting`, `Process Payment Reconciliation`, `Process Subscription`, `Cashier Closing`~~ | Accounts | **DONE** — doc 31 §1–§2 |
-| `Subcontracting Order`, `Subcontracting Inward Order`, `Subcontracting BOM` | Subcontracting | **Tranche B** by decision |
+| ~~All 18 Manufacturing parent DocTypes~~ | Manufacturing | **DONE** — [docs 33–37](logic/README.md) + [S07](scenarios/S07-make-to-order-manufacturing.md); 0 uncited submittable, 0 uncited config |
+| `Subcontracting Order`, `Subcontracting Inward Order`, `Subcontracting BOM` | Subcontracting | **doc 38 / S08 / S10 — next** |
 
 ### Configuration that determines posting behaviour (must close)
 
@@ -90,14 +93,16 @@ oversight:
 | Banking config | `Bank`, `Bank Account`, `Bank Account Balance`, `Bank Transaction Rule`, `Cheque Print Template`, `Payment Gateway Account` | **doc 31** (doc 14 covers the *flows*) |
 | Settings singles | `Accounts Settings`, `Stock Settings`, `Delivery Settings`, `Stock Reposting Settings`, `POS Settings` | doc 18 §3.1 covers the *mechanism*; the individual flags that change accounting semantics are catalogued in doc 31 |
 | Reporting config | `Financial Report Template`, `Monthly Distribution` | doc 24 / doc 12 |
+| Manufacturing definitions/settings | `BOM`, `BOM Creator`, `BOM Update Log/Tool`, `Operation`, `Routing`, `Workstation` family, `Manufacturing Settings`, planning/execution parents | **DONE** — docs 33–37; all 18 parent controllers cited |
+| Quality Management + operational inspection | 8 Quality Management parents plus Stock-owned `Quality Inspection` family | **doc 39 / S09** |
 
 \* `Account` is heavily *used* throughout docs 01–07 but its own controller (root types, group vs
 ledger, freezing, balance-must-be) has not been read line by line.
 
 ## Definition of done for "trade + inventory + accounts fully covered"
 
-1. `uncited_submittable` is **0** for Accounts, Stock, Selling — and Subcontracting is explicitly
-   deferred to Tranche B.
+1. `uncited_submittable` is **0** for Accounts, Stock, Selling, Buying and Manufacturing;
+   active Subcontracting/Quality gaps are listed explicitly.
 2. Every DocType in the "configuration that determines posting behaviour" list above is either
    cited or excluded with a reason.
 3. Scenario walkthroughs exist for every flow that crosses three or more subsystems
@@ -105,23 +110,27 @@ ledger, freezing, balance-must-be) has not been read line by line.
 4. `tools/verify_refs.py` reports **0 problems** across all doc directories — no unresolved paths,
    no out-of-range lines, and no ambiguous shorthand refs. This covers both full citations and the
    `` (`:NNN`) `` shorthand; the shorthand is the bulk of the corpus, so verifying it is what makes
-   the "every claim is checkable" statement true. Current: **3215** citations in `docs/logic` and
-   **459** in `docs/scenarios`, all resolving.
+   the "every claim is checkable" statement true. Current: **3734** citations in `docs/logic` and
+   **514** in `docs/scenarios`, all resolving (**4248 total**).
 5. This table is regenerated and committed.
 
 ### Status against that definition
 
 | # | Criterion | State |
 |---|---|---|
-| 1 | `uncited_submittable` = 0 | Accounts **0** ✔, Stock **0** ✔, Selling **0** ✔, Buying **0** ✔. Subcontracting 2 deferred to Tranche B by decision |
-| 2 | Config DocTypes cited or excluded | **✔ 0 uncited config** in Accounts, Stock, Selling and Buying (docs 28–32) |
-| 3 | Scenario per cross-subsystem flow | **✔** S01–S06 |
-| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 3674 citations** |
+| 1 | `uncited_submittable` = 0 | Accounts **0** ✔, Stock **0** ✔, Selling **0** ✔, Buying **0** ✔, Manufacturing **0** ✔. Subcontracting **2** remain for doc 38 |
+| 2 | Config DocTypes cited or excluded | **✔ 0 uncited config** in Accounts, Stock, Selling, Buying and Manufacturing; Subcontracting **1** and Quality Management **8** remain |
+| 3 | Scenario per cross-subsystem flow | **✔** S01–S07; S08–S10 planned |
+| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 4248 citations** |
 | 5 | Table regenerated | **✔** |
 
-**Definition met.** `Accounts`, `Stock`, `Selling` and `Buying` have zero uncited DocTypes,
-submittable and configuration alike. `Subcontracting`'s three remaining DocTypes
-(`Subcontracting Order`, `Subcontracting Inward Order`, `Subcontracting BOM`) are deferred to
-Tranche B by decision — their valuation and GL behaviour is documented in doc 03 §3.6 and S04; the
-order lifecycle and supplied-item consumption only make sense alongside manufacturing.
-The closure statement is [doc 32 §5](logic/32-stock-configuration-and-remaining-masters.md).
+**Trade-core definition remains met.** `Accounts`, `Stock`, `Selling` and `Buying` have zero uncited
+DocTypes, submittable and configuration alike; see [doc 32 §5](logic/32-stock-configuration-and-remaining-masters.md).
+
+**Manufacturing is now closed at DocType level:** all **18/18 parent controllers** are cited, with zero
+uncited submittable and zero uncited configuration parents. Docs 33–37 and S07 cover BOM/costing,
+capacity, Work Orders/Job Cards, planning/MPS, material consumption, WIP, SLE and GL.
+
+**Tranche B remains open** only for the measured gaps shown above: three Subcontracting parents in doc
+38/S08/S10, eight Quality Management parents plus the temporarily excluded Stock-owned operational
+inspection family in doc 39/S09.

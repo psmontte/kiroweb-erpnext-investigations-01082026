@@ -102,7 +102,8 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       credit-note offset, advances, un-allocation, over-payment), **S03** Purchase Order →
       Receipt → Invoice (rejection, landed cost, return), **S04** warehouse transfer including
       in-transit, **S05** period close + opening balances, **S06** multi-currency invoice →
-      payment → FX revaluation
+      payment → FX revaluation, **S07** make-to-order manufacturing with partial production, WIP,
+      process loss, scrap and Standard Cost variance
 - [x] **Trade / inventory / accounts closed out** (`docs/logic/26`–`32`) — Journal Entry + chart of
       accounts + dimensions, the remaining stock documents, tax determination, pricing
       determination, upstream trade + parties, batch processes + instruments + recurring, and stock
@@ -110,11 +111,12 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       submittable and configuration alike; see [`docs/COVERAGE.md`](docs/COVERAGE.md) (generated)
       and the closure statement in
       [`docs/logic/32`](docs/logic/32-stock-configuration-and-remaining-masters.md) §5.
-      **3,674 citations verified, 0 problems.**
-- [ ] **Tranche B in progress** — manufacturing → subcontracting → quality. Planned deep dives:
-      BOM/costing, capacity, Work Orders/Job Cards, production planning, manufacturing stock/WIP/GL,
-      subcontract order/inward/receipt flows, and operational quality gates (`docs/logic/33`–`40`;
-      scenarios `S07`–`S10`)
+      **4,248 citations verified, 0 problems.**
+- [x] **Tranche B manufacturing complete** (`docs/logic/33`–`37`, scenario `S07`) — BOM costing and
+      explosion, operations/routing/capacity, Work Orders/Job Cards, Production Plan/MPS/netting, and
+      manufacturing Stock Entry/WIP/GL. **Manufacturing: 18/18 parent controllers cited, 0 gaps.**
+- [ ] **Tranche B next: subcontracting → quality** — supplier and customer-owned subcontracting in
+      doc 38/S08/S10, then operational quality gates in doc 39/S09, then closure/spec doc 40
 - [ ] Tranche C — assets + depreciation engine (**deferred by decision; revisit after Tranche B and
       before implementation**)
 - [x] ~~Tranche D~~ — CRM, projects, support: **out of scope** by decision
