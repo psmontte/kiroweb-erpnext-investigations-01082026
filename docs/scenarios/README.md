@@ -32,10 +32,12 @@ Citations are `path:line` and are verified mechanically by `tools/verify_refs.py
 | **S01** | [S01-order-to-cash.md](S01-order-to-cash.md) | Sales Order → Delivery Note → Sales Invoice, with partial delivery, partial billing, a dispute, and a return | 15 ledger rows, ~30 cached-counter writes to already-submitted documents. The *ledger* work is small and correct; the *counter* work is large, unlocked, and is where every fulfilment bug lives |
 | **S02** | [S02-payments-and-allocation.md](S02-payments-and-allocation.md) | Payment against invoice: exact, partial, multi-invoice with bank charge, credit-note offset, advance, un-allocation, over-payment | **Nine places record one fact.** Allocating a payment rewrites the payment's own child rows and deletes-and-rebuilds the payment ledger. A short payment silently consumes credit notes |
 | **S03** | [S03-procure-to-pay.md](S03-procure-to-pay.md) | Purchase Order → Purchase Receipt → Purchase Invoice, with rejection, landed cost, and a return | Structurally the mirror of S01, but **four real asymmetries**: `per_billed == 100` vs `>= 100`, three quantities per line, accrual on the receipt side only, and landed cost that rewrites history without bound |
+| **S04** | [S04-stock-transfer-and-in-transit.md](S04-stock-transfer-and-in-transit.md) | Warehouse → warehouse transfer, direct and via a transit warehouse, with freight capitalised | The flow with **no party and no revenue** — the cleanest view of how valuation crosses warehouses. Transit-on-the-balance-sheet is genuinely good design; the inbound leg has **two builders with different partial-receipt behaviour**, and inter-company transfer is an entirely different mechanism |
 
 ## Reading order
 
 Read **S01 → S02 → S03**. S02 assumes S01's closing position; S03 assumes both.
+**S04** onwards are independent and can be read in any order.
 
 If you only read one: **S02**. Payment allocation is the flow with the most moving parts and the
 largest gap between what the system appears to do and what it does.
@@ -61,9 +63,8 @@ largest gap between what the system appears to do and what it does.
 
 | Scenario | Depends on |
 |---|---|
-| Stock transfer between warehouses, in-transit | — could be written now |
-| Period close and opening balances, walked through | [doc 07](../logic/07-period-close-and-opening-balances.md) — could be written now |
-| Multi-currency invoice → payment → FX revaluation | — could be written now |
+| S05 — Period close and opening balances, walked through | in progress |
+| S06 — Multi-currency invoice → payment → FX revaluation | in progress |
 | Make-to-order: SO → Work Order → material issue → finished goods → DN | **Tranche B (manufacturing)** |
 | Subcontracting: PO → RM transfer → Subcontracting Receipt | **Tranche B** |
 | Quality inspection gating a receipt | **Tranche B (quality)** |
