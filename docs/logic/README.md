@@ -40,6 +40,24 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 | 7 | [07-period-close-and-opening-balances.md](07-period-close-and-opening-balances.md) | period closing voucher, closing-balance snapshots, freeze/period gates, fiscal years, opening balances (AR/AP/stock), FX revaluation, report reads |
 | 8 | [08-our-implementation-spec.md](08-our-implementation-spec.md) | **the deliverable**: invariants to enforce, what we keep/change, decisions taken, and the provisional build spec (parked — see [../INVESTIGATION-PLAN.md](../INVESTIGATION-PLAN.md)) |
 
+### Tranche A — deep dives (accounts + trade/inventory remainder)
+
+| Read | File | Covers |
+|---|---|---|
+| 9 | [09-lifecycle-reversals-deletions.md](09-lifecycle-reversals-deletions.md) | the canonical `docstatus` state machine, hook ordering, **why ERPNext has no approval state**, submit/cancel/amend/delete/rename, and our `draft → pending_approval → approved → posted → reversed` model |
+| 10 | [10-fulfilment-engine.md](10-fulfilment-engine.md) | `StatusUpdater` config-driven counters, `Σ LEAST(achieved, ordered)/Σ ordered`, over-delivery allowance, the lost-update race — and our `doc_link` + `fulfilment_line`/`fulfilment_doc` views |
+| 11 | [11-advances-and-payment-allocation.md](11-advances-and-payment-allocation.md) | the **five** representations of "money applied to an obligation", `allocate_amount_to_references` in full, `reconcile_against_document`'s cancel/split/resubmit, and our insert-only `settlement` table |
+| 12 | [12-budgets-deferrals-cost-center-allocation.md](12-budgets-deferrals-cost-center-allocation.md) | budget check as an unlocked `SUM`, deferred revenue state inferred from GL postings, cost-centre split rounding — and our commitment ledger + stored deferral schedule + exact-rational allocation |
+| 13 | [13-pos-and-retail.md](13-pos-and-retail.md) | POS Invoice posting **no** GL/stock, availability as a live query, what consolidation destroys, session control — and our "POS sales are ordinary sales" model |
+| 14 | [14-banking-and-collections.md](14-banking-and-collections.md) | `Bank Transaction` never posting GL, `clearance_date` as a scalar, `rank = 1 + three booleans`, dunning's `Data`-typed FKs — and our `bank_statement_line`/`bank_match` + suspense-account model |
+| 15 | [15-intercompany-and-history-rewriting.md](15-intercompany-and-history-rewriting.md) | inter-company mirroring by two cross-pointing columns, and the three repost subsystems + unreconcile that exist only because derived state is stored |
+| 16 | [16-stock-reservation-picking-warehouse.md](16-stock-reservation-picking-warehouse.md) | reservation correctness that **depends on the database engine** (with the source's own comments), pick allocation locking, `Bin`'s twelve caches, nested-set warehouses |
+| 17 | [17-item-uom-variants-batch-reorder.md](17-item-uom-variants-batch-reorder.md) | item identity, `Bin.stock_uom` rewriting, variants with no uniqueness constraint, `Item Price` with no overlap detection, the reorder rollup bug, FEFO |
+
+Consolidated target schema: **[../design/FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md)** —
+finalised tables, data flow, business rules, lifecycle state machine, fulfilment views,
+settlement model, and the invariant register (F1–U1).
+
 ## Verifying the citations
 
 Line numbers drift with every upstream commit. `tools/verify_refs.py` extracts every

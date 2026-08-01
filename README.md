@@ -11,6 +11,8 @@ modules of `erpnext` are documented at column level.
 ```
 docs/reveng/     schema study — start at docs/reveng/README.md
 docs/logic/      business-logic study — start at docs/logic/README.md
+docs/design/     FINAL-SCHEMA.md — the finalised tables, data flow, business rules,
+                 lifecycle state machine, fulfilment views, settlement model, invariants
 schema/          machine-readable catalog (JSON + CSV) and generated DDL
 schema/ddl/      *_asis.sql  = ERPNext physical layout as PostgreSQL
                  clean_*.sql = normalised reference schema
@@ -76,11 +78,16 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
 - [x] Reference DDL generated and executed against PostgreSQL 15
 - [x] Business logic documented — GL posting, stock valuation, stock↔GL bridge, AR/AP settlement,
       taxes/totals/pricing, lifecycle/fulfilment/returns, period close and opening balances
-      (`docs/logic/`, 126 source citations verified against erpnext@ceefd4a)
+      (`docs/logic/01`–`08`)
 - [x] Implementation spec written — invariant register, Phase 0-2 tables, posting algorithm
       (`docs/logic/08-our-implementation-spec.md`)
-- [ ] Tranche A — remainder of Accounts (budgets, deferrals, POS, bank rec, inter-company) and Stock
-      (reservation, pick list, FEFO/expiry, variants, putaway, reorder)
+- [x] **Tranche A complete** — document lifecycle/approval/reversals/deletions, the fulfilment
+      engine, advances + payment allocation, budgets/deferrals/cost-centre allocation, POS,
+      banking + collections, inter-company + history rewriting, stock reservation/picking/warehouse,
+      item/UOM/variants/batch/reorder (`docs/logic/09`–`17`)
+- [x] **Finalised schema** — [`docs/design/FINAL-SCHEMA.md`](docs/design/FINAL-SCHEMA.md):
+      tables, how data flows through them, business rules, and the invariant register
+      (357 source citations across `docs/logic/` verified against erpnext@ceefd4a)
 - [ ] Tranche E — platform mechanics we must replace rather than copy (permissions, naming, hooks,
       regional overlay, jobs, migrations, reporting)
 - [ ] Tranches B/C/D — manufacturing, assets, projects/quality/CRM (scope to be confirmed)

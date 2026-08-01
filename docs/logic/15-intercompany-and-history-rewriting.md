@@ -122,20 +122,20 @@ Two hard constraints worth naming:
    inter-company trade is simply not supported by this path. For a multinational group — the
    primary use case for inter-company accounting — this is disqualifying.
 
-`update_item` (`accounts/doctype/sales_invoice/mapper.py:207`) shows the quantity logic:
+`update_item` (`accounts/doctype/sales_invoice/mapper.py:209`) shows the quantity logic:
 
 ```python
 target.qty = flt(source.qty) - received_items.get(source.name, 0.0)
 ```
 
 with `condition: lambda doc: doc.qty - received_items.get(doc.name, 0.0) > 0`
-(`accounts/doctype/sales_invoice/mapper.py:239`). So partial mirroring is supported by
+(`accounts/doctype/sales_invoice/mapper.py:235`). So partial mirroring is supported by
 subtracting what was already received — computed by `get_received_items(...)`, i.e. **another
 aggregate scan**, not a fulfilment link.
 
 `field_no_map: ["income_account", "expense_account", "cost_center", "warehouse"]`
-(`:232`) — accounts and cost centres are deliberately *not* copied, since they belong to the
-other company's chart. But `rate` **is** copied (`field_map: {"rate": "rate"}`, `:233`–`:235`),
+(`:230`) — accounts and cost centres are deliberately *not* copied, since they belong to the
+other company's chart. But `rate` **is** copied (`field_map: {"rate": "rate"}`, `:231`–`:233`),
 so transfer pricing is "whatever the seller charged", with no transfer-pricing policy object.
 
 ### 4. Elimination is not modelled

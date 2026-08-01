@@ -31,10 +31,29 @@ Anchor commits for everything so far: `erpnext@ceefd4add7` (v17.0.0-dev), `frapp
 | Period control, period close, closing snapshots, opening balances, FX revaluation, report reads | 07 | full |
 | Our design intent: invariants, target tables, posting algorithm, test plan | 08 | full |
 
-**Mentioned but not investigated** (named in the docs, deliberately not chased):
-budget controller, deferred revenue/expense, POS lifecycle, bank reconciliation, inter-company /
-common party accounting, cost-center allocation internals, `Repost Accounting Ledger`,
-`Unreconcile Payment`, stock reservation entries, pick-list algorithm, quality-inspection gate.
+### Tranche A (`docs/logic/09`–`17`) — **complete**
+
+| Area | Doc | Depth |
+|---|---|---|
+| Document lifecycle, hook ordering, approval (and its absence), submit/cancel/amend/delete/rename | 09 | full |
+| Fulfilment engine: `StatusUpdater`, counters, percentages, allowances, the lost-update race | 10 | full |
+| Advances, payment allocation, reconciliation (cancel/split/resubmit), the five representations | 11 | full |
+| Budgets + budget controller, deferred revenue/expense, cost-center allocation | 12 | full |
+| POS lifecycle: opening/closing entry, POS Invoice, merge log, availability, loyalty | 13 | full |
+| Banking: bank transaction, matching engine, clearance, payment requests, dunning, invoice discounting, statements | 14 | full |
+| Inter-company + common party; `Repost Accounting Ledger` / `Repost Payment Ledger` / `Repost Item Valuation`; `Unreconcile Payment`; deletion | 15 | full |
+| Stock reservation entries, pick-list allocation, `Bin`, warehouse structure | 16 | full |
+| Item master, UOM conversion, variants & attributes, `Item Price` validity, reorder, batch/serial + FEFO | 17 | full |
+
+Consolidated target design: **`docs/design/FINAL-SCHEMA.md`** (finalised tables, data flow,
+business rules, lifecycle state machine, fulfilment views, settlement model, invariant register).
+
+Citation verification across `docs/logic/`: **357 citations, 0 unresolved, 0 out of range,
+10 advisory name notes** (each reviewed).
+
+**Still named but not chased** (moved to later tranches): putaway rules, warehouse capacity,
+quality-inspection gate, stock closing entry, loyalty program internals, payment-gateway
+integrations.
 
 ## 2. What is left
 
@@ -42,8 +61,8 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 
 | Tranche | Area | DocTypes | Why it matters |
 |---|---|--:|---|
-| **A** | **Accounts remainder** — budgeting + budget controller, deferred revenue/expense, POS lifecycle (opening/closing/merge log), bank transaction matching + reconciliation, payment requests/gateways, dunning, invoice discounting, loyalty, inter-company + common party, `Repost Accounting Ledger`, `Unreconcile Payment`, Process Statement of Accounts | ~60 of the 191 | closes the accounting module; several of these change table design (budgets, deferrals, POS) |
-| **A** | **Stock remainder** — stock reservation entries, pick-list allocation, putaway rules, reorder / auto material request, batch expiry + FEFO picking, item variants & attributes, UOM conversion precision, quality-inspection gate, stock closing entry, warehouse capacity | ~35 of the 77 | reservation and FEFO in particular affect the `stock_move` design we already proposed |
+| ~~**A**~~ | ~~**Accounts remainder**~~ — budget controller, deferred revenue/expense, POS lifecycle, bank matching + reconciliation, payment requests, dunning, invoice discounting, inter-company + common party, repost subsystems, `Unreconcile Payment`, statements | ~60 of the 191 | **DONE** — `docs/logic/11`–`15` |
+| ~~**A**~~ | ~~**Stock remainder**~~ — stock reservation entries, pick-list allocation, reorder / auto material request, batch expiry + FEFO picking, item variants & attributes, UOM conversion precision, warehouse structure | ~35 of the 77 | **DONE** — `docs/logic/16`–`17`. Remaining: putaway rules, warehouse capacity, quality-inspection gate, stock closing entry |
 | **B** | **Manufacturing** — BOM (+ cost roll-up, exploded items, update-cost job), Work Order, Job Card, Operations/Routing, Workstation capacity, Production Plan, Master Production Schedule, scrap & rework, WIP accounting | 48 (8 submittable) | large, self-contained; only needed if v1 makes things |
 | **B** | **Subcontracting deep dive** — order/receipt lifecycle, supplied-item consumption, RM transfer, `Subcontracting BOM` | 13 | partially covered (valuation + GL only, in doc 03) |
 | **C** | **Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement | 26 (8 submittable) | the depreciation engine is a second ledger-posting engine with its own scheduling |
@@ -51,12 +70,13 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 | **D** | **CRM** — lead/opportunity/prospect | 28 | lowest priority for an ERP core |
 | **E** | **Platform mechanics we must replace, not copy** — permission model (roles, user permissions, share, `if_owner`), naming series, the `hooks.py` extensibility model, `@allow_regional` overlay architecture (how India GST etc. inject fields and override calculations), background jobs + scheduler, patch/migration system, the query-report framework, custom fields & Customize Form, virtual doctypes | — | this is what we are *not* getting for free by leaving Frappe; it needs a deliberate answer per item |
 
-## 3. Proposed order
+## 3. Order (confirmed: "Your order")
 
-1. **Tranche A** (accounts + stock remainder) — finishes the two modules we have already modelled, and
-   is the only tranche that can still change the Phase 0-2 table designs in `docs/logic/08`.
-2. **Tranche E** (platform mechanics) — needed before any build decision, because it determines how much
-   framework we are writing ourselves.
+1. ~~**Tranche A** (accounts + stock remainder)~~ — **complete**, `docs/logic/09`–`17`, and it did
+   change the design: `doc_link` + fulfilment views (D7), insert-only `settlement` (D8),
+   explicit `approval_state` (D10), and the reservation/on-hand trigger model all came out of it.
+2. **Tranche E** (platform mechanics) — **next**. Needed before any build decision, because it
+   determines how much framework we are writing ourselves.
 3. **Tranche B / C** (manufacturing, assets) — only if in scope for v1.
 4. **Tranche D** last.
 
