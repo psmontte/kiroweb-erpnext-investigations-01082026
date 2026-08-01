@@ -19,7 +19,8 @@ schema/ddl/      *_asis.sql  = ERPNext physical layout as PostgreSQL
                  clean_*.sql = normalised reference schema
 tools/reveng/    the parser toolkit — re-runnable against any Frappe app
 tools/verify_ddl.sh  loads the generated DDL into a throwaway PostgreSQL and reports errors
-tools/verify_refs.py checks every source citation in docs/logic against the source tree
+tools/verify_refs.py checks every source citation in docs/ against the source tree
+tools/coverage_audit.py measures DocType coverage by whether a controller is cited at a line
 ```
 
 ## Regenerate everything
@@ -88,7 +89,7 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       item/UOM/variants/batch/reorder (`docs/logic/09`–`17`)
 - [x] **Finalised schema** — [`docs/design/FINAL-SCHEMA.md`](docs/design/FINAL-SCHEMA.md):
       tables, how data flows through them, business rules, and the invariant register
-      (357 source citations across `docs/logic/` verified against erpnext@ceefd4a)
+      (citations verified against erpnext@ceefd4a)
 - [x] **Tranche E complete** — the platform we must build rather than inherit: metadata + runtime
       DDL, permissions/RLS, naming + identity + audit, hooks + regional overlay, jobs + scheduling +
       locking, migrations + patches, reporting (`docs/logic/18`–`24`), plus
@@ -99,8 +100,18 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       **S01** Sales Order → Delivery Note → Sales Invoice (partial delivery, partial billing,
       dispute, return), **S02** payments against invoices (exact, partial, multi-invoice,
       credit-note offset, advances, un-allocation, over-payment), **S03** Purchase Order →
-      Receipt → Invoice (rejection, landed cost, return)
-- [ ] Tranche C — assets + depreciation engine (**scope to be confirmed**)
+      Receipt → Invoice (rejection, landed cost, return), **S04** warehouse transfer including
+      in-transit, **S05** period close + opening balances, **S06** multi-currency invoice →
+      payment → FX revaluation
+- [x] **Trade / inventory / accounts closed out** (`docs/logic/26`–`32`) — Journal Entry + chart of
+      accounts + dimensions, the remaining stock documents, tax determination, pricing
+      determination, upstream trade + parties, batch processes + instruments + recurring, and stock
+      configuration. **Accounts, Stock, Selling and Buying are at zero uncited DocTypes** —
+      submittable and configuration alike; see [`docs/COVERAGE.md`](docs/COVERAGE.md) (generated)
+      and the closure statement in
+      [`docs/logic/32`](docs/logic/32-stock-configuration-and-remaining-masters.md) §5.
+      **3,674 citations verified, 0 problems.**
+- [ ] Tranche C — assets + depreciation engine (**scope to be confirmed — the one open question**)
 - [ ] Tranche B — manufacturing, then quality (**in scope, scheduled last** by decision)
 - [x] ~~Tranche D~~ — CRM, projects, support: **out of scope** by decision
 - [ ] Build — deferred by decision until the investigation is complete

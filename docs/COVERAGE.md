@@ -26,11 +26,11 @@ The table is generated, so it cannot drift from reality. `--check` belongs in CI
 | Module | DocTypes | Controller cited | Uncited (submittable) | Uncited (config) | Excluded |
 |---|---:|---:|---:|---:|---:|
 | Accounts | 92 | 78 | 0 | 0 | 14 |
-| Stock | 45 | 28 | 0 | 10 | 7 |
-| Selling | 12 | 8 | 0 | 1 | 3 |
+| Stock | 45 | 38 | 0 | 0 | 7 |
+| Selling | 12 | 9 | 0 | 0 | 3 |
 | Buying | 10 | 5 | 0 | 0 | 5 |
 | Subcontracting | 4 | 1 | 2 | 1 | 0 |
-| **Total** | **163** | **120** | **2** | **12** | **29** |
+| **Total** | **163** | **131** | **2** | **1** | **29** |
 <!-- END COVERAGE TABLE -->
 
 Counts are **parent** DocTypes only (child tables are covered with their parent — the 99 child
@@ -105,7 +105,7 @@ ledger, freezing, balance-must-be) has not been read line by line.
 4. `tools/verify_refs.py` reports **0 problems** across all doc directories — no unresolved paths,
    no out-of-range lines, and no ambiguous shorthand refs. This covers both full citations and the
    `` (`:NNN`) `` shorthand; the shorthand is the bulk of the corpus, so verifying it is what makes
-   the "every claim is checkable" statement true. Current: **3160** citations in `docs/logic` and
+   the "every claim is checkable" statement true. Current: **3215** citations in `docs/logic` and
    **459** in `docs/scenarios`, all resolving.
 5. This table is regenerated and committed.
 
@@ -114,7 +114,14 @@ ledger, freezing, balance-must-be) has not been read line by line.
 | # | Criterion | State |
 |---|---|---|
 | 1 | `uncited_submittable` = 0 | Accounts **0** ✔, Stock **0** ✔, Selling **0** ✔, Buying **0** ✔. Subcontracting 2 deferred to Tranche B by decision |
-| 2 | Config DocTypes cited or excluded | Accounts config **0 uncited** ✔ (docs 28–31). 11 Stock/Selling items remain — see the closure pass |
-| 3 | Scenario per cross-subsystem flow | S01–S06 done |
-| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 3619 citations** |
+| 2 | Config DocTypes cited or excluded | **✔ 0 uncited config** in Accounts, Stock, Selling and Buying (docs 28–32) |
+| 3 | Scenario per cross-subsystem flow | **✔** S01–S06 |
+| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 3674 citations** |
 | 5 | Table regenerated | **✔** |
+
+**Definition met.** `Accounts`, `Stock`, `Selling` and `Buying` have zero uncited DocTypes,
+submittable and configuration alike. `Subcontracting`'s three remaining DocTypes
+(`Subcontracting Order`, `Subcontracting Inward Order`, `Subcontracting BOM`) are deferred to
+Tranche B by decision — their valuation and GL behaviour is documented in doc 03 §3.6 and S04; the
+order lifecycle and supplied-item consumption only make sense alongside manufacturing.
+The closure statement is [doc 32 §5](logic/32-stock-configuration-and-remaining-masters.md).

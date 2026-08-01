@@ -54,6 +54,8 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 
 | 31 | [31-batch-processes-instruments-recurring.md](31-batch-processes-instruments-recurring.md) | background jobs modelled as **submitted documents** (a state machine of two booleans and RQ job-name strings, with a name typo that defeats its own mutex), instruments that post nothing (`Bank Guarantee`, `Cashier Closing` — which attributes cash by `owner` and **adds** returns), `Subscription` idempotency by date comparison, loyalty, banking config — and `Accounts Settings`, whose save rewrites metadata, reschedules a cron job, flushes the cache and makes posted documents editable |
 
+| 32 | [32-stock-configuration-and-remaining-masters.md](32-stock-configuration-and-remaining-masters.md) | **the coverage-closure doc**: `Stock Settings` (the best irreversibility guards in the app — and a checkbox that rewrites every item's description, plus one that changes field precision across 11 doctypes), `Stock Reposting Settings` (**a weekly job that detects and repairs a broken stock↔GL invariant** — upstream agreeing with decision 6), attributes and variants, and the thin masters. Ends with the closure statement: Accounts, Stock, Selling and Buying at **zero uncited DocTypes** |
+
 ### Tranche A — deep dives (accounts + trade/inventory remainder)
 
 | Read | File | Covers |
@@ -117,7 +119,7 @@ Last run against the anchor commits:
 
 | Directory | Citations | Confirmed by symbol name | Problems |
 |---|---|---|---|
-| `docs/logic` | 3160 | 1562 | 0 |
+| `docs/logic` | 3215 | 1574 | 0 |
 | `docs/scenarios` | 459 | 164 | 0 |
 
 Name notes under `--strict-names` are advisory: the doc line may legitimately name a symbol defined

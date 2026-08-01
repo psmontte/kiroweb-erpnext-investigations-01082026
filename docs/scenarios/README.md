@@ -59,6 +59,13 @@ largest gap between what the system appears to do and what it does.
 | Returns and status | [doc 06](../logic/06-lifecycle-status-and-returns.md) |
 | Reservation and picking | [doc 16](../logic/16-stock-reservation-picking-warehouse.md) |
 | Repost subsystems | [doc 15](../logic/15-intercompany-and-history-rewriting.md) |
+| `Journal Entry`, chart of accounts, dimensions | [doc 26](../logic/26-journal-entry-chart-of-accounts-dimensions.md) |
+| Stock Entry, reconciliation, standard cost, the SLE controller | [doc 27](../logic/27-remaining-stock-documents.md) |
+| *Which* tax applies (before doc 05 calculates it) | [doc 28](../logic/28-tax-determination.md) |
+| *Which* price and rule apply | [doc 29](../logic/29-pricing-determination.md) |
+| Quotation / RFQ / Blanket Order / Material Request, drop-ship, terms | [doc 30](../logic/30-upstream-trade-and-parties.md) |
+| Batch processes, subscriptions, banking config, `Accounts Settings` | [doc 31](../logic/31-batch-processes-instruments-recurring.md) |
+| `Stock Settings`, reposting settings, variants — and the coverage closure | [doc 32](../logic/32-stock-configuration-and-remaining-masters.md) |
 | The target schema and invariant register | [FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md) |
 
 ## What is not here yet

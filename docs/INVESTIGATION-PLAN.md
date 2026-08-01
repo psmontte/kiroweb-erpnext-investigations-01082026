@@ -48,12 +48,46 @@ Anchor commits for everything so far: `erpnext@ceefd4add7` (v17.0.0-dev), `frapp
 Consolidated target design: **`docs/design/FINAL-SCHEMA.md`** (finalised tables, data flow,
 business rules, lifecycle state machine, fulfilment views, settlement model, invariant register).
 
-Citation verification across `docs/logic/`: **357 citations, 0 unresolved, 0 out of range,
-10 advisory name notes** (each reviewed).
+Citation verification across `docs/logic/`: superseded — see the closure block below
+(**3,674 citations, 0 problems**, shorthand included).
 
-**Still named but not chased** (moved to later tranches): putaway rules, warehouse capacity,
-quality-inspection gate, stock closing entry, loyalty program internals, payment-gateway
-integrations.
+~~**Still named but not chased**~~: putaway rules (doc 27 §3), warehouse capacity (doc 27 §3, doc 16
+§4), stock closing entry (doc 27, S05 §6), loyalty program internals (doc 31 §4), payment-gateway
+accounts (doc 31 §5.3) — **all now covered**. The quality-inspection gate remains in Tranche B with
+the rest of quality management.
+
+### Trade / inventory / accounts closure (`docs/logic/26`–`32`, `docs/scenarios/S04`–`S06`) — **complete**
+
+Requested explicitly: stock transfer + in-transit, period close + opening balances, multi-currency
+invoice → payment → FX revaluation — plus everything needed to call the three modules fully covered.
+
+| Area | Doc | Depth |
+|---|---|---|
+| `Journal Entry`, chart of accounts, cost centers, the runtime-DDL dimension mechanism | 26 | full |
+| Remaining stock documents: reconciliation, standard cost, putaway, serial no, bundles, logistics, the SLE controller | 27 | full |
+| Tax determination: `Tax Category`, `Tax Rule`, `Item Tax Template`, charge templates, withholding + LDC | 28 | full |
+| Pricing determination: `Price List`, `Pricing Rule`, `Promotional Scheme`, `Coupon Code`, `Shipping Rule`, eligibility, alternatives | 29 | full |
+| Upstream trade + parties: `Quotation`, `Proforma Invoice`, RFQ, `Supplier Quotation`, `Blanket Order`, `Material Request`, drop-ship, terms, Selling/Buying Settings | 30 | full |
+| Batch processes, instruments that post nothing, `Subscription`, loyalty, banking config, `Accounts Settings` | 31 | full |
+| **Coverage closure** — `Stock Settings`, `Stock Reposting Settings`, attributes/variants, thin masters, and the closure statement | 32 | deliverable |
+| Stock transfer between warehouses, including in-transit | S04 | scenario |
+| Period close and opening balances, walked through | S05 | scenario |
+| Multi-currency: invoice → payment → FX revaluation | S06 | scenario |
+
+**Coverage: `Accounts`, `Stock`, `Selling` and `Buying` are at zero uncited DocTypes** — submittable
+and configuration alike (`docs/COVERAGE.md`, generated). Citations: **3,674 verified, 0 problems**,
+including the shorthand form.
+
+Three findings from this closure changed how confident we are in earlier decisions:
+
+- `Stock Reposting Settings` ships a **weekly job that scans for a broken stock↔GL invariant and
+  repairs it** (doc 32 §2.3) — upstream agreeing with decision 6.
+- `quote_status` is stored as the output of `_()`, written by three code paths with two different
+  value domains (doc 30 §3.2) — which is why "no stored value is ever a translation" is now invariant
+  U7.
+- Submitting a `Request for Quotation` **creates `User` accounts** and writes to the `Supplier` master
+  with validation disabled (doc 30 §3.1) — the clearest case for the "side effects documents may not
+  have" table in doc 30 §11.4.
 
 ### Tranche E (`docs/logic/18`–`25`) — **complete**
 
@@ -68,8 +102,7 @@ integrations.
 | Five report types, ERPNext financial reports, post-hoc permission filtering, dashboards, print | 24 | full |
 | **Platform specification** — build/buy/drop per capability, four-layer enforcement rule, engine requirements | 25 | deliverable |
 
-Citation verification across `docs/logic/` (01–25): **~600 citations, 0 unresolved, 0 out of
-range**, advisory name notes reviewed.
+Citation verification: superseded — see the closure block above.
 
 ## 2. What is left
 
@@ -78,10 +111,11 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 | Tranche | Area | DocTypes | Why it matters |
 |---|---|--:|---|
 | ~~**A**~~ | ~~**Accounts remainder**~~ — budget controller, deferred revenue/expense, POS lifecycle, bank matching + reconciliation, payment requests, dunning, invoice discounting, inter-company + common party, repost subsystems, `Unreconcile Payment`, statements | ~60 of the 191 | **DONE** — `docs/logic/11`–`15` |
-| ~~**A**~~ | ~~**Stock remainder**~~ — stock reservation entries, pick-list allocation, reorder / auto material request, batch expiry + FEFO picking, item variants & attributes, UOM conversion precision, warehouse structure | ~35 of the 77 | **DONE** — `docs/logic/16`–`17`. Remaining: putaway rules, warehouse capacity, quality-inspection gate, stock closing entry |
+| ~~**A**~~ | ~~**Stock remainder**~~ — stock reservation entries, pick-list allocation, reorder / auto material request, batch expiry + FEFO picking, item variants & attributes, UOM conversion precision, warehouse structure | ~35 of the 77 | **DONE** — `docs/logic/16`–`17` |
+| ~~**A**~~ | ~~**Trade / inventory / accounts closure**~~ — Journal Entry + CoA + dimensions, remaining stock documents, tax determination, pricing determination, upstream trade + parties, batch processes + instruments + recurring, stock configuration | the remainder | **DONE** — `docs/logic/26`–`32`, `docs/scenarios/S04`–`S06`. Accounts/Stock/Selling/Buying at **zero uncited DocTypes** |
 | **B** | **Manufacturing** — BOM (+ cost roll-up, exploded items, update-cost job), Work Order, Job Card, Operations/Routing, Workstation capacity, Production Plan, Master Production Schedule, scrap & rework, WIP accounting | 48 (8 submittable) | large, self-contained; only needed if v1 makes things |
-| **B** | **Subcontracting deep dive** — order/receipt lifecycle, supplied-item consumption, RM transfer, `Subcontracting BOM` | 13 | partially covered (valuation + GL only, in doc 03) |
-| **C** | **Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement | 26 (8 submittable) | the depreciation engine is a second ledger-posting engine with its own scheduling |
+| **B** | **Subcontracting deep dive** — order/receipt lifecycle, supplied-item consumption, RM transfer, `Subcontracting BOM` | 13 | partially covered (valuation + GL in doc 03 §3.6, transfers in S04). The 3 uncited DocTypes in `docs/COVERAGE.md` are these |
+| **C** | **Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement | 26 (8 submittable) | the depreciation engine is a second ledger-posting engine with its own scheduling. **⚠️ Scope not yet confirmed — the one open question** |
 | ~~**D**~~ | ~~**Projects, Support, Maintenance, CRM**~~ — project costing, timesheet → billing, Support (11), Maintenance (5), CRM lead/opportunity/prospect (28) | ~75 | **OUT OF SCOPE** — dropped by decision. Not investigated, not built. |
 | **B** | **Quality Management** — inspection templates, readings, inspection gating receipts/deliveries/work orders | 16 | **in scope, after B (manufacturing)** — the gate interacts with receipt and work-order posting |
 | ~~**E**~~ | ~~**Platform mechanics we must replace, not copy**~~ — permission model, naming series, `hooks.py` extensibility, `@allow_regional` overlay, background jobs + scheduler, patch/migration system, query-report framework, custom fields & Customize Form, virtual doctypes | — | **DONE** — `docs/logic/18`–`25`, with a build/buy/drop decision per capability in `25-our-platform-spec.md` |
