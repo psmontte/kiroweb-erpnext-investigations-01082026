@@ -1,8 +1,9 @@
 # erp — our own ERP (backend / database)
 
 **Investigation mode.** We are documenting the Frappe/ERPNext data model and business logic first;
-application code starts only once the investigation is complete. Coverage map, remaining tranches and
-open questions: [docs/INVESTIGATION-PLAN.md](docs/INVESTIGATION-PLAN.md).
+**application implementation has not started** and starts only once Assets are investigated and the
+investigation is declared complete. Coverage map and remaining work:
+[docs/INVESTIGATION-PLAN.md](docs/INVESTIGATION-PLAN.md).
 
 Parsed the full standard app set — `frappe`, `erpnext`, `payments`, `hrms`, `webshop`:
 **997 DocTypes → 908 physical tables → 10,995 columns.** The accounting and trade/inventory
@@ -112,18 +113,14 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       submittable and configuration alike; see [`docs/COVERAGE.md`](docs/COVERAGE.md) (generated)
       and the closure statement in
       [`docs/logic/32`](docs/logic/32-stock-configuration-and-remaining-masters.md) §5.
-      **4,574 citations verified, 0 problems.**
-- [x] **Tranche B manufacturing complete** (`docs/logic/33`–`37`, scenario `S07`) — BOM costing and
-      explosion, operations/routing/capacity, Work Orders/Job Cards, Production Plan/MPS/netting, and
-      manufacturing Stock Entry/WIP/GL. **Manufacturing: 18/18 parent controllers cited, 0 gaps.**
-- [x] **Tranche B subcontracting complete** (`docs/logic/38`, scenarios `S08` and `S10`) — all
-      four Subcontracting parents and both ownership directions are documented. **Subcontracting:
-      4/4 parent controllers cited, 0 gaps.**
-- [x] **Tranche B quality complete** (`docs/logic/39`, scenario `S09`) — all eight Quality
-      Management parents and all four Stock-owned operational inspection parents are documented with
-      **0 coverage gaps**; accepted, blocked, warned and post-transaction gates are worked end to end.
-- [ ] **Tranche B closure next** — target production-spec and final closure doc 40
-- [ ] Tranche C — assets + depreciation engine (**deferred by decision; revisit after Tranche B and
-      before implementation**)
+      **4,598 citations verified, 0 problems.**
+- [x] **Tranche B complete** (`docs/logic/33`–`40`, scenarios `S07`–`S10`) — manufacturing,
+      supplier/customer-owned subcontracting, quality, coverage closure and the consolidated production
+      specification. Final measured coverage: **Manufacturing 18/18**, **Subcontracting 4/4** and
+      **Quality Management 8/8** parent controllers cited, with **0 submittable and 0 configuration
+      gaps**; see [`docs/logic/40`](docs/logic/40-tranche-b-coverage-closure-and-our-production-spec.md).
+- [ ] Tranche C — assets + depreciation engine (**deferred by decision; must be investigated before
+      implementation**)
 - [x] ~~Tranche D~~ — CRM, projects, support: **out of scope** by decision
-- [ ] Build — deferred by decision until the investigation is complete
+- [ ] Build — **application implementation has not started**; deferred until Assets are investigated
+      and the investigation is declared complete

@@ -801,6 +801,7 @@ a serializable gate consumption.
 
 Cross-references: doc 06 (submit/cancel/status), doc 09 (lifecycle/deletion), doc 20 (identity/audit),
 doc 22 (schedulers/locking), doc 32 (Stock Settings), docs 33–35 (BOM/operations/Job Cards), doc 37
-(manufacturing stock evidence), doc 38 (subcontract receipt/production), planned S09 (quality scenario),
-and `docs/design/FINAL-SCHEMA.md` (target evidence, allocation and projection model). Next: planned doc
-40 closes production coverage and consolidates the target production specification.
+(manufacturing stock evidence), doc 38 (subcontract receipt/production),
+[S09](../scenarios/S09-quality-gated-production-and-receipt.md) (quality scenario),
+[doc 40](40-tranche-b-coverage-closure-and-our-production-spec.md) (Tranche B closure and production
+specification), and `docs/design/FINAL-SCHEMA.md` (target evidence, allocation and projection model).

@@ -1,11 +1,12 @@
-# Business logic of the accounting + trade/inventory engine
+# Business logic of the accounting, trade/inventory and production engine
 
 What the code actually does, function by function, so we can reimplement it deliberately.
 
 > **Looking for a flow rather than a subsystem?** See
 > **[../scenarios/](../scenarios/README.md)** — Sales Order → Delivery Note → Sales Invoice,
 > payments against invoices, and Purchase Order → Receipt → Invoice, each traced end to end with
-> worked numbers and every table write in order.
+> worked numbers and every table write in order, including manufacturing, supplier/customer-owned
+> subcontracting and quality-gated production.
 
 ## Source anchor
 
@@ -62,6 +63,7 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 | 37 | [37-manufacturing-stock-consumption-scrap-wip-and-gl.md](37-manufacturing-stock-consumption-scrap-wip-and-gl.md) | manufacturing Stock Entry execution and accounting: transfer/consumption/manufacture/repack/disassembly; WIP, backflush, process loss, secondary outputs, serial/batch, valuation/additional costs, Standard Cost variance, GL, projections and races |
 | 38 | [38-subcontracting-orders-transfer-consumption-receipt-and-gl.md](38-subcontracting-orders-transfer-consumption-receipt-and-gl.md) | all four Subcontracting parents and both ownership directions: BOM/service conversion, PO/SO origin, supplier/customer material custody, reservation, transfer/return, receipt/Work Order consumption, secondary outputs, serial/batch, SLE/GL, projections and races |
 | 39 | [39-quality-inspection-templates-readings-and-gates.md](39-quality-inspection-templates-readings-and-gates.md) | all eight Quality Management parents and four Stock operational-QI parents: schemas/lifecycle, template construction and fallback, locale-formatted readings 1–10, formula evaluation, Accepted/Rejected decisions, reference writeback, transaction and Job Card gates, scheduler reviews, evidence/projections, defects and races |
+| 40 | [40-tranche-b-coverage-closure-and-our-production-spec.md](40-tranche-b-coverage-closure-and-our-production-spec.md) | **Tranche B deliverable**: exact final coverage, M1–M69 mapped to enforcement layers, concrete production/ownership/quality schema, transaction and reversal ordering, defect register and build sequence |
 
 ### Tranche A — deep dives (accounts + trade/inventory remainder)
 
@@ -90,20 +92,18 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 | 24 | [24-reporting-framework.md](24-reporting-framework.md) | SQL and Python stored in table rows, post-hoc Python row filtering, **aggregates computed before permission filtering** — and our generated queries over RLS-bearing views |
 | 25 | [25-our-platform-spec.md](25-our-platform-spec.md) | **the Tranche E deliverable**: build/buy/drop per capability, the four-layer rule, ten requirements on the orchestration engine, honest cost of leaving Frappe |
 
-### Tranche B — production investigation (in progress)
+### Tranche B — production investigation (**complete**)
 
-Confirmed order: **manufacturing → subcontracting → quality**. Manufacturing is complete in docs
-**33–37** plus **S07**: all 18 parent controllers are cited with zero coverage gaps. Subcontracting is
-complete in **doc 38**, **S08** and **S10**: all four parent controllers are cited with zero gaps.
-**Quality is complete** in **doc 39** and **S09**. Doc 39 covers all eight Quality Management
-parents and all four Stock operational-QI parents; S09 exercises blocked, accepted, warned and
-post-transaction receipt/operation/output gates. Planned doc 40 now closes Tranche B coverage and
-consolidates the target production specification. Assets/depreciation are deferred until after this
-tranche and before implementation.
+The confirmed order was **manufacturing → subcontracting → quality → closure**. Manufacturing is
+complete in docs **33–37** plus **S07**; subcontracting in **doc 38**, **S08** and **S10**; quality in
+**doc 39** and **S09**. [Doc 40](40-tranche-b-coverage-closure-and-our-production-spec.md) closes the
+tranche with measured coverage, exact M1–M69 enforcement mapping, the concrete target production
+schema, write/reversal ordering and build sequence. Assets/depreciation remain deferred and must be
+investigated before implementation. **Application implementation has not started.**
 
-Consolidated target schema: **[../design/FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md)** —
-finalised tables, data flow, business rules, lifecycle state machine, fulfilment views,
-settlement model, and the invariant register (F1–U1).
+Consolidated target schema: **[../design/FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md)** — finalised
+accounting/trade plus concrete production, owner/custodian, planning, capacity, execution,
+subcontracting and quality tables, data flow, business rules and invariant registers.
 
 ## Verifying the citations
 
@@ -137,7 +137,7 @@ Last run against the anchor commits:
 
 | Directory | Citations | Confirmed by symbol name | Problems |
 |---|---|---|---|
-| `docs/logic` | 3933 | 1574 | 0 |
+| `docs/logic` | 3957 | 1574 | 0 |
 | `docs/scenarios` | 641 | 164 | 0 |
 
 Name notes under `--strict-names` are advisory: the doc line may legitimately name a symbol defined
@@ -155,9 +155,10 @@ elsewhere in the same file. Frappe-side citations are prefixed `frappe/`.
 
 A user edits a **document**. On save, a calculation pipeline derives every monetary field
 (`taxes_and_totals.py`) and a payment schedule. On **submit**, the document produces two kinds of
-immutable rows: **stock ledger entries** (quantity + valuation state per item+warehouse) and
-**GL entries** (balanced double-entry rows). Stock rows are produced first, because the GL amount
-for inventory is read back *from* the stock rows (`stock_value_difference`) — that single
+immutable rows: **stock ledger entries** (quantity + valuation state per
+item+warehouse+owner+custodian) and **GL entries** (balanced double-entry rows). Stock rows are
+produced first, because the GL inventory amount is read back *from* the stock rows
+(`stock_value_difference`) — that single
 back-reference is what keeps inventory and accounting reconciled. Receivable/payable GL rows are
 mirrored into a **payment subledger** so "what is still unpaid" is one indexed aggregate rather than
 a ledger scan. Everything downstream (status, fulfilment percentages, ageing, balances) is *derived*

@@ -85,17 +85,19 @@ largest gap between what the system appears to do and what it does.
 | Quotation / RFQ / Blanket Order / Material Request, drop-ship, terms | [doc 30](../logic/30-upstream-trade-and-parties.md) |
 | Batch processes, subscriptions, banking config, `Accounts Settings` | [doc 31](../logic/31-batch-processes-instruments-recurring.md) |
 | `Stock Settings`, reposting settings, variants — and the coverage closure | [doc 32](../logic/32-stock-configuration-and-remaining-masters.md) |
+| Tranche B coverage closure and production specification | [doc 40](../logic/40-tranche-b-coverage-closure-and-our-production-spec.md) |
 | The target schema and invariant register | [FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md) |
 
 ## What is left
 
-| Deliverable | Depends on |
+| Deliverable | Status |
 |---|---|
-| **Doc 40** Production coverage closure and target-specification consolidation | **Tranche B** — the only remaining Tranche B deliverable |
-| Asset purchase → capitalisation → depreciation run → disposal | **Tranche C (assets)** — deferred; revisit before implementation |
+| **Tranche B** | **COMPLETE** — [doc 40](../logic/40-tranche-b-coverage-closure-and-our-production-spec.md) closes measured coverage and the target production specification |
+| Asset purchase → capitalisation → depreciation run → disposal | **Tranche C (Assets) deferred but required before implementation** |
+| Application implementation | **Has not started** |
 
 All trade / inventory / accounts flows that cross three or more subsystems are covered by
 **S01–S10**, including in-house manufacturing, both ownership directions of subcontracting and the
-quality-gated receipt/production boundary. **S09 completes the Tranche B scenario set; only doc 40
-remains in Tranche B.** Assets remain deferred to Tranche C.
+quality-gated receipt/production boundary. S09 completed the Tranche B scenario set and doc 40 completed
+the tranche. Assets remain deferred before implementation.
 See [../COVERAGE.md](../COVERAGE.md) for the DocType-level coverage matrix.
