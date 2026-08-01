@@ -29,10 +29,10 @@ The table is generated, so it cannot drift from reality. `--check` belongs in CI
 | Stock | 45 | 38 | 0 | 0 | 7 |
 | Selling | 12 | 9 | 0 | 0 | 3 |
 | Buying | 10 | 5 | 0 | 0 | 5 |
-| Subcontracting | 4 | 1 | 2 | 1 | 0 |
+| Subcontracting | 4 | 4 | 0 | 0 | 0 |
 | Manufacturing | 18 | 18 | 0 | 0 | 0 |
 | Quality Management | 8 | 0 | 0 | 8 | 0 |
-| **Total** | **189** | **149** | **2** | **9** | **29** |
+| **Total** | **189** | **152** | **0** | **8** | **29** |
 <!-- END COVERAGE TABLE -->
 
 Counts are **parent** DocTypes only (child tables are covered with their parent — the 99 child
@@ -76,7 +76,7 @@ oversight:
 | ~~`Payment Order`, `Bank Guarantee`~~ | Accounts | **DONE** — [doc 31](logic/31-batch-processes-instruments-recurring.md) |
 | ~~`Process Deferred Accounting`, `Process Payment Reconciliation`, `Process Subscription`, `Cashier Closing`~~ | Accounts | **DONE** — doc 31 §1–§2 |
 | ~~All 18 Manufacturing parent DocTypes~~ | Manufacturing | **DONE** — [docs 33–37](logic/README.md) + [S07](scenarios/S07-make-to-order-manufacturing.md); 0 uncited submittable, 0 uncited config |
-| `Subcontracting Order`, `Subcontracting Inward Order`, `Subcontracting BOM` | Subcontracting | **doc 38 / S08 / S10 — next** |
+| ~~`Subcontracting Order`, `Subcontracting Inward Order`, `Subcontracting BOM`~~ | Subcontracting | **DONE** — [doc 38](logic/38-subcontracting-orders-transfer-consumption-receipt-and-gl.md) + [S08](scenarios/S08-supplier-subcontracting.md) + [S10](scenarios/S10-customer-owned-subcontracting-inward.md); 4/4 parents cited, 0 gaps |
 
 ### Configuration that determines posting behaviour (must close)
 
@@ -101,8 +101,8 @@ ledger, freezing, balance-must-be) has not been read line by line.
 
 ## Definition of done for "trade + inventory + accounts fully covered"
 
-1. `uncited_submittable` is **0** for Accounts, Stock, Selling, Buying and Manufacturing;
-   active Subcontracting/Quality gaps are listed explicitly.
+1. `uncited_submittable` is **0** for Accounts, Stock, Selling, Buying, Manufacturing and
+   Subcontracting; active Quality gaps are listed explicitly.
 2. Every DocType in the "configuration that determines posting behaviour" list above is either
    cited or excluded with a reason.
 3. Scenario walkthroughs exist for every flow that crosses three or more subsystems
@@ -110,18 +110,18 @@ ledger, freezing, balance-must-be) has not been read line by line.
 4. `tools/verify_refs.py` reports **0 problems** across all doc directories — no unresolved paths,
    no out-of-range lines, and no ambiguous shorthand refs. This covers both full citations and the
    `` (`:NNN`) `` shorthand; the shorthand is the bulk of the corpus, so verifying it is what makes
-   the "every claim is checkable" statement true. Current: **3734** citations in `docs/logic` and
-   **514** in `docs/scenarios`, all resolving (**4248 total**).
+   the "every claim is checkable" statement true. Current: **3841** citations in `docs/logic` and
+   **603** in `docs/scenarios`, all resolving (**4444 total**).
 5. This table is regenerated and committed.
 
 ### Status against that definition
 
 | # | Criterion | State |
 |---|---|---|
-| 1 | `uncited_submittable` = 0 | Accounts **0** ✔, Stock **0** ✔, Selling **0** ✔, Buying **0** ✔, Manufacturing **0** ✔. Subcontracting **2** remain for doc 38 |
-| 2 | Config DocTypes cited or excluded | **✔ 0 uncited config** in Accounts, Stock, Selling, Buying and Manufacturing; Subcontracting **1** and Quality Management **8** remain |
-| 3 | Scenario per cross-subsystem flow | **✔** S01–S07; S08–S10 planned |
-| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 4248 citations** |
+| 1 | `uncited_submittable` = 0 | Accounts **0** ✔, Stock **0** ✔, Selling **0** ✔, Buying **0** ✔, Manufacturing **0** ✔, Subcontracting **0** ✔ |
+| 2 | Config DocTypes cited or excluded | **✔ 0 uncited config** in Accounts, Stock, Selling, Buying, Manufacturing and Subcontracting; Quality Management **8** remain |
+| 3 | Scenario per cross-subsystem flow | **✔** S01–S08 and S10; S09 next |
+| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 4444 citations** |
 | 5 | Table regenerated | **✔** |
 
 **Trade-core definition remains met.** `Accounts`, `Stock`, `Selling` and `Buying` have zero uncited
@@ -131,6 +131,9 @@ DocTypes, submittable and configuration alike; see [doc 32 §5](logic/32-stock-c
 uncited submittable and zero uncited configuration parents. Docs 33–37 and S07 cover BOM/costing,
 capacity, Work Orders/Job Cards, planning/MPS, material consumption, WIP, SLE and GL.
 
-**Tranche B remains open** only for the measured gaps shown above: three Subcontracting parents in doc
-38/S08/S10, eight Quality Management parents plus the temporarily excluded Stock-owned operational
-inspection family in doc 39/S09.
+**Subcontracting is now closed at DocType level:** all **4/4 parent controllers** are cited, with zero
+uncited submittable and zero uncited configuration parents. Doc 38, S08 and S10 cover both legal
+ownership directions, custody, transfer, consumption, receipt/manufacture, SLE, GL and billing.
+
+**Tranche B remains open** only for Quality: eight Quality Management parents plus the temporarily
+excluded Stock-owned operational inspection family in doc 39/S09.
