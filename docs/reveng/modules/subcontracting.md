@@ -22,6 +22,7 @@ and rolling their value into the finished item cost.
 
 - **Table**: `tabSubcontracting BOM`  (proposed: `subcontracting_bom`)
 - **Kind**: Master
+- **Owned by**: erpnext / Subcontracting
 - **Naming**: `format:SB-{####}`  (Expression)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -44,6 +45,7 @@ and rolling their value into the finished item cost.
 
 - **Table**: `tabSubcontracting Inward Order`  (proposed: `subcontracting_inward_order`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Subcontracting
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `customer_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -68,7 +70,7 @@ and rolling their value into the finished item cost.
 | 15 | `per_returned` | Percent | `numeric(21,9)` | ro |  |
 | 16 | `per_raw_material_returned` | Percent | `numeric(21,9)` | ro |  |
 | 17 | `per_raw_material_received` | Percent | `numeric(21,9)` | ro |  |
-| 18 | `currency` | Link | `varchar(140)` | ro, hidden, denorm←customer.default_currency | → `Currency` *(frappe core)* |
+| 18 | `currency` | Link | `varchar(140)` | ro, hidden, denorm←customer.default_currency | → `Currency` *(frappe/Geo)* |
 
 **Child tables (1-N):**
 
@@ -83,6 +85,7 @@ and rolling their value into the finished item cost.
 
 - **Table**: `tabSubcontracting Order`  (proposed: `subcontracting_order`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Subcontracting
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `supplier_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -100,15 +103,15 @@ and rolling their value into the finished item cost.
 | 8 | `transaction_date` | Date | `date` | NOT NULL, INDEX, denorm←purchase_order.transaction_date, default=Today |  |
 | 9 | `schedule_date` | Date | `date` | ro, denorm←purchase_order.schedule_date |  |
 | 10 | `amended_from` | Link | `varchar(140)` | ro | → `Subcontracting Order` |
-| 11 | `supplier_address` | Link | `varchar(140)` | denorm←supplier.supplier_primary_address | → `Address` *(frappe core)* |
+| 11 | `supplier_address` | Link | `varchar(140)` | denorm←supplier.supplier_primary_address | → `Address` *(frappe/Contacts)* |
 | 12 | `address_display` | Text Editor | `text` | ro |  |
-| 13 | `contact_person` | Link | `varchar(140)` | denorm←supplier.supplier_primary_contact | → `Contact` *(frappe core)* |
+| 13 | `contact_person` | Link | `varchar(140)` | denorm←supplier.supplier_primary_contact | → `Contact` *(frappe/Contacts)* |
 | 14 | `contact_display` | Small Text | `text` | ro |  |
 | 15 | `contact_mobile` | Small Text | `text` | ro |  |
 | 16 | `contact_email` | Small Text | `text` | ro |  |
-| 17 | `shipping_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 17 | `shipping_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 18 | `shipping_address_display` | Text Editor | `text` | ro |  |
-| 19 | `billing_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 19 | `billing_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 20 | `billing_address_display` | Text Editor | `text` | ro |  |
 | 21 | `set_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
 | 22 | `total_qty` | Float | `numeric(21,9)` | ro |  |
@@ -117,12 +120,12 @@ and rolling their value into the finished item cost.
 | 25 | `total_additional_costs` | Currency | `numeric(21,9)` | ro |  |
 | 26 | `status` | Select | `varchar(140)` | NOT NULL, INDEX, ro, default=Draft | enum: Draft, Open, Partially Received, Completed, Material Transferred, Partial Material Transferred, Cancelled, Closed |
 | 27 | `per_received` | Percent | `numeric(21,9)` | ro |  |
-| 28 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
-| 29 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
+| 28 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
+| 29 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
 | 30 | `distribute_additional_costs_based_on` | Select | `varchar(140)` | default=Qty | enum: Qty, Amount |
 | 31 | `cost_center` | Link | `varchar(140)` |  | → `Cost Center` |
 | 32 | `project` | Link | `varchar(140)` |  | → `Project` |
-| 33 | `supplier_currency` | Link | `varchar(140)` | ro, hidden, denorm←purchase_order.currency | → `Currency` *(frappe core)* |
+| 33 | `supplier_currency` | Link | `varchar(140)` | ro, hidden, denorm←purchase_order.currency | → `Currency` *(frappe/Geo)* |
 | 34 | `reserve_stock` | Check | `smallint` | default=0 |  |
 | 35 | `production_plan` | Data | `varchar(140)` | ro, hidden |  |
 
@@ -139,6 +142,7 @@ and rolling their value into the finished item cost.
 
 - **Table**: `tabSubcontracting Receipt`  (proposed: `subcontracting_receipt`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Subcontracting
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `supplier_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -153,13 +157,13 @@ and rolling their value into the finished item cost.
 | 5 | `posting_date` | Date | `date` | NOT NULL, INDEX, default=Today |  |
 | 6 | `posting_time` | Time | `time(6)` | NOT NULL, default=Now |  |
 | 7 | `company` | Link | `varchar(140)` | NOT NULL | → `Company` |
-| 8 | `supplier_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
-| 9 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 8 | `supplier_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
+| 9 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 10 | `address_display` | Text Editor | `text` | ro |  |
 | 11 | `contact_display` | Small Text | `text` | ro |  |
 | 12 | `contact_mobile` | Small Text | `text` | ro |  |
 | 13 | `contact_email` | Small Text | `text` | ro |  |
-| 14 | `shipping_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 14 | `shipping_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 15 | `shipping_address_display` | Text Editor | `text` | ro |  |
 | 16 | `set_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
 | 17 | `rejected_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
@@ -172,16 +176,16 @@ and rolling their value into the finished item cost.
 | 24 | `status` | Select | `varchar(140)` | NOT NULL, INDEX, ro, default=Draft | enum: Draft, Completed, Return, Return Issued, Cancelled, Closed |
 | 25 | `amended_from` | Link | `varchar(140)` | ro, hidden | → `Subcontracting Receipt` |
 | 26 | `range` | Data | `varchar(140)` | hidden |  |
-| 27 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe core)* |
-| 28 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
-| 29 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
+| 27 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe/Automation)* |
+| 28 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
+| 29 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
 | 30 | `language` | Data | `varchar(140)` | ro |  |
 | 31 | `instructions` | Small Text | `text` |  |  |
 | 32 | `remarks` | Small Text | `text` |  |  |
 | 33 | `transporter_name` | Data | `varchar(140)` |  |  |
 | 34 | `lr_no` | Data | `varchar(140)` |  |  |
 | 35 | `lr_date` | Date | `date` |  |  |
-| 36 | `billing_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 36 | `billing_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 37 | `billing_address_display` | Text Editor | `text` | ro |  |
 | 38 | `represents_company` | Link | `varchar(140)` | ro, denorm←supplier.represents_company | → `Company` |
 | 39 | `is_return` | Check | `smallint` | ro, default=0 |  |
@@ -210,6 +214,7 @@ and rolling their value into the finished item cost.
 
 - **Table**: `tabSubcontracting Inward Order Item`  (proposed: `subcontracting_inward_order_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Subcontracting
 - **Naming**: `hash`  (Random)
 - **Search fields**: `item_name`
 - **Embedded in**: `Subcontracting Inward Order`.`items`
@@ -235,6 +240,7 @@ and rolling their value into the finished item cost.
 
 - **Table**: `tabSubcontracting Inward Order Received Item`  (proposed: `subcontracting_inward_order_received_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Subcontracting
 - **Embedded in**: `Subcontracting Inward Order`.`received_items`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -259,6 +265,7 @@ and rolling their value into the finished item cost.
 
 - **Table**: `tabSubcontracting Inward Order Secondary Item`  (proposed: `subcontracting_inward_order_secondary_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Subcontracting
 - **Embedded in**: `Subcontracting Inward Order`.`secondary_items`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -276,6 +283,7 @@ and rolling their value into the finished item cost.
 
 - **Table**: `tabSubcontracting Inward Order Service Item`  (proposed: `subcontracting_inward_order_service_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Subcontracting
 - **Naming**: `hash`  (Random)
 - **Search fields**: `item_name`
 - **Embedded in**: `Subcontracting Inward Order`.`service_items`
@@ -296,6 +304,7 @@ and rolling their value into the finished item cost.
 
 - **Table**: `tabSubcontracting Order Item`  (proposed: `subcontracting_order_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Subcontracting
 - **Naming**: `hash`  (Random)
 - **Search fields**: `item_name`
 - **Embedded in**: `Subcontracting Order`.`items`
@@ -338,6 +347,7 @@ and rolling their value into the finished item cost.
 
 - **Table**: `tabSubcontracting Order Service Item`  (proposed: `subcontracting_order_service_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Subcontracting
 - **Naming**: `hash`  (Random)
 - **Search fields**: `item_name`
 - **Embedded in**: `Subcontracting Order`.`service_items`
@@ -359,6 +369,7 @@ and rolling their value into the finished item cost.
 
 - **Table**: `tabSubcontracting Order Supplied Item`  (proposed: `subcontracting_order_supplied_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Subcontracting
 - **Embedded in**: `Subcontracting Order`.`supplied_items`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -383,6 +394,7 @@ and rolling their value into the finished item cost.
 
 - **Table**: `tabSubcontracting Receipt Item`  (proposed: `subcontracting_receipt_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Subcontracting
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Subcontracting Receipt`.`items`
 
@@ -441,6 +453,7 @@ and rolling their value into the finished item cost.
 
 - **Table**: `tabSubcontracting Receipt Supplied Item`  (proposed: `subcontracting_receipt_supplied_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Subcontracting
 - **Naming**: Autoincrement
 - **Embedded in**: `Subcontracting Receipt`.`supplied_items`
 

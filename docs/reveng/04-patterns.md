@@ -6,24 +6,32 @@ Scope: Accounts, Selling, Buying, Stock, Subcontracting, Setup.
 
 ERPNext reuses one physical child table across many parent DocTypes and tells them
 apart with `parenttype`. This is why the framework cannot use real foreign keys.
-42 child tables have more than one parent.
+66 child tables have more than one parent.
 
 | Child table | Parents | Used by |
 |---|--:|---|
+| `Has Role` | 12 | `Custom Role`.`roles`, `Page`.`roles`, `Report`.`roles`, `Role Permission for Page and Report`.`roles`, `Role Profile`.`roles`, `User`.`roles`, `Custom HTML Block`.`roles`, `Dashboard Chart`.`roles` … (+4) |
 | `Item Wise Tax Detail` | 9 | `POS Invoice`.`item_wise_tax_details`, `Purchase Invoice`.`item_wise_tax_details`, `Sales Invoice`.`item_wise_tax_details`, `Purchase Order`.`item_wise_tax_details`, `Supplier Quotation`.`item_wise_tax_details`, `Quotation`.`item_wise_tax_details`, `Sales Order`.`item_wise_tax_details`, `Delivery Note`.`item_wise_tax_details` … (+1) |
 | `Pricing Rule Detail` | 9 | `POS Invoice`.`pricing_rules`, `Purchase Invoice`.`pricing_rules`, `Sales Invoice`.`pricing_rules`, `Purchase Order`.`pricing_rules`, `Supplier Quotation`.`pricing_rules`, `Quotation`.`pricing_rules`, `Sales Order`.`pricing_rules`, `Delivery Note`.`pricing_rules` … (+1) |
 | `Payment Schedule` | 6 | `POS Invoice`.`payment_schedule`, `Purchase Invoice`.`payment_schedule`, `Sales Invoice`.`payment_schedule`, `Purchase Order`.`payment_schedule`, `Quotation`.`payment_schedule`, `Sales Order`.`payment_schedule` |
 | `Sales Taxes and Charges` | 6 | `POS Invoice`.`taxes`, `Sales Invoice`.`taxes`, `Sales Taxes and Charges Template`.`taxes`, `Quotation`.`taxes`, `Sales Order`.`taxes`, `Delivery Note`.`taxes` |
+| `Dynamic Link` | 6 | `Common Code`.`applies_to`, `Call Log`.`links`, `Address`.`links`, `Contact`.`links`, `Event`.`links`, `Web Form Request`.`references` |
+| `Payroll Correction Child` | 6 | `Arrear`.`earning_arrears`, `Arrear`.`deduction_arrears`, `Arrear`.`accrual_arrears`, `Payroll Correction`.`earning_arrears`, `Payroll Correction`.`deduction_arrears`, `Payroll Correction`.`accrual_arrears` |
 | `Purchase Taxes and Charges` | 5 | `Purchase Invoice`.`taxes`, `Purchase Taxes and Charges Template`.`taxes`, `Purchase Order`.`taxes`, `Supplier Quotation`.`taxes`, `Purchase Receipt`.`taxes` |
 | `Sales Team` | 5 | `POS Invoice`.`sales_team`, `Sales Invoice`.`sales_team`, `Customer`.`sales_team`, `Sales Order`.`sales_team`, `Delivery Note`.`sales_team` |
 | `Packed Item` | 5 | `POS Invoice`.`packed_items`, `Sales Invoice`.`packed_items`, `Quotation`.`packed_items`, `Sales Order`.`packed_items`, `Delivery Note`.`packed_items` |
+| `Salary Detail` | 5 | `Salary Slip`.`earnings`, `Salary Slip`.`deductions`, `Salary Structure`.`earnings`, `Salary Structure`.`deductions`, `Salary Structure`.`employer_contributions` |
 | `Party Account` | 4 | `Supplier`.`accounts`, `Customer`.`accounts`, `Customer Group`.`accounts`, `Supplier Group`.`accounts` |
 | `Tax Withholding Entry` | 4 | `Journal Entry`.`tax_withholding_entries`, `Payment Entry`.`tax_withholding_entries`, `Purchase Invoice`.`tax_withholding_entries`, `Sales Invoice`.`tax_withholding_entries` |
 | `Landed Cost Taxes and Charges` | 4 | `Landed Cost Voucher`.`taxes`, `Stock Entry`.`additional_costs`, `Subcontracting Order`.`additional_costs`, `Subcontracting Receipt`.`additional_costs` |
+| `Employee Boarding Activity` | 4 | `Employee Onboarding`.`activities`, `Employee Onboarding Template`.`activities`, `Employee Separation`.`activities`, `Employee Separation Template`.`activities` |
 | `CRM Note` | 3 | `Lead`.`notes`, `Opportunity`.`notes`, `Prospect`.`notes` |
 | `Target Detail` | 3 | `Sales Partner`.`targets`, `Sales Person`.`targets`, `Territory`.`targets` |
 | `Company Restriction` | 3 | `Supplier`.`allowed_companies`, `Customer`.`allowed_companies`, `Item`.`allowed_companies` |
 | `Item Default` | 3 | `Brand`.`brand_defaults`, `Item Group`.`item_group_defaults`, `Item`.`item_defaults` |
+| `Assignment Rule User` | 3 | `Appointment Booking Settings`.`agent_list`, `Assignment Rule`.`users`, `Assignment Rule`.`weighted_users` |
+| `Employee Feedback Rating` | 3 | `Appraisal`.`self_ratings`, `Appraisal Template`.`rating_criteria`, `Employee Performance Feedback`.`feedback_ratings` |
+| `Employee Benefit Detail` | 3 | `Salary Slip`.`accrued_benefits`, `Salary Structure`.`employee_benefits`, `Salary Structure Assignment`.`employee_benefits` |
 | `Allowed To Transact With` | 2 | `Supplier`.`companies`, `Customer`.`companies` |
 | `POS Invoice Reference` | 2 | `POS Closing Entry`.`pos_invoices`, `POS Invoice Merge Log`.`pos_invoices` |
 | `Pricing Rule Brand` | 2 | `Pricing Rule`.`brands`, `Promotional Scheme`.`brands` |
@@ -42,14 +50,6 @@ apart with `parenttype`. This is why the framework cannot use real foreign keys.
 | `BOM Operation` | 2 | `BOM`.`operations`, `Routing`.`operations` |
 | `Job Card Time Log` | 2 | `Job Card`.`time_logs`, `Job Card`.`employee` |
 | `Master Production Schedule Item` | 2 | `Master Production Schedule`.`items`, `Master Production Schedule`.`select_items` |
-| `Production Plan Material Request` | 2 | `Master Production Schedule`.`material_requests`, `Production Plan`.`material_requests` |
-| `Production Plan Sales Order` | 2 | `Master Production Schedule`.`sales_orders`, `Production Plan`.`sales_orders` |
-| `Sales Forecast Item` | 2 | `Sales Forecast`.`selected_items`, `Sales Forecast`.`items` |
-| `Work Order Additional Item` | 2 | `Work Order`.`non_stock_items`, `Work Order`.`secondary_items` |
-| `Workstation Cost` | 2 | `Workstation`.`workstation_costs`, `Workstation Type`.`workstation_costs` |
-| `Project User` | 2 | `Project`.`users`, `Project Update`.`users` |
-| `Customer Credit Limit` | 2 | `Customer`.`credit_limits`, `Customer Group`.`credit_limits` |
-| `Item Tax` | 2 | `Item Group`.`taxes`, `Item`.`taxes` |
 
 **Decision for our schema:** one table per (parent, field) with a real FK, or a single
 table plus a discriminator only where the rows are genuinely interchangeable.
@@ -63,19 +63,23 @@ and 'this ledger row came from some voucher'.
 | Discriminator column | Value column | Occurrences | Example tables |
 |---|---|--:|---|
 | `party_type` | `party` | 17 | `Bank Account`, `Bank Transaction`, `Bank Transaction Rule`, `Bank Transaction Rule Accounts`, `Exchange Rate Revaluation Account` |
+| `reference_doctype` | `reference_name` | 13 | `Activity Log`, `Asset Movement`, `Batch`, `Comment`, `Communication` |
 | `voucher_type` | `voucher_no` | 10 | `Advance Payment Ledger Entry`, `GL Entry`, `Payment Ledger Entry`, `Repost Accounting Ledger Items`, `Repost Item Valuation` |
-| `reference_type` | `reference_name` | 7 | `Journal Entry Account`, `Payment Reconciliation Allocation`, `Payment Reconciliation Payment`, `Process Payment Reconciliation Log Allocations`, `Purchase Invoice Advance` |
-| `reference_doctype` | `reference_name` | 7 | `Asset Movement`, `Batch`, `Payment Entry Reference`, `Payment Order Reference`, `Payment Request` |
+| `reference_type` | `reference_name` | 9 | `Expense Claim Advance`, `Journal Entry Account`, `Payment Reconciliation Allocation`, `Payment Reconciliation Payment`, `Process Payment Reconciliation Log Allocations` |
+| `reference_doctype` | `reference_docname` | 6 | `Bank Guarantee`, `Discussion Topic`, `Document Share Key`, `Event`, `Event Participants` |
+| `document_type` | `document_name` | 4 | `Contract`, `Quality Feedback`, `Quality Meeting Minutes`, `Tag Link` |
+| `ref_doctype` | `ref_docname` | 4 | `Additional Salary`, `Background Task`, `Document Follow`, `Submission Queue` |
+| `link_type` | `link_to` | 4 | `Desktop Icon`, `Workspace`, `Workspace Link`, `Workspace Sidebar Item` |
 | `invoice_type` | `invoice_number` | 3 | `Payment Reconciliation Allocation`, `Payment Reconciliation Invoice`, `Process Payment Reconciliation Log Allocations` |
-| `document_type` | `document_name` | 3 | `Contract`, `Quality Feedback`, `Quality Meeting Minutes` |
+| `link_doctype` | `link_name` | 3 | `Activity Log`, `Communication Link`, `Dynamic Link` |
 | `against_voucher_type` | `against_voucher_no` | 2 | `Advance Payment Ledger Entry`, `Payment Ledger Entry` |
 | `payment_document` | `payment_entry` | 2 | `Bank Clearance Detail`, `Bank Transaction Payments` |
 | `advance_voucher_type` | `advance_voucher_no` | 2 | `Journal Entry Account`, `Payment Entry Reference` |
 | `prevdoc_doctype` | `prevdoc_docname` | 2 | `Maintenance Visit Purpose`, `Quotation Item` |
 | `receipt_document_type` | `receipt_document` | 2 | `Landed Cost Item`, `Landed Cost Purchase Receipt` |
+| `reference_doctype` | `reference_document` | 2 | `Auto Repeat`, `Employee Benefit Ledger` |
 | `reference_document` | `default_dimension` | 1 | `Accounting Dimension Detail` |
 | `accounting_dimension` | `dimension_value` | 1 | `Allowed Dimension` |
-| `reference_doctype` | `reference_docname` | 1 | `Bank Guarantee` |
 | `against_voucher_type` | `against_voucher` | 1 | `GL Entry` |
 | `invoice_type` | `invoice` | 1 | `Loyalty Point Entry` |
 | `primary_role` | `primary_party` | 1 | `Party Link` |
@@ -88,10 +92,6 @@ and 'this ledger row came from some voucher'.
 | `appointment_with` | `party` | 1 | `Appointment` |
 | `party_type` | `party_name` | 1 | `Contract` |
 | `email_campaign_for` | `recipient` | 1 | `Email Campaign` |
-| `opportunity_from` | `party_name` | 1 | `Opportunity` |
-| `restrict_based_on` | `based_on_value` | 1 | `Party Specific Item` |
-| `quotation_to` | `party_name` | 1 | `Quotation` |
-| `customer_or_item` | `master_name` | 1 | `Authorization Rule` |
 
 **Decision for our schema:** the `party_type`/`party` pair is a genuine supertype
 (introduce a `party` table that `customer` and `supplier` extend). The
@@ -212,7 +212,7 @@ base amounts in generated columns or views so the two can never drift.
 
 ## 6. Hierarchies (nested sets)
 
-14 tree masters app-wide, each carrying `lft`, `rgt`, `old_parent` plus a
+15 tree masters app-wide, each carrying `lft`, `rgt`, `old_parent` plus a
 self-referencing `parent_*` link and an `is_group` flag.
 
 | Table | Module | Parent column |
@@ -220,6 +220,7 @@ self-referencing `parent_*` link and an `is_group` flag.
 | `Account` | Accounts | `parent_account` |
 | `Cost Center` | Accounts | `parent_cost_center` |
 | `Location` | Assets | `parent_location` |
+| `Goal` | HR | `old_parent` |
 | `Task` | Projects | `parent_task` |
 | `Quality Procedure` | Quality Management | `parent_quality_procedure` |
 | `Company` | Setup | `parent_company` |

@@ -1,533 +1,998 @@
-module,doctype,kind,frappe_table,proposed_table,columns,links,child_tables,indexes,submittable,tree,single,autoname
-Accounts,Account,tree-master,tabAccount,account,18,4,0,4,0,1,0,
-Accounts,Account Category,master,tabAccount Category,account_category,3,0,0,0,0,0,0,field:account_category_name
-Accounts,Account Closing Balance,transaction,tabAccount Closing Balance,account_closing_balance,16,7,0,4,1,0,0,
-Accounts,Accounting Dimension,master,tabAccounting Dimension,accounting_dimension,4,1,1,1,0,0,0,field:label
-Accounts,Accounting Dimension Detail,child,tabAccounting Dimension Detail,accounting_dimension_detail,7,3,0,0,0,0,0,
-Accounts,Accounting Dimension Filter,master,tabAccounting Dimension Filter,accounting_dimension_filter,6,1,2,0,0,0,0,format:{accounting_dimension}-{#####}
-Accounts,Accounting Period,master,tabAccounting Period,accounting_period,6,2,1,0,0,0,0,field:period_name
-Accounts,Accounts Settings,single,tabAccounts Settings,accounts_settings,64,5,1,0,0,0,1,
-Accounts,Advance Payment Ledger Entry,transaction,tabAdvance Payment Ledger Entry,advance_payment_ledger_entry,11,4,0,0,1,0,0,
-Accounts,Advance Taxes and Charges,child,tabAdvance Taxes and Charges,advance_taxes_and_charges,18,4,0,1,0,0,0,
-Accounts,Allowed Dimension,child,tabAllowed Dimension,allowed_dimension,2,1,0,0,0,0,0,
-Accounts,Allowed To Transact With,child,tabAllowed To Transact With,allowed_to_transact_with,1,1,0,0,0,0,0,
-Accounts,Applicable On Account,child,tabApplicable On Account,applicable_on_account,2,1,0,0,0,0,0,
-Accounts,Bank,master,tabBank,bank,4,0,1,0,0,0,0,field:bank_name
-Accounts,Bank Account,master,tabBank Account,bank_account,19,6,0,0,0,0,0,
-Accounts,Bank Account Balance,master,tabBank Account Balance,bank_account_balance,4,2,0,0,0,0,0,
-Accounts,Bank Account Subtype,master,tabBank Account Subtype,bank_account_subtype,1,0,0,0,0,0,0,field:account_subtype
-Accounts,Bank Account Type,master,tabBank Account Type,bank_account_type,1,0,0,0,0,0,0,field:account_type
-Accounts,Bank Clearance,single,tabBank Clearance,bank_clearance,7,3,1,0,0,0,1,
-Accounts,Bank Clearance Detail,child,tabBank Clearance Detail,bank_clearance_detail,8,1,0,0,0,0,0,
-Accounts,Bank Guarantee,transaction,tabBank Guarantee,bank_guarantee,24,8,0,0,1,0,0,ACC-BG-.YYYY.-.#####
-Accounts,Bank Reconciliation Tool,single,tabBank Reconciliation Tool,bank_reconciliation_tool,10,3,0,0,0,0,1,
-Accounts,Bank Statement Import,master,tabBank Statement Import,bank_statement_import,17,4,0,0,0,0,0,format:Bank Statement Import on {creation}
-Accounts,Bank Statement Import Log,master,tabBank Statement Import Log,bank_statement_import_log,18,2,1,0,0,0,0,hash
-Accounts,Bank Statement Import Log Column Map,child,tabBank Statement Import Log Column Map,bank_statement_import_log_column_map,4,0,0,0,0,0,0,
-Accounts,Bank Transaction,transaction,tabBank Transaction,bank_transaction,24,6,1,0,1,0,0,naming_series:
-Accounts,Bank Transaction Mapping,child,tabBank Transaction Mapping,bank_transaction_mapping,2,0,0,0,0,0,0,
-Accounts,Bank Transaction Payments,child,tabBank Transaction Payments,bank_transaction_payments,5,1,0,0,0,0,0,
-Accounts,Bank Transaction Rule,master,tabBank Transaction Rule,bank_transaction_rule,12,3,2,0,0,0,0,field:rule_name
-Accounts,Bank Transaction Rule Accounts,child,tabBank Transaction Rule Accounts,bank_transaction_rule_accounts,6,2,0,0,0,0,0,
-Accounts,Bank Transaction Rule Description Conditions,child,tabBank Transaction Rule Description Conditions,bank_transaction_rule_description_conditions,2,0,0,0,0,0,0,
-Accounts,Bisect Accounting Statements,single,tabBisect Accounting Statements,bisect_accounting_statements,10,2,0,0,0,0,1,
-Accounts,Bisect Nodes,master,tabBisect Nodes,bisect_nodes,9,3,0,0,0,0,0,autoincrement
-Accounts,Budget,transaction,tabBudget,budget,28,7,1,0,1,0,0,naming_series:
-Accounts,Budget Account,child,tabBudget Account,budget_account,2,1,0,1,0,0,0,
-Accounts,Budget Distribution,child,tabBudget Distribution,budget_distribution,4,0,0,1,0,0,0,
-Accounts,Campaign Item,child,tabCampaign Item,campaign_item,1,1,0,0,0,0,0,
-Accounts,Cashier Closing,transaction,tabCashier Closing,cashier_closing,11,2,1,0,1,0,0,naming_series:
-Accounts,Cashier Closing Payments,child,tabCashier Closing Payments,cashier_closing_payments,2,1,0,0,0,0,0,
-Accounts,Chart of Accounts Importer,single,tabChart of Accounts Importer,chart_of_accounts_importer,2,1,0,0,0,0,1,
-Accounts,Cheque Print Template,master,tabCheque Print Template,cheque_print_template,25,0,0,0,0,0,0,field:bank_name
-Accounts,Closed Document,child,tabClosed Document,closed_document,2,1,0,0,0,0,0,
-Accounts,Cost Center,tree-master,tabCost Center,cost_center,9,3,0,2,0,1,0,
-Accounts,Cost Center Allocation,transaction,tabCost Center Allocation,cost_center_allocation,4,3,1,0,1,0,0,CC-ALLOC-.#####
-Accounts,Cost Center Allocation Percentage,child,tabCost Center Allocation Percentage,cost_center_allocation_percentage,2,1,0,0,0,0,0,
-Accounts,Coupon Code,master,tabCoupon Code,coupon_code,12,3,0,0,0,0,0,field:coupon_name
-Accounts,Currency Exchange Settings,single,tabCurrency Exchange Settings,currency_exchange_settings,6,0,2,0,0,0,1,
-Accounts,Currency Exchange Settings Details,child,tabCurrency Exchange Settings Details,currency_exchange_settings_details,2,0,0,0,0,0,0,
-Accounts,Currency Exchange Settings Result,child,tabCurrency Exchange Settings Result,currency_exchange_settings_result,1,0,0,0,0,0,0,
-Accounts,Customer Group Item,child,tabCustomer Group Item,customer_group_item,1,1,0,0,0,0,0,
-Accounts,Customer Item,child,tabCustomer Item,customer_item,1,1,0,0,0,0,0,
-Accounts,Discounted Invoice,child,tabDiscounted Invoice,discounted_invoice,5,3,0,1,0,0,0,
-Accounts,Dunning,transaction,tabDunning,dunning,33,12,1,0,1,0,0,naming_series:
-Accounts,Dunning Letter Text,child,tabDunning Letter Text,dunning_letter_text,4,1,0,0,0,0,0,
-Accounts,Dunning Type,master,tabDunning Type,dunning_type,7,3,1,0,0,0,0,
-Accounts,Exchange Rate Revaluation,transaction,tabExchange Rate Revaluation,exchange_rate_revaluation,7,2,1,0,1,0,0,ACC-ERR-.YYYY.-.#####
-Accounts,Exchange Rate Revaluation Account,child,tabExchange Rate Revaluation Account,exchange_rate_revaluation_account,12,3,0,0,0,0,0,
-Accounts,Finance Book,master,tabFinance Book,finance_book,1,0,0,0,0,0,0,field:finance_book_name
-Accounts,Financial Report Row,child,tabFinancial Report Row,financial_report_row,15,0,0,0,0,0,0,
-Accounts,Financial Report Template,master,tabFinancial Report Template,financial_report_template,4,1,1,0,0,0,0,field:template_name
-Accounts,Fiscal Year,master,tabFiscal Year,fiscal_year,6,0,1,0,0,0,0,field:year
-Accounts,Fiscal Year Company,child,tabFiscal Year Company,fiscal_year_company,1,1,0,0,0,0,0,
-Accounts,GL Entry,transaction,tabGL Entry,gl_entry,35,11,0,10,1,0,0,ACC-GLE-.YYYY.-.#####
-Accounts,Invoice Discounting,transaction,tabInvoice Discounting,invoice_discounting,15,8,1,0,1,0,0,ACC-INV-DISC-.YYYY.-.#####
-Accounts,Item Tax Template,master,tabItem Tax Template,item_tax_template,3,1,1,0,0,0,0,
-Accounts,Item Tax Template Detail,child,tabItem Tax Template Detail,item_tax_template_detail,3,1,0,0,0,0,0,
-Accounts,Item Wise Tax Detail,child,tabItem Wise Tax Detail,item_wise_tax_detail,5,0,0,0,0,0,0,
-Accounts,Journal Entry,transaction,tabJournal Entry,journal_entry,47,18,2,7,1,0,0,naming_series:
-Accounts,Journal Entry Account,child,tabJournal Entry Account,journal_entry_account,23,7,0,6,0,0,0,hash
-Accounts,Journal Entry Template,master,tabJournal Entry Template,journal_entry_template,6,1,1,0,0,0,0,field:template_title
-Accounts,Journal Entry Template Account,child,tabJournal Entry Template Account,journal_entry_template_account,5,4,0,0,0,0,0,
-Accounts,Ledger Health,master,tabLedger Health,ledger_health,5,0,0,0,0,0,0,autoincrement
-Accounts,Ledger Health Monitor,single,tabLedger Health Monitor,ledger_health_monitor,4,0,1,0,0,0,1,
-Accounts,Ledger Health Monitor Company,child,tabLedger Health Monitor Company,ledger_health_monitor_company,1,1,0,0,0,0,0,
-Accounts,Ledger Merge,master,tabLedger Merge,ledger_merge,6,2,1,0,0,0,0,format:{account_name} merger on {creation}
-Accounts,Ledger Merge Accounts,child,tabLedger Merge Accounts,ledger_merge_accounts,3,1,0,0,0,0,0,
-Accounts,Loyalty Point Entry,master,tabLoyalty Point Entry,loyalty_point_entry,12,5,0,0,0,0,0,
-Accounts,Loyalty Point Entry Redemption,child,tabLoyalty Point Entry Redemption,loyalty_point_entry_redemption,3,0,0,0,0,0,0,
-Accounts,Loyalty Program,master,tabLoyalty Program,loyalty_program,13,6,1,0,0,0,0,field:loyalty_program_name
-Accounts,Loyalty Program Collection,child,tabLoyalty Program Collection,loyalty_program_collection,3,0,0,0,0,0,0,
-Accounts,Mode of Payment,master,tabMode of Payment,mode_of_payment,3,0,1,0,0,0,0,field:mode_of_payment
-Accounts,Mode of Payment Account,child,tabMode of Payment Account,mode_of_payment_account,2,2,0,0,0,0,0,
-Accounts,Monthly Distribution,master,tabMonthly Distribution,monthly_distribution,2,1,1,1,0,0,0,field:distribution_id
-Accounts,Monthly Distribution Percentage,child,tabMonthly Distribution Percentage,monthly_distribution_percentage,2,0,0,0,0,0,0,hash
-Accounts,Opening Invoice Creation Tool,single,tabOpening Invoice Creation Tool,opening_invoice_creation_tool,5,3,1,0,0,0,1,
-Accounts,Opening Invoice Creation Tool Item,child,tabOpening Invoice Creation Tool Item,opening_invoice_creation_tool_item,13,4,0,0,0,0,0,
-Accounts,Overdue Payment,child,tabOverdue Payment,overdue_payment,14,3,0,0,0,0,0,
-Accounts,POS Closing Entry,transaction,tabPOS Closing Entry,pos_closing_entry,15,5,4,0,1,0,0,POS-CLO-.YYYY.-.#####
-Accounts,POS Closing Entry Detail,child,tabPOS Closing Entry Detail,pos_closing_entry_detail,5,1,0,0,0,0,0,
-Accounts,POS Closing Entry Taxes,child,tabPOS Closing Entry Taxes,pos_closing_entry_taxes,2,1,0,0,0,0,0,
-Accounts,POS Customer Group,child,tabPOS Customer Group,pos_customer_group,1,1,0,0,0,0,0,
-Accounts,POS Field,child,tabPOS Field,pos_field,7,0,0,0,0,0,0,
-Accounts,POS Invoice,transaction,tabPOS Invoice,pos_invoice,115,42,10,4,1,0,0,naming_series:
-Accounts,POS Invoice Item,child,tabPOS Invoice Item,pos_invoice_item,71,21,0,5,0,0,0,hash
-Accounts,POS Invoice Merge Log,transaction,tabPOS Invoice Merge Log,pos_invoice_merge_log,10,7,1,0,1,0,0,
-Accounts,POS Invoice Reference,child,tabPOS Invoice Reference,pos_invoice_reference,6,3,0,0,0,0,0,
-Accounts,POS Item Group,child,tabPOS Item Group,pos_item_group,1,1,0,0,0,0,0,
-Accounts,POS Opening Entry,transaction,tabPOS Opening Entry,pos_opening_entry,10,4,1,0,1,0,0,POS-OPE-.YYYY.-.#####
-Accounts,POS Opening Entry Detail,child,tabPOS Opening Entry Detail,pos_opening_entry_detail,2,1,0,0,0,0,0,
-Accounts,POS Payment Method,child,tabPOS Payment Method,pos_payment_method,3,1,0,0,0,0,0,
-Accounts,POS Profile,master,tabPOS Profile,pos_profile,40,22,4,0,0,0,0,Prompt
-Accounts,POS Profile User,child,tabPOS Profile User,pos_profile_user,2,1,0,0,0,0,0,
-Accounts,POS Search Fields,child,tabPOS Search Fields,pos_search_fields,2,0,0,0,0,0,0,
-Accounts,POS Settings,single,tabPOS Settings,pos_settings,2,0,2,0,0,0,1,
-Accounts,PSOA Cost Center,child,tabPSOA Cost Center,psoa_cost_center,1,1,0,0,0,0,0,
-Accounts,PSOA Project,child,tabPSOA Project,psoa_project,1,1,0,0,0,0,0,
-Accounts,Party Account,child,tabParty Account,party_account,3,3,0,0,0,0,0,
-Accounts,Party Link,master,tabParty Link,party_link,4,2,0,0,0,0,0,ACC-PT-LNK-.###.
-Accounts,Payment Entry,transaction,tabPayment Entry,payment_entry,63,21,4,3,1,0,0,naming_series:
-Accounts,Payment Entry Deduction,child,tabPayment Entry Deduction,payment_entry_deduction,5,2,0,0,0,0,0,
-Accounts,Payment Entry Reference,child,tabPayment Entry Reference,payment_entry_reference,18,5,0,2,0,0,0,
-Accounts,Payment Gateway Account,master,tabPayment Gateway Account,payment_gateway_account,7,3,0,0,0,0,0,
-Accounts,Payment Ledger Entry,transaction,tabPayment Ledger Entry,payment_ledger_entry,20,9,0,10,1,0,0,
-Accounts,Payment Order,transaction,tabPayment Order,payment_order,9,5,1,0,1,0,0,naming_series:
-Accounts,Payment Order Reference,child,tabPayment Order Reference,payment_order_reference,9,6,0,0,0,0,0,
-Accounts,Payment Reconciliation,single,tabPayment Reconciliation,payment_reconciliation,20,7,3,0,0,0,1,
-Accounts,Payment Reconciliation Allocation,child,tabPayment Reconciliation Allocation,payment_reconciliation_allocation,16,5,0,0,0,0,0,
-Accounts,Payment Reconciliation Invoice,child,tabPayment Reconciliation Invoice,payment_reconciliation_invoice,7,1,0,0,0,0,0,
-Accounts,Payment Reconciliation Payment,child,tabPayment Reconciliation Payment,payment_reconciliation_payment,11,3,0,0,0,0,0,
-Accounts,Payment Reference,child,tabPayment Reference,payment_reference,6,3,0,0,0,0,0,
-Accounts,Payment Request,transaction,tabPayment Request,payment_request,40,13,2,1,1,0,0,naming_series:
-Accounts,Payment Schedule,child,tabPayment Schedule,payment_schedule,20,2,0,0,0,0,0,
-Accounts,Payment Term,master,tabPayment Term,payment_term,11,1,0,0,0,0,0,field:payment_term_name
-Accounts,Payment Terms Template,master,tabPayment Terms Template,payment_terms_template,2,0,1,0,0,0,0,field:template_name
-Accounts,Payment Terms Template Detail,child,tabPayment Terms Template Detail,payment_terms_template_detail,11,2,0,0,0,0,0,
-Accounts,Pegged Currencies,single,tabPegged Currencies,pegged_currencies,0,0,1,0,0,0,1,
-Accounts,Pegged Currency Details,child,tabPegged Currency Details,pegged_currency_details,3,2,0,0,0,0,0,
-Accounts,Period Closing Voucher,transaction,tabPeriod Closing Voucher,period_closing_voucher,10,4,0,0,1,0,0,ACC-PCV-.YYYY.-.#####
-Accounts,Pricing Rule,master,tabPricing Rule,pricing_rule,59,17,3,1,0,0,0,naming_series:
-Accounts,Pricing Rule Brand,child,tabPricing Rule Brand,pricing_rule_brand,2,2,0,1,0,0,0,
-Accounts,Pricing Rule Detail,child,tabPricing Rule Detail,pricing_rule_detail,6,1,0,0,0,0,0,
-Accounts,Pricing Rule Item Code,child,tabPricing Rule Item Code,pricing_rule_item_code,2,2,0,1,0,0,0,
-Accounts,Pricing Rule Item Group,child,tabPricing Rule Item Group,pricing_rule_item_group,2,2,0,1,0,0,0,
-Accounts,Process Deferred Accounting,transaction,tabProcess Deferred Accounting,process_deferred_accounting,7,3,0,0,1,0,0,ACC-PDA-.#####
-Accounts,Process Payment Reconciliation,transaction,tabProcess Payment Reconciliation,process_payment_reconciliation,14,7,0,0,1,0,0,format:ACC-PPR-{#####}
-Accounts,Process Payment Reconciliation Log,master,tabProcess Payment Reconciliation Log,process_payment_reconciliation_log,7,1,1,0,0,0,0,format:PPR-LOG-{##}
-Accounts,Process Payment Reconciliation Log Allocations,child,tabProcess Payment Reconciliation Log Allocations,process_payment_reconciliation_log_allocations,15,4,0,0,0,0,0,
-Accounts,Process Period Closing Voucher,transaction,tabProcess Period Closing Voucher,process_period_closing_voucher,5,2,2,1,1,0,0,format:Process-PCV-{###}
-Accounts,Process Period Closing Voucher Detail,child,tabProcess Period Closing Voucher Detail,process_period_closing_voucher_detail,4,0,0,0,0,0,0,
-Accounts,Process Statement Of Accounts,master,tabProcess Statement Of Accounts,process_statement_of_accounts,38,12,4,0,0,0,0,Prompt
-Accounts,Process Statement Of Accounts CC,child,tabProcess Statement Of Accounts CC,process_statement_of_accounts_cc,1,1,0,0,0,0,0,
-Accounts,Process Statement Of Accounts Customer,child,tabProcess Statement Of Accounts Customer,process_statement_of_accounts_customer,4,1,0,0,0,0,0,
-Accounts,Process Subscription,transaction,tabProcess Subscription,process_subscription,3,2,0,0,1,0,0,
-Accounts,Promotional Scheme,master,tabPromotional Scheme,promotional_scheme,15,5,12,0,0,0,0,Prompt
-Accounts,Promotional Scheme Price Discount,child,tabPromotional Scheme Price Discount,promotional_scheme_price_discount,17,2,0,0,0,0,0,
-Accounts,Promotional Scheme Product Discount,child,tabPromotional Scheme Product Discount,promotional_scheme_product_discount,19,3,0,0,0,0,0,
-Accounts,Purchase Invoice,transaction,tabPurchase Invoice,purchase_invoice,125,39,8,6,1,0,0,naming_series:
-Accounts,Purchase Invoice Advance,child,tabPurchase Invoice Advance,purchase_invoice_advance,9,1,0,0,0,0,0,
-Accounts,Purchase Invoice Item,child,tabPurchase Invoice Item,purchase_invoice_item,82,27,0,11,0,0,0,hash
-Accounts,Purchase Taxes and Charges,child,tabPurchase Taxes and Charges,purchase_taxes_and_charges,24,4,0,0,0,0,0,hash
-Accounts,Purchase Taxes and Charges Template,master,tabPurchase Taxes and Charges Template,purchase_taxes_and_charges_template,5,2,1,0,0,0,0,
-Accounts,Repost Accounting Ledger,transaction,tabRepost Accounting Ledger,repost_accounting_ledger,6,3,1,0,1,0,0,
-Accounts,Repost Accounting Ledger Items,child,tabRepost Accounting Ledger Items,repost_accounting_ledger_items,4,1,0,0,0,0,0,
-Accounts,Repost Allowed Types,child,tabRepost Allowed Types,repost_allowed_types,1,1,0,0,0,0,0,
-Accounts,Repost Payment Ledger,transaction,tabRepost Payment Ledger,repost_payment_ledger,7,3,1,0,1,0,0,
-Accounts,Repost Payment Ledger Items,child,tabRepost Payment Ledger Items,repost_payment_ledger_items,2,1,0,0,0,0,0,
-Accounts,Sales Invoice,transaction,tabSales Invoice,sales_invoice,143,51,11,6,1,0,0,naming_series:
-Accounts,Sales Invoice Advance,child,tabSales Invoice Advance,sales_invoice_advance,9,1,0,0,0,0,0,
-Accounts,Sales Invoice Item,child,tabSales Invoice Item,sales_invoice_item,84,26,0,10,0,0,0,hash
-Accounts,Sales Invoice Payment,child,tabSales Invoice Payment,sales_invoice_payment,8,2,0,0,0,0,0,
-Accounts,Sales Invoice Reference,child,tabSales Invoice Reference,sales_invoice_reference,6,3,0,0,0,0,0,
-Accounts,Sales Invoice Timesheet,child,tabSales Invoice Timesheet,sales_invoice_timesheet,9,2,0,0,0,0,0,
-Accounts,Sales Partner Item,child,tabSales Partner Item,sales_partner_item,1,1,0,0,0,0,0,
-Accounts,Sales Taxes and Charges,child,tabSales Taxes and Charges,sales_taxes_and_charges,21,4,0,1,0,0,0,
-Accounts,Sales Taxes and Charges Template,master,tabSales Taxes and Charges Template,sales_taxes_and_charges_template,5,2,1,0,0,0,0,
-Accounts,Share Balance,child,tabShare Balance,share_balance,8,1,0,0,0,0,0,
-Accounts,Share Transfer,transaction,tabShare Transfer,share_transfer,17,7,0,0,1,0,0,ACC-SHT-.YYYY.-.#####
-Accounts,Share Type,master,tabShare Type,share_type,2,0,0,0,0,0,0,field:title
-Accounts,Shareholder,master,tabShareholder,shareholder,6,1,1,0,0,0,0,naming_series:
-Accounts,Shipping Rule,master,tabShipping Rule,shipping_rule,9,4,2,0,0,0,0,field:label
-Accounts,Shipping Rule Condition,child,tabShipping Rule Condition,shipping_rule_condition,3,0,0,0,0,0,0,
-Accounts,Shipping Rule Country,child,tabShipping Rule Country,shipping_rule_country,1,1,0,0,0,0,0,
-Accounts,South Africa VAT Account,child,tabSouth Africa VAT Account,south_africa_vat_account,1,1,0,0,0,0,0,account
-Accounts,Subscription,master,tabSubscription,subscription,26,5,1,0,0,0,0,ACC-SUB-.YYYY.-.#####
-Accounts,Subscription Invoice,child,tabSubscription Invoice,subscription_invoice,2,1,0,0,0,0,0,
-Accounts,Subscription Plan,master,tabSubscription Plan,subscription_plan,11,5,0,0,0,0,0,field:plan_name
-Accounts,Subscription Plan Detail,child,tabSubscription Plan Detail,subscription_plan_detail,2,1,0,0,0,0,0,
-Accounts,Subscription Settings,single,tabSubscription Settings,subscription_settings,3,0,0,0,0,0,1,
-Accounts,Supplier Group Item,child,tabSupplier Group Item,supplier_group_item,1,1,0,0,0,0,0,
-Accounts,Supplier Item,child,tabSupplier Item,supplier_item,1,1,0,0,0,0,0,
-Accounts,Tax Category,master,tabTax Category,tax_category,2,0,0,0,0,0,0,field:title
-Accounts,Tax Rule,master,tabTax Rule,tax_rule,25,12,0,0,0,0,0,ACC-TAX-RULE-.YYYY.-.#####
-Accounts,Tax Withholding Account,child,tabTax Withholding Account,tax_withholding_account,2,2,0,0,0,0,0,
-Accounts,Tax Withholding Category,master,tabTax Withholding Category,tax_withholding_category,6,0,2,0,0,0,0,Prompt
-Accounts,Tax Withholding Entry,child,tabTax Withholding Entry,tax_withholding_entry,21,8,0,0,0,0,0,
-Accounts,Tax Withholding Group,master,tabTax Withholding Group,tax_withholding_group,1,0,0,0,0,0,0,field:group_name
-Accounts,Tax Withholding Rate,child,tabTax Withholding Rate,tax_withholding_rate,6,1,0,0,0,0,0,
-Accounts,Territory Item,child,tabTerritory Item,territory_item,1,1,0,0,0,0,0,
-Accounts,Transaction Deletion Record Details,child,tabTransaction Deletion Record Details,transaction_deletion_record_details,4,1,0,0,0,0,0,
-Accounts,Unreconcile Payment,transaction,tabUnreconcile Payment,unreconcile_payment,4,3,1,0,1,0,0,
-Accounts,Unreconcile Payment Entries,child,tabUnreconcile Payment Entries,unreconcile_payment_entries,8,2,0,0,0,0,0,
-Assets,Asset,transaction,tabAsset,asset,51,16,1,0,1,0,0,naming_series:
-Assets,Asset Activity,master,tabAsset Activity,asset_activity,4,2,0,0,0,0,0,
-Assets,Asset Capitalization,transaction,tabAsset Capitalization,asset_capitalization,19,8,3,1,1,0,0,naming_series:
-Assets,Asset Capitalization Asset Item,child,tabAsset Capitalization Asset Item,asset_capitalization_asset_item,10,6,0,0,0,0,0,
-Assets,Asset Capitalization Service Item,child,tabAsset Capitalization Service Item,asset_capitalization_service_item,8,4,0,0,0,0,0,
-Assets,Asset Capitalization Stock Item,child,tabAsset Capitalization Stock Item,asset_capitalization_stock_item,14,6,0,0,0,0,0,
-Assets,Asset Category,master,tabAsset Category,asset_category,3,0,2,0,0,0,0,field:asset_category_name
-Assets,Asset Category Account,child,tabAsset Category Account,asset_category_account,5,5,0,0,0,0,0,
-Assets,Asset Depreciation Schedule,transaction,tabAsset Depreciation Schedule,asset_depreciation_schedule,19,4,1,0,1,0,0,naming_series:
-Assets,Asset Finance Book,child,tabAsset Finance Book,asset_finance_book,13,1,0,0,0,0,0,
-Assets,Asset Maintenance,master,tabAsset Maintenance,asset_maintenance,8,3,1,0,0,0,0,field:asset_name
-Assets,Asset Maintenance Log,transaction,tabAsset Maintenance Log,asset_maintenance_log,19,3,0,0,1,0,0,naming_series:
-Assets,Asset Maintenance Task,child,tabAsset Maintenance Task,asset_maintenance_task,12,1,0,1,0,0,0,
-Assets,Asset Maintenance Team,master,tabAsset Maintenance Team,asset_maintenance_team,4,2,1,0,0,0,0,field:maintenance_team_name
-Assets,Asset Movement,transaction,tabAsset Movement,asset_movement,6,3,1,0,1,0,0,format:ACC-ASM-{YYYY}-{#####}
-Assets,Asset Movement Item,child,tabAsset Movement Item,asset_movement_item,7,6,0,0,0,0,0,
-Assets,Asset Repair,transaction,tabAsset Repair,asset_repair,18,5,2,0,1,0,0,naming_series:
-Assets,Asset Repair Consumed Item,child,tabAsset Repair Consumed Item,asset_repair_consumed_item,7,3,0,0,0,0,0,
-Assets,Asset Repair Purchase Invoice,child,tabAsset Repair Purchase Invoice,asset_repair_purchase_invoice,3,2,0,0,0,0,0,
-Assets,Asset Shift Allocation,transaction,tabAsset Shift Allocation,asset_shift_allocation,4,3,1,1,1,0,0,naming_series:
-Assets,Asset Shift Factor,master,tabAsset Shift Factor,asset_shift_factor,3,0,0,0,0,0,0,field:shift_name
-Assets,Asset Value Adjustment,transaction,tabAsset Value Adjustment,asset_value_adjustment,12,7,0,0,1,0,0,
-Assets,Depreciation Schedule,child,tabDepreciation Schedule,depreciation_schedule,5,2,0,0,0,0,0,
-Assets,Linked Location,child,tabLinked Location,linked_location,1,1,0,0,0,0,0,
-Assets,Location,tree-master,tabLocation,location,12,2,0,1,0,1,0,field:location_name
-Assets,Maintenance Team Member,child,tabMaintenance Team Member,maintenance_team_member,3,2,0,0,0,0,0,field:team_member
-Bulk Transaction,Bulk Transaction Log,master,tabBulk Transaction Log,bulk_transaction_log,4,0,0,0,0,0,0,
-Bulk Transaction,Bulk Transaction Log Detail,master,tabBulk Transaction Log Detail,bulk_transaction_log_detail,8,2,0,3,0,0,0,
-Buying,Buying Settings,single,tabBuying Settings,buying_settings,28,4,0,0,0,0,1,
-Buying,Customer Number At Supplier,child,tabCustomer Number At Supplier,customer_number_at_supplier,2,1,0,0,0,0,0,
-Buying,Purchase Order,transaction,tabPurchase Order,purchase_order,97,34,5,3,1,0,0,naming_series:
-Buying,Purchase Order Item,child,tabPurchase Order Item,purchase_order_item,75,24,0,5,0,0,0,hash
-Buying,Purchase Receipt Item Supplied,child,tabPurchase Receipt Item Supplied,purchase_receipt_item_supplied,16,5,0,0,0,0,0,
-Buying,Request for Quotation,transaction,tabRequest for Quotation,request_for_quotation,27,11,2,3,1,0,0,naming_series:
-Buying,Request for Quotation Item,child,tabRequest for Quotation Item,request_for_quotation_item,19,9,0,2,0,0,0,hash
-Buying,Request for Quotation Supplier,child,tabRequest for Quotation Supplier,request_for_quotation_supplier,7,2,0,0,0,0,0,
-Buying,Supplier,master,tabSupplier,supplier,39,14,5,0,0,0,0,naming_series:
-Buying,Supplier Quotation,transaction,tabSupplier Quotation,supplier_quotation,69,21,4,4,1,0,0,naming_series:
-Buying,Supplier Quotation Item,child,tabSupplier Quotation Item,supplier_quotation_item,49,14,0,5,0,0,0,hash
-Buying,Supplier Scorecard,master,tabSupplier Scorecard,supplier_scorecard,13,2,2,0,0,0,0,field:supplier
-Buying,Supplier Scorecard Criteria,master,tabSupplier Scorecard Criteria,supplier_scorecard_criteria,4,0,0,0,0,0,0,field:criteria_name
-Buying,Supplier Scorecard Period,transaction,tabSupplier Scorecard Period,supplier_scorecard_period,7,3,2,0,1,0,0,naming_series:
-Buying,Supplier Scorecard Scoring Criteria,child,tabSupplier Scorecard Scoring Criteria,supplier_scorecard_scoring_criteria,5,1,0,0,0,0,0,
-Buying,Supplier Scorecard Scoring Standing,child,tabSupplier Scorecard Scoring Standing,supplier_scorecard_scoring_standing,11,2,0,0,0,0,0,
-Buying,Supplier Scorecard Scoring Variable,child,tabSupplier Scorecard Scoring Variable,supplier_scorecard_scoring_variable,5,1,0,0,0,0,0,
-Buying,Supplier Scorecard Standing,master,tabSupplier Scorecard Standing,supplier_scorecard_standing,11,1,0,0,0,0,0,field:standing_name
-Buying,Supplier Scorecard Variable,master,tabSupplier Scorecard Variable,supplier_scorecard_variable,5,0,0,0,0,0,0,field:variable_label
-CRM,Appointment,master,tabAppointment,appointment,13,2,0,2,0,0,0,format:APMT-{customer_name}-{####}
-CRM,Appointment Booking Settings,single,tabAppointment Booking Settings,appointment_booking_settings,10,1,2,0,0,0,1,
-CRM,Appointment Booking Slots,child,tabAppointment Booking Slots,appointment_booking_slots,3,0,0,0,0,0,0,
-CRM,Availability Of Slots,child,tabAvailability Of Slots,availability_of_slots,3,0,0,0,0,0,0,
-CRM,CRM Note,child,tabCRM Note,crm_note,3,1,0,0,0,0,0,autoincrement
-CRM,CRM Settings,single,tabCRM Settings,crm_settings,9,0,1,0,0,0,1,
-CRM,Campaign,master,tabCampaign,campaign,3,0,1,0,0,0,0,naming_series:
-CRM,Campaign Email Schedule,child,tabCampaign Email Schedule,campaign_email_schedule,2,1,0,0,0,0,0,
-CRM,Competitor,master,tabCompetitor,competitor,2,0,0,0,0,0,0,field:competitor_name
-CRM,Competitor Detail,child,tabCompetitor Detail,competitor_detail,1,1,0,0,0,0,0,
-CRM,Contract,transaction,tabContract,contract,21,4,1,0,1,0,0,CON-.YYYY.-.#####
-CRM,Contract Fulfilment Checklist,child,tabContract Fulfilment Checklist,contract_fulfilment_checklist,4,1,0,0,1,0,0,
-CRM,Contract Template,master,tabContract Template,contract_template,3,0,1,0,0,0,0,field:title
-CRM,Contract Template Fulfilment Terms,child,tabContract Template Fulfilment Terms,contract_template_fulfilment_terms,1,0,0,0,0,0,0,
-CRM,Email Campaign,master,tabEmail Campaign,email_campaign,7,2,0,0,0,0,0,format:MAIL-CAMP-{YYYY}-{#####}
-CRM,Frappe CRM Allowed User,child,tabFrappe CRM Allowed User,frappe_crm_allowed_user,1,1,0,0,0,0,0,
-CRM,Lead,master,tabLead,lead,43,14,1,4,0,0,0,naming_series:
-CRM,Lost Reason Detail,child,tabLost Reason Detail,lost_reason_detail,1,1,0,0,0,0,0,
-CRM,Market Segment,master,tabMarket Segment,market_segment,1,0,0,0,0,0,0,field:market_segment
-CRM,Opportunity,master,tabOpportunity,opportunity,47,18,4,3,0,0,0,naming_series:
-CRM,Opportunity Item,child,tabOpportunity Item,opportunity_item,12,4,0,0,0,0,0,
-CRM,Opportunity Lost Reason,master,tabOpportunity Lost Reason,opportunity_lost_reason,1,0,0,0,0,0,0,field:lost_reason
-CRM,Opportunity Lost Reason Detail,child,tabOpportunity Lost Reason Detail,opportunity_lost_reason_detail,1,1,0,0,0,0,0,
-CRM,Opportunity Type,master,tabOpportunity Type,opportunity_type,1,0,0,0,0,0,0,Prompt
-CRM,Prospect,master,tabProspect,prospect,11,6,3,0,0,0,0,field:company_name
-CRM,Prospect Lead,child,tabProspect Lead,prospect_lead,6,1,0,0,0,0,0,
-CRM,Prospect Opportunity,child,tabProspect Opportunity,prospect_opportunity,8,3,0,0,0,0,0,autoincrement
-CRM,Sales Stage,master,tabSales Stage,sales_stage,1,0,0,0,0,0,0,field:stage_name
-Communication,Communication Medium,master,tabCommunication Medium,communication_medium,5,2,1,0,0,0,0,Prompt
-Communication,Communication Medium Timeslot,child,tabCommunication Medium Timeslot,communication_medium_timeslot,4,1,0,0,0,0,0,
-EDI,Code List,master,tabCode List,code_list,8,1,0,0,0,0,0,prompt
-EDI,Common Code,master,tabCommon Code,common_code,6,1,1,2,0,0,0,hash
-ERPNext Integrations,Plaid Settings,single,tabPlaid Settings,plaid_settings,6,0,0,0,0,0,1,
-Maintenance,Maintenance Schedule,transaction,tabMaintenance Schedule,maintenance_schedule,15,7,2,1,1,0,0,naming_series:
-Maintenance,Maintenance Schedule Detail,child,tabMaintenance Schedule Detail,maintenance_schedule_detail,8,3,0,2,0,0,0,hash
-Maintenance,Maintenance Schedule Item,child,tabMaintenance Schedule Item,maintenance_schedule_item,11,4,0,4,0,0,0,hash
-Maintenance,Maintenance Visit,transaction,tabMaintenance Visit,maintenance_visit,21,9,1,0,1,0,0,naming_series:
-Maintenance,Maintenance Visit Purpose,child,tabMaintenance Visit Purpose,maintenance_visit_purpose,9,4,0,0,0,0,0,hash
-Manufacturing,BOM,transaction,tabBOM,bom,53,13,4,3,1,0,0,
-Manufacturing,BOM Creator,transaction,tabBOM Creator,bom_creator,22,11,1,0,1,0,0,prompt
-Manufacturing,BOM Creator Item,child,tabBOM Creator Item,bom_creator_item,24,6,0,0,0,0,0,
-Manufacturing,BOM Explosion Item,child,tabBOM Explosion Item,bom_explosion_item,14,4,0,1,0,0,0,hash
-Manufacturing,BOM Item,child,tabBOM Item,bom_item,27,7,0,2,0,0,0,
-Manufacturing,BOM Operation,child,tabBOM Operation,bom_operation,27,8,0,0,0,0,0,
-Manufacturing,BOM Secondary Item,child,tabBOM Secondary Item,bom_secondary_item,17,3,0,0,0,0,0,
-Manufacturing,BOM Update Batch,child,tabBOM Update Batch,bom_update_batch,4,0,0,0,0,0,0,hash
-Manufacturing,BOM Update Log,transaction,tabBOM Update Log,bom_update_log,8,4,1,0,1,0,0,BOM-UPDT-LOG-.#####
-Manufacturing,BOM Update Tool,single,tabBOM Update Tool,bom_update_tool,2,2,0,0,0,0,1,
-Manufacturing,BOM Website Item,child,tabBOM Website Item,bom_website_item,5,1,0,1,0,0,0,
-Manufacturing,BOM Website Operation,child,tabBOM Website Operation,bom_website_operation,5,2,0,0,0,0,0,
-Manufacturing,Blanket Order,transaction,tabBlanket Order,blanket_order,14,5,1,1,1,0,0,naming_series:
-Manufacturing,Blanket Order Item,child,tabBlanket Order Item,blanket_order_item,7,1,0,1,0,0,0,
-Manufacturing,Downtime Entry,master,tabDowntime Entry,downtime_entry,8,2,0,0,0,0,0,naming_series:
-Manufacturing,Job Card,transaction,tabJob Card,job_card,50,20,6,1,1,0,0,naming_series:
-Manufacturing,Job Card Item,child,tabJob Card Item,job_card_item,11,5,0,0,0,0,0,
-Manufacturing,Job Card Operation,child,tabJob Card Operation,job_card_operation,4,1,0,0,0,0,0,
-Manufacturing,Job Card Scheduled Time,child,tabJob Card Scheduled Time,job_card_scheduled_time,3,0,0,0,0,0,0,
-Manufacturing,Job Card Secondary Item,child,tabJob Card Secondary Item,job_card_secondary_item,7,2,0,0,0,0,0,
-Manufacturing,Job Card Time Log,child,tabJob Card Time Log,job_card_time_log,6,2,0,0,0,0,0,
-Manufacturing,Manufacturing Settings,single,tabManufacturing Settings,manufacturing_settings,19,0,0,0,0,0,1,
-Manufacturing,Master Production Schedule,master,tabMaster Production Schedule,master_production_schedule,8,4,4,1,0,0,0,naming_series:
-Manufacturing,Master Production Schedule Item,child,tabMaster Production Schedule Item,master_production_schedule_item,9,4,0,0,0,0,0,
-Manufacturing,Material Request Plan Item,child,tabMaterial Request Plan Item,material_request_plan_item,23,7,0,3,0,0,0,
-Manufacturing,Operation,master,tabOperation,operation,8,2,1,0,0,0,0,Prompt
-Manufacturing,Plant Floor,master,tabPlant Floor,plant_floor,3,2,0,0,0,0,0,field:floor_name
-Manufacturing,Production Plan,transaction,tabProduction Plan,production_plan,29,9,7,1,1,0,0,naming_series:
-Manufacturing,Production Plan Item,child,tabProduction Plan Item,production_plan_item,18,7,0,0,0,0,0,hash
-Manufacturing,Production Plan Item Reference,child,tabProduction Plan Item Reference,production_plan_item_reference,4,1,0,0,0,0,0,
-Manufacturing,Production Plan Material Request,child,tabProduction Plan Material Request,production_plan_material_request,2,1,0,0,0,0,0,hash
-Manufacturing,Production Plan Material Request Warehouse,child,tabProduction Plan Material Request Warehouse,production_plan_material_request_warehouse,1,1,0,0,0,0,0,
-Manufacturing,Production Plan Sales Order,child,tabProduction Plan Sales Order,production_plan_sales_order,5,2,0,0,0,0,0,hash
-Manufacturing,Production Plan Sub Assembly Item,child,tabProduction Plan Sub Assembly Item,production_plan_sub_assembly_item,25,9,0,0,0,0,0,
-Manufacturing,Routing,master,tabRouting,routing,2,0,1,0,0,0,0,field:routing_name
-Manufacturing,Sales Forecast,transaction,tabSales Forecast,sales_forecast,9,3,2,1,1,0,0,naming_series:
-Manufacturing,Sales Forecast Item,child,tabSales Forecast Item,sales_forecast_item,6,3,0,0,0,0,0,
-Manufacturing,Sub Operation,child,tabSub Operation,sub_operation,3,1,0,0,0,0,0,
-Manufacturing,Work Order,transaction,tabWork Order,work_order,55,16,4,2,1,0,0,naming_series:
-Manufacturing,Work Order Additional Item,child,tabWork Order Additional Item,work_order_additional_item,6,2,0,0,0,0,0,
-Manufacturing,Work Order Item,child,tabWork Order Item,work_order_item,21,4,0,1,0,0,0,
-Manufacturing,Work Order Operation,child,tabWork Order Operation,work_order_operation,29,9,0,0,0,0,0,
-Manufacturing,Workstation,master,tabWorkstation,workstation,13,4,2,0,0,0,0,field:workstation_name
-Manufacturing,Workstation Cost,child,tabWorkstation Cost,workstation_cost,2,1,0,0,0,0,0,
-Manufacturing,Workstation Operating Component,master,tabWorkstation Operating Component,workstation_operating_component,1,0,1,0,0,0,0,field:component_name
-Manufacturing,Workstation Operating Component Account,child,tabWorkstation Operating Component Account,workstation_operating_component_account,2,2,0,0,0,0,0,
-Manufacturing,Workstation Type,master,tabWorkstation Type,workstation_type,3,0,1,0,0,0,0,field:workstation_type
-Manufacturing,Workstation Working Hour,child,tabWorkstation Working Hour,workstation_working_hour,4,0,0,0,0,0,0,
-Portal,Website Attribute,child,tabWebsite Attribute,website_attribute,1,1,0,0,0,0,0,
-Portal,Website Filter Field,child,tabWebsite Filter Field,website_filter_field,1,0,0,0,0,0,0,
-Projects,Activity Cost,master,tabActivity Cost,activity_cost,7,3,0,0,0,0,0,PROJ-ACC-.#####
-Projects,Activity Type,master,tabActivity Type,activity_type,4,0,0,0,0,0,0,field:activity_type
-Projects,Dependent Task,child,tabDependent Task,dependent_task,1,1,0,0,0,0,0,
-Projects,Project,master,tabProject,project,42,8,1,3,0,0,0,naming_series:
-Projects,Project Template,master,tabProject Template,project_template,2,1,1,0,0,0,0,Prompt
-Projects,Project Template Task,child,tabProject Template Task,project_template_task,2,1,0,0,0,0,0,
-Projects,Project Type,master,tabProject Type,project_type,2,0,0,0,0,0,0,field:project_type
-Projects,Project Update,transaction,tabProject Update,project_update,6,2,1,1,1,0,0,naming_series:
-Projects,Project User,child,tabProject User,project_user,8,1,0,1,0,0,0,
-Projects,Projects Settings,single,tabProjects Settings,projects_settings,4,0,0,0,0,0,1,
-Projects,Task,tree-master,tabTask,task,35,7,1,5,0,1,0,TASK-.YYYY.-.#####
-Projects,Task Depends On,child,tabTask Depends On,task_depends_on,3,1,0,0,0,0,0,
-Projects,Task Type,master,tabTask Type,task_type,2,0,0,0,0,0,0,Prompt
-Projects,Timesheet,transaction,tabTimesheet,timesheet,27,9,1,0,1,0,0,naming_series:
-Projects,Timesheet Detail,child,tabTimesheet Detail,timesheet_detail,21,4,0,0,0,0,0,
-Quality Management,Non Conformance,master,tabNon Conformance,non_conformance,8,1,0,0,0,0,0,format:QA-NC-{#####}
-Quality Management,Quality Action,master,tabQuality Action,quality_action,7,4,1,0,0,0,0,format:QA-ACT-{#####}
-Quality Management,Quality Action Resolution,child,tabQuality Action Resolution,quality_action_resolution,5,1,0,0,0,0,0,
-Quality Management,Quality Feedback,master,tabQuality Feedback,quality_feedback,3,1,1,0,0,0,0,format:QA-FB-{#####}
-Quality Management,Quality Feedback Parameter,child,tabQuality Feedback Parameter,quality_feedback_parameter,3,0,0,0,0,0,0,
-Quality Management,Quality Feedback Template,master,tabQuality Feedback Template,quality_feedback_template,1,0,1,0,0,0,0,field:template
-Quality Management,Quality Feedback Template Parameter,child,tabQuality Feedback Template Parameter,quality_feedback_template_parameter,1,0,0,0,0,0,0,
-Quality Management,Quality Goal,master,tabQuality Goal,quality_goal,5,1,1,0,0,0,0,field:goal
-Quality Management,Quality Goal Objective,child,tabQuality Goal Objective,quality_goal_objective,3,1,0,0,0,0,0,format:{####}
-Quality Management,Quality Meeting,master,tabQuality Meeting,quality_meeting,1,0,2,0,0,0,0,format:QA-MEET-{YY}-{MM}-{DD}
-Quality Management,Quality Meeting Agenda,child,tabQuality Meeting Agenda,quality_meeting_agenda,1,0,0,0,0,0,0,
-Quality Management,Quality Meeting Minutes,child,tabQuality Meeting Minutes,quality_meeting_minutes,3,0,0,0,0,0,0,
-Quality Management,Quality Procedure,tree-master,tabQuality Procedure,quality_procedure,8,2,1,0,0,1,0,field:quality_procedure_name
-Quality Management,Quality Procedure Process,child,tabQuality Procedure Process,quality_procedure_process,2,1,0,0,0,0,0,
-Quality Management,Quality Review,master,tabQuality Review,quality_review,5,2,1,0,0,0,0,format:QA-REV-{#####}
-Quality Management,Quality Review Objective,child,tabQuality Review Objective,quality_review_objective,5,1,0,0,0,0,0,
-Regional,Import Supplier Invoice,master,tabImport Supplier Invoice,import_supplier_invoice,8,5,0,0,0,0,0,
-Regional,Lower Deduction Certificate,master,tabLower Deduction Certificate,lower_deduction_certificate,10,4,0,0,0,0,0,field:certificate_no
-Regional,South Africa VAT Settings,master,tabSouth Africa VAT Settings,south_africa_vat_settings,1,1,1,0,0,0,0,field:company
-Regional,UAE VAT Account,child,tabUAE VAT Account,uae_vat_account,1,1,0,0,0,0,0,account
-Regional,UAE VAT Settings,master,tabUAE VAT Settings,uae_vat_settings,1,1,1,0,0,0,0,field:company
-Selling,Customer,master,tabCustomer,customer,44,22,7,2,0,0,0,naming_series:
-Selling,Customer Credit Limit,child,tabCustomer Credit Limit,customer_credit_limit,4,1,0,0,0,0,0,
-Selling,Delivery Schedule Item,master,tabDelivery Schedule Item,delivery_schedule_item,10,5,0,2,0,0,0,
-Selling,Industry Type,master,tabIndustry Type,industry_type,1,0,0,0,0,0,0,field:industry
-Selling,Installation Note,transaction,tabInstallation Note,installation_note,18,8,1,3,1,0,0,naming_series:
-Selling,Installation Note Item,child,tabInstallation Note Item,installation_note_item,8,2,0,2,0,0,0,hash
-Selling,Party Specific Item,master,tabParty Specific Item,party_specific_item,4,0,0,0,0,0,0,
-Selling,Product Bundle,transaction,tabProduct Bundle,product_bundle,5,2,1,0,1,0,0,
-Selling,Product Bundle Item,child,tabProduct Bundle Item,product_bundle_item,5,2,0,0,0,0,0,
-Selling,Proforma Invoice,transaction,tabProforma Invoice,proforma_invoice,18,7,1,0,1,0,0,naming_series:
-Selling,Proforma Invoice Item,child,tabProforma Invoice Item,proforma_invoice_item,7,2,0,0,0,0,0,
-Selling,Quotation,transaction,tabQuotation,quotation,77,30,8,2,1,0,0,naming_series:
-Selling,Quotation Item,child,tabQuotation Item,quotation_item,55,11,0,1,0,0,0,
-Selling,SMS Center,single,tabSMS Center,sms_center,10,5,0,0,0,0,1,
-Selling,Sales Order,transaction,tabSales Order,sales_order,104,35,7,5,1,0,0,naming_series:
-Selling,Sales Order Item,child,tabSales Order Item,sales_order_item,82,19,0,3,0,0,0,hash
-Selling,Sales Partner Type,master,tabSales Partner Type,sales_partner_type,1,0,0,0,0,0,0,field:sales_partner_type
-Selling,Sales Team,child,tabSales Team,sales_team,6,1,0,1,0,0,0,
-Selling,Selling Settings,single,tabSelling Settings,selling_settings,33,5,0,0,0,0,1,
-Selling,Supplier Number At Customer,child,tabSupplier Number At Customer,supplier_number_at_customer,2,1,0,0,0,0,0,
-Setup,Authorization Control,single,tabAuthorization Control,authorization_control,0,0,0,0,0,0,1,
-Setup,Authorization Rule,master,tabAuthorization Rule,authorization_rule,12,7,0,0,0,0,0,HR-ARU-.#####
-Setup,Branch,master,tabBranch,branch,1,0,0,0,0,0,0,field:branch
-Setup,Brand,master,tabBrand,brand,3,0,1,0,0,0,0,field:brand
-Setup,Company,tree-master,tabCompany,company,100,60,0,2,0,1,0,field:company_name
-Setup,Currency Exchange,master,tabCurrency Exchange,currency_exchange,6,2,0,0,0,0,0,
-Setup,Customer Group,tree-master,tabCustomer Group,customer_group,8,4,2,2,0,1,0,field:customer_group_name
-Setup,Department,tree-master,tabDepartment,department,8,2,0,0,0,1,0,
-Setup,Designation,master,tabDesignation,designation,2,0,0,0,0,0,0,field:designation_name
-Setup,Driver,master,tabDriver,driver,11,4,1,0,0,0,0,naming_series:
-Setup,Driving License Category,child,tabDriving License Category,driving_license_category,4,0,0,0,0,0,0,
-Setup,Email Digest,master,tabEmail Digest,email_digest,29,1,1,0,0,0,0,Prompt
-Setup,Email Digest Recipient,child,tabEmail Digest Recipient,email_digest_recipient,1,1,0,0,0,0,0,
-Setup,Employee,tree-master,tabEmployee,employee,67,10,3,2,0,1,0,naming_series:
-Setup,Employee Education,child,tabEmployee Education,employee_education,6,0,0,0,0,0,0,
-Setup,Employee External Work History,child,tabEmployee External Work History,employee_external_work_history,6,0,0,0,0,0,0,
-Setup,Employee Group,master,tabEmployee Group,employee_group,1,0,1,0,0,0,0,field:employee_group_name
-Setup,Employee Group Table,child,tabEmployee Group Table,employee_group_table,3,1,0,0,0,0,0,
-Setup,Employee Internal Work History,child,tabEmployee Internal Work History,employee_internal_work_history,5,3,0,0,0,0,0,
-Setup,Global Defaults,single,tabGlobal Defaults,global_defaults,9,5,0,0,0,0,1,
-Setup,Holiday,child,tabHoliday,holiday,4,0,0,0,0,0,0,
-Setup,Holiday List,master,tabHoliday List,holiday_list,9,0,1,0,0,0,0,field:holiday_list_name
-Setup,Incoterm,master,tabIncoterm,incoterm,3,0,0,0,0,0,0,field:code
-Setup,Item Group,tree-master,tabItem Group,item_group,7,2,2,2,0,1,0,field:item_group_name
-Setup,Party Type,master,tabParty Type,party_type,2,1,0,0,0,0,0,field:party_type
-Setup,Quotation Lost Reason,master,tabQuotation Lost Reason,quotation_lost_reason,1,0,0,0,0,0,0,field:order_lost_reason
-Setup,Quotation Lost Reason Detail,child,tabQuotation Lost Reason Detail,quotation_lost_reason_detail,1,1,0,0,0,0,0,
-Setup,Sales Partner,master,tabSales Partner,sales_partner,11,2,1,0,0,0,0,field:partner_name
-Setup,Sales Person,tree-master,tabSales Person,sales_person,10,3,1,2,0,1,0,field:sales_person_name
-Setup,Supplier Group,tree-master,tabSupplier Group,supplier_group,7,3,1,2,0,1,0,field:supplier_group_name
-Setup,Target Detail,child,tabTarget Detail,target_detail,5,3,0,3,0,0,0,
-Setup,Terms and Conditions,master,tabTerms and Conditions,terms_and_conditions,6,0,0,0,0,0,0,field:title
-Setup,Territory,tree-master,tabTerritory,territory,7,3,1,3,0,1,0,field:territory_name
-Setup,Transaction Deletion Record,transaction,tabTransaction Deletion Record,transaction_deletion_record,11,2,3,0,1,0,0,TDL.####
-Setup,Transaction Deletion Record Item,child,tabTransaction Deletion Record Item,transaction_deletion_record_item,1,1,0,0,0,0,0,
-Setup,Transaction Deletion Record To Delete,child,tabTransaction Deletion Record To Delete,transaction_deletion_record_to_delete,5,1,0,0,0,0,0,
-Setup,UOM,master,tabUOM,uom,7,1,0,0,0,0,0,field:uom_name
-Setup,UOM Conversion Factor,master,tabUOM Conversion Factor,uom_conversion_factor,4,3,0,0,0,0,0,MAT-UOM-CNV-.#####
-Setup,Vehicle,master,tabVehicle,vehicle,21,4,0,0,0,0,0,field:license_plate
-Setup,Website Item Group,child,tabWebsite Item Group,website_item_group,1,1,0,0,0,0,0,
-Stock,Batch,master,tabBatch,batch,18,5,0,0,0,0,0,field:batch_id
-Stock,Bin,master,tabBin,bin,16,4,0,1,0,0,0,hash
-Stock,Company Restriction,child,tabCompany Restriction,company_restriction,1,1,0,0,0,0,0,
-Stock,Customs Tariff Number,master,tabCustoms Tariff Number,customs_tariff_number,2,0,0,0,0,0,0,field:tariff_number
-Stock,Delivery Note,transaction,tabDelivery Note,delivery_note,102,37,6,4,1,0,0,naming_series:
-Stock,Delivery Note Item,child,tabDelivery Note Item,delivery_note_item,74,21,0,10,0,0,0,hash
-Stock,Delivery Settings,single,tabDelivery Settings,delivery_settings,4,2,0,0,0,0,1,
-Stock,Delivery Stop,child,tabDelivery Stop,delivery_stop,16,5,0,0,0,0,0,
-Stock,Delivery Trip,transaction,tabDelivery Trip,delivery_trip,14,7,1,0,1,0,0,naming_series:
-Stock,Inventory Dimension,master,tabInventory Dimension,inventory_dimension,13,2,0,0,0,0,0,field:dimension_name
-Stock,Item,master,tabItem,item,72,15,9,4,0,0,0,field:item_code
-Stock,Item Alternative,master,tabItem Alternative,item_alternative,5,2,0,0,0,0,0,
-Stock,Item Attribute,master,tabItem Attribute,item_attribute,6,0,1,0,0,0,0,field:attribute_name
-Stock,Item Attribute Value,child,tabItem Attribute Value,item_attribute_value,2,0,0,1,0,0,0,
-Stock,Item Barcode,child,tabItem Barcode,item_barcode,3,1,0,0,0,0,0,hash
-Stock,Item Customer Detail,child,tabItem Customer Detail,item_customer_detail,3,2,0,2,0,0,0,hash
-Stock,Item Default,child,tabItem Default,item_default,21,21,0,1,0,0,0,
-Stock,Item Lead Time,master,tabItem Lead Time,item_lead_time,13,2,0,0,0,0,0,field:item_code
-Stock,Item Manufacturer,master,tabItem Manufacturer,item_manufacturer,6,2,0,0,0,0,0,
-Stock,Item Price,master,tabItem Price,item_price,19,8,0,2,0,0,0,hash
-Stock,Item Quality Inspection Parameter,child,tabItem Quality Inspection Parameter,item_quality_inspection_parameter,8,2,0,0,0,0,0,hash
-Stock,Item Reorder,child,tabItem Reorder,item_reorder,5,2,0,0,0,0,0,hash
-Stock,Item Standard Cost,transaction,tabItem Standard Cost,item_standard_cost,7,4,0,3,1,0,0,naming_series:
-Stock,Item Supplier,child,tabItem Supplier,item_supplier,2,1,0,0,0,0,0,
-Stock,Item Tax,child,tabItem Tax,item_tax,5,2,0,0,0,0,0,
-Stock,Item Variant,child,tabItem Variant,item_variant,2,1,0,0,0,0,0,
-Stock,Item Variant Attribute,child,tabItem Variant Attribute,item_variant_attribute,8,2,0,2,0,0,0,
-Stock,Item Variant Settings,single,tabItem Variant Settings,item_variant_settings,3,0,1,0,0,0,1,
-Stock,Item Website Specification,child,tabItem Website Specification,item_website_specification,2,0,0,0,0,0,0,
-Stock,Landed Cost Item,child,tabLanded Cost Item,landed_cost_item,12,2,0,0,0,0,0,
-Stock,Landed Cost Purchase Receipt,child,tabLanded Cost Purchase Receipt,landed_cost_purchase_receipt,5,1,0,0,0,0,0,
-Stock,Landed Cost Taxes and Charges,child,tabLanded Cost Taxes and Charges,landed_cost_taxes_and_charges,11,2,0,0,0,0,0,
-Stock,Landed Cost Vendor Invoice,child,tabLanded Cost Vendor Invoice,landed_cost_vendor_invoice,2,1,0,1,0,0,0,
-Stock,Landed Cost Voucher,transaction,tabLanded Cost Voucher,landed_cost_voucher,7,2,4,0,1,0,0,naming_series:
-Stock,Manufacturer,master,tabManufacturer,manufacturer,6,1,0,0,0,0,0,field:short_name
-Stock,Material Request,transaction,tabMaterial Request,material_request,23,11,1,3,1,0,0,naming_series:
-Stock,Material Request Item,child,tabMaterial Request Item,material_request_item,41,15,0,5,0,0,0,hash
-Stock,Packed Item,child,tabPacked Item,packed_item,28,8,0,1,0,0,0,
-Stock,Packing Slip,transaction,tabPacking Slip,packing_slip,10,5,1,0,1,0,0,MAT-PAC-.YYYY.-.#####
-Stock,Packing Slip Item,child,tabPacking Slip Item,packing_slip_item,11,4,0,0,0,0,0,hash
-Stock,Pick List,transaction,tabPick List,pick_list,20,6,1,1,1,0,0,naming_series:
-Stock,Pick List Item,child,tabPick List Item,pick_list_item,25,8,0,4,0,0,0,
-Stock,Price List,master,tabPrice List,price_list,6,1,1,0,0,0,0,field:price_list_name
-Stock,Price List Country,child,tabPrice List Country,price_list_country,1,1,0,0,0,0,0,
-Stock,Purchase Receipt,transaction,tabPurchase Receipt,purchase_receipt,90,29,5,6,1,0,0,naming_series:
-Stock,Purchase Receipt Item,child,tabPurchase Receipt Item,purchase_receipt_item,89,28,0,13,0,0,0,hash
-Stock,Putaway Rule,master,tabPutaway Rule,putaway_rule,11,5,0,0,0,0,0,PUT-.####
-Stock,Quality Inspection,transaction,tabQuality Inspection,quality_inspection,22,9,1,2,1,0,0,naming_series:
-Stock,Quality Inspection Parameter,master,tabQuality Inspection Parameter,quality_inspection_parameter,3,1,0,0,0,0,0,field:parameter
-Stock,Quality Inspection Parameter Group,master,tabQuality Inspection Parameter Group,quality_inspection_parameter_group,1,0,0,0,0,0,0,field:group_name
-Stock,Quality Inspection Reading,child,tabQuality Inspection Reading,quality_inspection_reading,21,2,0,0,0,0,0,hash
-Stock,Quality Inspection Template,master,tabQuality Inspection Template,quality_inspection_template,1,0,1,0,0,0,0,field:quality_inspection_template_name
-Stock,Quick Stock Balance,single,tabQuick Stock Balance,quick_stock_balance,8,2,0,0,0,0,1,
-Stock,Repost Item Valuation,transaction,tabRepost Item Valuation,repost_item_valuation,25,5,0,1,1,0,0,hash
-Stock,Serial No,master,tabSerial No,serial_no,24,12,0,2,0,0,0,field:serial_no
-Stock,Serial and Batch Bundle,transaction,tabSerial and Batch Bundle,serial_and_batch_bundle,21,6,1,2,1,0,0,hash
-Stock,Serial and Batch Entry,child,tabSerial and Batch Entry,serial_and_batch_entry,18,4,0,2,0,0,0,
-Stock,Shipment,transaction,tabShipment,shipment,43,14,2,0,1,0,0,SHIPMENT-.#####
-Stock,Shipment Delivery Note,child,tabShipment Delivery Note,shipment_delivery_note,2,1,0,0,0,0,0,
-Stock,Shipment Parcel,child,tabShipment Parcel,shipment_parcel,5,0,0,0,0,0,0,
-Stock,Shipment Parcel Template,master,tabShipment Parcel Template,shipment_parcel_template,5,0,0,0,0,0,0,field:parcel_template_name
-Stock,Stock Closing Balance,master,tabStock Closing Balance,stock_closing_balance,17,7,0,7,0,0,0,
-Stock,Stock Closing Entry,transaction,tabStock Closing Entry,stock_closing_entry,6,2,0,2,1,0,0,naming_series:
-Stock,Stock Entry,transaction,tabStock Entry,stock_entry,55,27,2,8,1,0,0,naming_series:
-Stock,Stock Entry Detail,child,tabStock Entry Detail,stock_entry_detail,55,21,0,9,0,0,0,hash
-Stock,Stock Entry Type,master,tabStock Entry Type,stock_entry_type,3,0,0,0,0,0,0,Prompt
-Stock,Stock Ledger Entry,transaction,tabStock Ledger Entry,stock_ledger_entry,31,7,0,5,1,0,0,MAT-SLE-.YYYY.-.#####
-Stock,Stock Reconciliation,transaction,tabStock Reconciliation,stock_reconciliation,13,5,1,0,1,0,0,naming_series:
-Stock,Stock Reconciliation Item,child,tabStock Reconciliation Item,stock_reconciliation_item,23,7,0,2,0,0,0,
-Stock,Stock Reposting Settings,single,tabStock Reposting Settings,stock_reposting_settings,11,1,0,0,0,0,1,
-Stock,Stock Reservation Entry,transaction,tabStock Reservation Entry,stock_reservation_entry,22,6,1,7,1,0,0,MAT-SRE-.YYYY.-.#####
-Stock,Stock Settings,single,tabStock Settings,stock_settings,47,5,0,0,0,0,1,
-Stock,UOM Category,master,tabUOM Category,uom_category,1,0,0,0,0,0,0,field:category_name
-Stock,UOM Conversion Detail,child,tabUOM Conversion Detail,uom_conversion_detail,2,1,0,0,0,0,0,hash
-Stock,Variant Field,child,tabVariant Field,variant_field,1,0,0,0,0,0,0,
-Stock,Warehouse,tree-master,tabWarehouse,warehouse,21,7,0,2,0,1,0,
-Stock,Warehouse Type,master,tabWarehouse Type,warehouse_type,1,0,0,0,0,0,0,Prompt
-Subcontracting,Subcontracting BOM,master,tabSubcontracting BOM,subcontracting_bom,9,5,0,3,0,0,0,format:SB-{####}
-Subcontracting,Subcontracting Inward Order,transaction,tabSubcontracting Inward Order,subcontracting_inward_order,18,7,4,3,1,0,0,naming_series:
-Subcontracting,Subcontracting Inward Order Item,child,tabSubcontracting Inward Order Item,subcontracting_inward_order_item,14,4,0,2,0,0,0,hash
-Subcontracting,Subcontracting Inward Order Received Item,child,tabSubcontracting Inward Order Received Item,subcontracting_inward_order_received_item,15,4,0,0,0,0,0,
-Subcontracting,Subcontracting Inward Order Secondary Item,child,tabSubcontracting Inward Order Secondary Item,subcontracting_inward_order_secondary_item,8,4,0,0,0,0,0,
-Subcontracting,Subcontracting Inward Order Service Item,child,tabSubcontracting Inward Order Service Item,subcontracting_inward_order_service_item,9,3,0,2,0,0,0,hash
-Subcontracting,Subcontracting Order,transaction,tabSubcontracting Order,subcontracting_order,35,16,4,3,1,0,0,naming_series:
-Subcontracting,Subcontracting Order Item,child,tabSubcontracting Order Item,subcontracting_order_item,31,10,0,5,0,0,0,hash
-Subcontracting,Subcontracting Order Service Item,child,tabSubcontracting Order Service Item,subcontracting_order_service_item,10,3,0,2,0,0,0,hash
-Subcontracting,Subcontracting Order Supplied Item,child,tabSubcontracting Order Supplied Item,subcontracting_order_supplied_item,15,4,0,0,0,0,0,
-Subcontracting,Subcontracting Receipt,transaction,tabSubcontracting Receipt,subcontracting_receipt,47,17,3,3,1,0,0,naming_series:
-Subcontracting,Subcontracting Receipt Item,child,tabSubcontracting Receipt Item,subcontracting_receipt_item,48,18,0,6,0,0,0,hash
-Subcontracting,Subcontracting Receipt Supplied Item,child,tabSubcontracting Receipt Supplied Item,subcontracting_receipt_supplied_item,21,8,0,0,0,0,0,
-Support,Issue,master,tabIssue,issue,34,10,0,2,0,0,0,naming_series:
-Support,Issue Priority,master,tabIssue Priority,issue_priority,1,0,0,0,0,0,0,Prompt
-Support,Issue Type,master,tabIssue Type,issue_type,1,0,0,0,0,0,0,Prompt
-Support,Pause SLA On Status,child,tabPause SLA On Status,pause_sla_on_status,1,0,0,0,0,0,0,
-Support,SLA Fulfilled On Status,child,tabSLA Fulfilled On Status,sla_fulfilled_on_status,1,0,0,0,0,0,0,
-Support,Service Day,child,tabService Day,service_day,3,0,0,0,0,0,0,
-Support,Service Level Agreement,master,tabService Level Agreement,service_level_agreement,12,3,4,0,0,0,0,format:SLA-{document_type}-{service_level}
-Support,Service Level Priority,child,tabService Level Priority,service_level_priority,4,1,0,0,0,0,0,
-Support,Support Search Source,child,tabSupport Search Source,support_search_source,14,1,0,0,0,0,0,
-Support,Support Settings,single,tabSupport Settings,support_settings,14,0,1,0,0,0,1,
-Support,Warranty Claim,master,tabWarranty Claim,warranty_claim,29,10,0,10,0,0,0,naming_series:
-Telephony,Call Log,master,tabCall Log,call_log,15,4,1,0,0,0,0,field:id
-Telephony,Incoming Call Handling Schedule,child,tabIncoming Call Handling Schedule,incoming_call_handling_schedule,4,1,0,0,0,0,0,
-Telephony,Incoming Call Settings,master,tabIncoming Call Settings,incoming_call_settings,4,0,1,0,0,0,0,Prompt
-Telephony,Telephony Call Type,transaction,tabTelephony Call Type,telephony_call_type,2,1,0,0,1,0,0,field:call_type
-Telephony,Voice Call Settings,master,tabVoice Call Settings,voice_call_settings,5,1,0,0,0,0,0,field:user
-Utilities,Portal User,child,tabPortal User,portal_user,1,1,0,1,0,0,0,
-Utilities,Rename Tool,single,tabRename Tool,rename_tool,2,1,0,0,0,0,1,
-Utilities,Video,master,tabVideo,video,12,0,0,0,0,0,0,field:title
-Utilities,Video Settings,single,tabVideo Settings,video_settings,3,0,0,0,0,0,1,
+app,module,doctype,kind,frappe_table,proposed_table,columns,links,child_tables,indexes,submittable,tree,single,autoname
+erpnext,Accounts,Account,tree-master,tabAccount,account,18,4,0,4,0,1,0,
+erpnext,Accounts,Account Category,master,tabAccount Category,account_category,3,0,0,0,0,0,0,field:account_category_name
+erpnext,Accounts,Account Closing Balance,transaction,tabAccount Closing Balance,account_closing_balance,16,7,0,4,1,0,0,
+erpnext,Accounts,Accounting Dimension,master,tabAccounting Dimension,accounting_dimension,4,1,1,1,0,0,0,field:label
+erpnext,Accounts,Accounting Dimension Detail,child,tabAccounting Dimension Detail,accounting_dimension_detail,7,3,0,0,0,0,0,
+erpnext,Accounts,Accounting Dimension Filter,master,tabAccounting Dimension Filter,accounting_dimension_filter,6,1,2,0,0,0,0,format:{accounting_dimension}-{#####}
+erpnext,Accounts,Accounting Period,master,tabAccounting Period,accounting_period,6,2,1,0,0,0,0,field:period_name
+erpnext,Accounts,Accounts Settings,single,tabAccounts Settings,accounts_settings,64,5,1,0,0,0,1,
+erpnext,Accounts,Advance Payment Ledger Entry,transaction,tabAdvance Payment Ledger Entry,advance_payment_ledger_entry,11,4,0,0,1,0,0,
+erpnext,Accounts,Advance Taxes and Charges,child,tabAdvance Taxes and Charges,advance_taxes_and_charges,18,4,0,1,0,0,0,
+erpnext,Accounts,Allowed Dimension,child,tabAllowed Dimension,allowed_dimension,2,1,0,0,0,0,0,
+erpnext,Accounts,Allowed To Transact With,child,tabAllowed To Transact With,allowed_to_transact_with,1,1,0,0,0,0,0,
+erpnext,Accounts,Applicable On Account,child,tabApplicable On Account,applicable_on_account,2,1,0,0,0,0,0,
+erpnext,Accounts,Bank,master,tabBank,bank,4,0,1,0,0,0,0,field:bank_name
+erpnext,Accounts,Bank Account,master,tabBank Account,bank_account,19,6,0,0,0,0,0,
+erpnext,Accounts,Bank Account Balance,master,tabBank Account Balance,bank_account_balance,4,2,0,0,0,0,0,
+erpnext,Accounts,Bank Account Subtype,master,tabBank Account Subtype,bank_account_subtype,1,0,0,0,0,0,0,field:account_subtype
+erpnext,Accounts,Bank Account Type,master,tabBank Account Type,bank_account_type,1,0,0,0,0,0,0,field:account_type
+erpnext,Accounts,Bank Clearance,single,tabBank Clearance,bank_clearance,7,3,1,0,0,0,1,
+erpnext,Accounts,Bank Clearance Detail,child,tabBank Clearance Detail,bank_clearance_detail,8,1,0,0,0,0,0,
+erpnext,Accounts,Bank Guarantee,transaction,tabBank Guarantee,bank_guarantee,24,8,0,0,1,0,0,ACC-BG-.YYYY.-.#####
+erpnext,Accounts,Bank Reconciliation Tool,single,tabBank Reconciliation Tool,bank_reconciliation_tool,10,3,0,0,0,0,1,
+erpnext,Accounts,Bank Statement Import,master,tabBank Statement Import,bank_statement_import,17,4,0,0,0,0,0,format:Bank Statement Import on {creation}
+erpnext,Accounts,Bank Statement Import Log,master,tabBank Statement Import Log,bank_statement_import_log,18,2,1,0,0,0,0,hash
+erpnext,Accounts,Bank Statement Import Log Column Map,child,tabBank Statement Import Log Column Map,bank_statement_import_log_column_map,4,0,0,0,0,0,0,
+erpnext,Accounts,Bank Transaction,transaction,tabBank Transaction,bank_transaction,24,6,1,0,1,0,0,naming_series:
+erpnext,Accounts,Bank Transaction Mapping,child,tabBank Transaction Mapping,bank_transaction_mapping,2,0,0,0,0,0,0,
+erpnext,Accounts,Bank Transaction Payments,child,tabBank Transaction Payments,bank_transaction_payments,5,1,0,0,0,0,0,
+erpnext,Accounts,Bank Transaction Rule,master,tabBank Transaction Rule,bank_transaction_rule,12,3,2,0,0,0,0,field:rule_name
+erpnext,Accounts,Bank Transaction Rule Accounts,child,tabBank Transaction Rule Accounts,bank_transaction_rule_accounts,6,2,0,0,0,0,0,
+erpnext,Accounts,Bank Transaction Rule Description Conditions,child,tabBank Transaction Rule Description Conditions,bank_transaction_rule_description_conditions,2,0,0,0,0,0,0,
+erpnext,Accounts,Bisect Accounting Statements,single,tabBisect Accounting Statements,bisect_accounting_statements,10,2,0,0,0,0,1,
+erpnext,Accounts,Bisect Nodes,master,tabBisect Nodes,bisect_nodes,9,3,0,0,0,0,0,autoincrement
+erpnext,Accounts,Budget,transaction,tabBudget,budget,28,7,1,0,1,0,0,naming_series:
+erpnext,Accounts,Budget Account,child,tabBudget Account,budget_account,2,1,0,1,0,0,0,
+erpnext,Accounts,Budget Distribution,child,tabBudget Distribution,budget_distribution,4,0,0,1,0,0,0,
+erpnext,Accounts,Campaign Item,child,tabCampaign Item,campaign_item,1,1,0,0,0,0,0,
+erpnext,Accounts,Cashier Closing,transaction,tabCashier Closing,cashier_closing,11,2,1,0,1,0,0,naming_series:
+erpnext,Accounts,Cashier Closing Payments,child,tabCashier Closing Payments,cashier_closing_payments,2,1,0,0,0,0,0,
+erpnext,Accounts,Chart of Accounts Importer,single,tabChart of Accounts Importer,chart_of_accounts_importer,2,1,0,0,0,0,1,
+erpnext,Accounts,Cheque Print Template,master,tabCheque Print Template,cheque_print_template,25,0,0,0,0,0,0,field:bank_name
+erpnext,Accounts,Closed Document,child,tabClosed Document,closed_document,2,1,0,0,0,0,0,
+erpnext,Accounts,Cost Center,tree-master,tabCost Center,cost_center,9,3,0,2,0,1,0,
+erpnext,Accounts,Cost Center Allocation,transaction,tabCost Center Allocation,cost_center_allocation,4,3,1,0,1,0,0,CC-ALLOC-.#####
+erpnext,Accounts,Cost Center Allocation Percentage,child,tabCost Center Allocation Percentage,cost_center_allocation_percentage,2,1,0,0,0,0,0,
+erpnext,Accounts,Coupon Code,master,tabCoupon Code,coupon_code,12,3,0,0,0,0,0,field:coupon_name
+erpnext,Accounts,Currency Exchange Settings,single,tabCurrency Exchange Settings,currency_exchange_settings,6,0,2,0,0,0,1,
+erpnext,Accounts,Currency Exchange Settings Details,child,tabCurrency Exchange Settings Details,currency_exchange_settings_details,2,0,0,0,0,0,0,
+erpnext,Accounts,Currency Exchange Settings Result,child,tabCurrency Exchange Settings Result,currency_exchange_settings_result,1,0,0,0,0,0,0,
+erpnext,Accounts,Customer Group Item,child,tabCustomer Group Item,customer_group_item,1,1,0,0,0,0,0,
+erpnext,Accounts,Customer Item,child,tabCustomer Item,customer_item,1,1,0,0,0,0,0,
+erpnext,Accounts,Discounted Invoice,child,tabDiscounted Invoice,discounted_invoice,5,3,0,1,0,0,0,
+erpnext,Accounts,Dunning,transaction,tabDunning,dunning,33,12,1,0,1,0,0,naming_series:
+erpnext,Accounts,Dunning Letter Text,child,tabDunning Letter Text,dunning_letter_text,4,1,0,0,0,0,0,
+erpnext,Accounts,Dunning Type,master,tabDunning Type,dunning_type,7,3,1,0,0,0,0,
+erpnext,Accounts,Exchange Rate Revaluation,transaction,tabExchange Rate Revaluation,exchange_rate_revaluation,7,2,1,0,1,0,0,ACC-ERR-.YYYY.-.#####
+erpnext,Accounts,Exchange Rate Revaluation Account,child,tabExchange Rate Revaluation Account,exchange_rate_revaluation_account,12,3,0,0,0,0,0,
+erpnext,Accounts,Finance Book,master,tabFinance Book,finance_book,1,0,0,0,0,0,0,field:finance_book_name
+erpnext,Accounts,Financial Report Row,child,tabFinancial Report Row,financial_report_row,15,0,0,0,0,0,0,
+erpnext,Accounts,Financial Report Template,master,tabFinancial Report Template,financial_report_template,4,1,1,0,0,0,0,field:template_name
+erpnext,Accounts,Fiscal Year,master,tabFiscal Year,fiscal_year,6,0,1,0,0,0,0,field:year
+erpnext,Accounts,Fiscal Year Company,child,tabFiscal Year Company,fiscal_year_company,1,1,0,0,0,0,0,
+erpnext,Accounts,GL Entry,transaction,tabGL Entry,gl_entry,35,11,0,10,1,0,0,ACC-GLE-.YYYY.-.#####
+erpnext,Accounts,Invoice Discounting,transaction,tabInvoice Discounting,invoice_discounting,15,8,1,0,1,0,0,ACC-INV-DISC-.YYYY.-.#####
+erpnext,Accounts,Item Tax Template,master,tabItem Tax Template,item_tax_template,3,1,1,0,0,0,0,
+erpnext,Accounts,Item Tax Template Detail,child,tabItem Tax Template Detail,item_tax_template_detail,3,1,0,0,0,0,0,
+erpnext,Accounts,Item Wise Tax Detail,child,tabItem Wise Tax Detail,item_wise_tax_detail,5,0,0,0,0,0,0,
+erpnext,Accounts,Journal Entry,transaction,tabJournal Entry,journal_entry,47,18,2,7,1,0,0,naming_series:
+erpnext,Accounts,Journal Entry Account,child,tabJournal Entry Account,journal_entry_account,23,7,0,6,0,0,0,hash
+erpnext,Accounts,Journal Entry Template,master,tabJournal Entry Template,journal_entry_template,6,1,1,0,0,0,0,field:template_title
+erpnext,Accounts,Journal Entry Template Account,child,tabJournal Entry Template Account,journal_entry_template_account,5,4,0,0,0,0,0,
+erpnext,Accounts,Ledger Health,master,tabLedger Health,ledger_health,5,0,0,0,0,0,0,autoincrement
+erpnext,Accounts,Ledger Health Monitor,single,tabLedger Health Monitor,ledger_health_monitor,4,0,1,0,0,0,1,
+erpnext,Accounts,Ledger Health Monitor Company,child,tabLedger Health Monitor Company,ledger_health_monitor_company,1,1,0,0,0,0,0,
+erpnext,Accounts,Ledger Merge,master,tabLedger Merge,ledger_merge,6,2,1,0,0,0,0,format:{account_name} merger on {creation}
+erpnext,Accounts,Ledger Merge Accounts,child,tabLedger Merge Accounts,ledger_merge_accounts,3,1,0,0,0,0,0,
+erpnext,Accounts,Loyalty Point Entry,master,tabLoyalty Point Entry,loyalty_point_entry,12,5,0,0,0,0,0,
+erpnext,Accounts,Loyalty Point Entry Redemption,child,tabLoyalty Point Entry Redemption,loyalty_point_entry_redemption,3,0,0,0,0,0,0,
+erpnext,Accounts,Loyalty Program,master,tabLoyalty Program,loyalty_program,13,6,1,0,0,0,0,field:loyalty_program_name
+erpnext,Accounts,Loyalty Program Collection,child,tabLoyalty Program Collection,loyalty_program_collection,3,0,0,0,0,0,0,
+erpnext,Accounts,Mode of Payment,master,tabMode of Payment,mode_of_payment,3,0,1,0,0,0,0,field:mode_of_payment
+erpnext,Accounts,Mode of Payment Account,child,tabMode of Payment Account,mode_of_payment_account,2,2,0,0,0,0,0,
+erpnext,Accounts,Monthly Distribution,master,tabMonthly Distribution,monthly_distribution,2,1,1,1,0,0,0,field:distribution_id
+erpnext,Accounts,Monthly Distribution Percentage,child,tabMonthly Distribution Percentage,monthly_distribution_percentage,2,0,0,0,0,0,0,hash
+erpnext,Accounts,Opening Invoice Creation Tool,single,tabOpening Invoice Creation Tool,opening_invoice_creation_tool,5,3,1,0,0,0,1,
+erpnext,Accounts,Opening Invoice Creation Tool Item,child,tabOpening Invoice Creation Tool Item,opening_invoice_creation_tool_item,13,4,0,0,0,0,0,
+erpnext,Accounts,Overdue Payment,child,tabOverdue Payment,overdue_payment,14,3,0,0,0,0,0,
+erpnext,Accounts,POS Closing Entry,transaction,tabPOS Closing Entry,pos_closing_entry,15,5,4,0,1,0,0,POS-CLO-.YYYY.-.#####
+erpnext,Accounts,POS Closing Entry Detail,child,tabPOS Closing Entry Detail,pos_closing_entry_detail,5,1,0,0,0,0,0,
+erpnext,Accounts,POS Closing Entry Taxes,child,tabPOS Closing Entry Taxes,pos_closing_entry_taxes,2,1,0,0,0,0,0,
+erpnext,Accounts,POS Customer Group,child,tabPOS Customer Group,pos_customer_group,1,1,0,0,0,0,0,
+erpnext,Accounts,POS Field,child,tabPOS Field,pos_field,7,0,0,0,0,0,0,
+erpnext,Accounts,POS Invoice,transaction,tabPOS Invoice,pos_invoice,115,42,10,4,1,0,0,naming_series:
+erpnext,Accounts,POS Invoice Item,child,tabPOS Invoice Item,pos_invoice_item,71,21,0,5,0,0,0,hash
+erpnext,Accounts,POS Invoice Merge Log,transaction,tabPOS Invoice Merge Log,pos_invoice_merge_log,10,7,1,0,1,0,0,
+erpnext,Accounts,POS Invoice Reference,child,tabPOS Invoice Reference,pos_invoice_reference,6,3,0,0,0,0,0,
+erpnext,Accounts,POS Item Group,child,tabPOS Item Group,pos_item_group,1,1,0,0,0,0,0,
+erpnext,Accounts,POS Opening Entry,transaction,tabPOS Opening Entry,pos_opening_entry,10,4,1,0,1,0,0,POS-OPE-.YYYY.-.#####
+erpnext,Accounts,POS Opening Entry Detail,child,tabPOS Opening Entry Detail,pos_opening_entry_detail,2,1,0,0,0,0,0,
+erpnext,Accounts,POS Payment Method,child,tabPOS Payment Method,pos_payment_method,3,1,0,0,0,0,0,
+erpnext,Accounts,POS Profile,master,tabPOS Profile,pos_profile,40,22,4,0,0,0,0,Prompt
+erpnext,Accounts,POS Profile User,child,tabPOS Profile User,pos_profile_user,2,1,0,0,0,0,0,
+erpnext,Accounts,POS Search Fields,child,tabPOS Search Fields,pos_search_fields,2,0,0,0,0,0,0,
+erpnext,Accounts,POS Settings,single,tabPOS Settings,pos_settings,2,0,2,0,0,0,1,
+erpnext,Accounts,PSOA Cost Center,child,tabPSOA Cost Center,psoa_cost_center,1,1,0,0,0,0,0,
+erpnext,Accounts,PSOA Project,child,tabPSOA Project,psoa_project,1,1,0,0,0,0,0,
+erpnext,Accounts,Party Account,child,tabParty Account,party_account,3,3,0,0,0,0,0,
+erpnext,Accounts,Party Link,master,tabParty Link,party_link,4,2,0,0,0,0,0,ACC-PT-LNK-.###.
+erpnext,Accounts,Payment Entry,transaction,tabPayment Entry,payment_entry,63,21,4,3,1,0,0,naming_series:
+erpnext,Accounts,Payment Entry Deduction,child,tabPayment Entry Deduction,payment_entry_deduction,5,2,0,0,0,0,0,
+erpnext,Accounts,Payment Entry Reference,child,tabPayment Entry Reference,payment_entry_reference,18,5,0,2,0,0,0,
+erpnext,Accounts,Payment Gateway Account,master,tabPayment Gateway Account,payment_gateway_account,7,3,0,0,0,0,0,
+erpnext,Accounts,Payment Ledger Entry,transaction,tabPayment Ledger Entry,payment_ledger_entry,20,9,0,10,1,0,0,
+erpnext,Accounts,Payment Order,transaction,tabPayment Order,payment_order,9,5,1,0,1,0,0,naming_series:
+erpnext,Accounts,Payment Order Reference,child,tabPayment Order Reference,payment_order_reference,9,6,0,0,0,0,0,
+erpnext,Accounts,Payment Reconciliation,single,tabPayment Reconciliation,payment_reconciliation,20,7,3,0,0,0,1,
+erpnext,Accounts,Payment Reconciliation Allocation,child,tabPayment Reconciliation Allocation,payment_reconciliation_allocation,16,5,0,0,0,0,0,
+erpnext,Accounts,Payment Reconciliation Invoice,child,tabPayment Reconciliation Invoice,payment_reconciliation_invoice,7,1,0,0,0,0,0,
+erpnext,Accounts,Payment Reconciliation Payment,child,tabPayment Reconciliation Payment,payment_reconciliation_payment,11,3,0,0,0,0,0,
+erpnext,Accounts,Payment Reference,child,tabPayment Reference,payment_reference,6,3,0,0,0,0,0,
+erpnext,Accounts,Payment Request,transaction,tabPayment Request,payment_request,40,13,2,1,1,0,0,naming_series:
+erpnext,Accounts,Payment Schedule,child,tabPayment Schedule,payment_schedule,20,2,0,0,0,0,0,
+erpnext,Accounts,Payment Term,master,tabPayment Term,payment_term,11,1,0,0,0,0,0,field:payment_term_name
+erpnext,Accounts,Payment Terms Template,master,tabPayment Terms Template,payment_terms_template,2,0,1,0,0,0,0,field:template_name
+erpnext,Accounts,Payment Terms Template Detail,child,tabPayment Terms Template Detail,payment_terms_template_detail,11,2,0,0,0,0,0,
+erpnext,Accounts,Pegged Currencies,single,tabPegged Currencies,pegged_currencies,0,0,1,0,0,0,1,
+erpnext,Accounts,Pegged Currency Details,child,tabPegged Currency Details,pegged_currency_details,3,2,0,0,0,0,0,
+erpnext,Accounts,Period Closing Voucher,transaction,tabPeriod Closing Voucher,period_closing_voucher,10,4,0,0,1,0,0,ACC-PCV-.YYYY.-.#####
+erpnext,Accounts,Pricing Rule,master,tabPricing Rule,pricing_rule,59,17,3,1,0,0,0,naming_series:
+erpnext,Accounts,Pricing Rule Brand,child,tabPricing Rule Brand,pricing_rule_brand,2,2,0,1,0,0,0,
+erpnext,Accounts,Pricing Rule Detail,child,tabPricing Rule Detail,pricing_rule_detail,6,1,0,0,0,0,0,
+erpnext,Accounts,Pricing Rule Item Code,child,tabPricing Rule Item Code,pricing_rule_item_code,2,2,0,1,0,0,0,
+erpnext,Accounts,Pricing Rule Item Group,child,tabPricing Rule Item Group,pricing_rule_item_group,2,2,0,1,0,0,0,
+erpnext,Accounts,Process Deferred Accounting,transaction,tabProcess Deferred Accounting,process_deferred_accounting,7,3,0,0,1,0,0,ACC-PDA-.#####
+erpnext,Accounts,Process Payment Reconciliation,transaction,tabProcess Payment Reconciliation,process_payment_reconciliation,14,7,0,0,1,0,0,format:ACC-PPR-{#####}
+erpnext,Accounts,Process Payment Reconciliation Log,master,tabProcess Payment Reconciliation Log,process_payment_reconciliation_log,7,1,1,0,0,0,0,format:PPR-LOG-{##}
+erpnext,Accounts,Process Payment Reconciliation Log Allocations,child,tabProcess Payment Reconciliation Log Allocations,process_payment_reconciliation_log_allocations,15,4,0,0,0,0,0,
+erpnext,Accounts,Process Period Closing Voucher,transaction,tabProcess Period Closing Voucher,process_period_closing_voucher,5,2,2,1,1,0,0,format:Process-PCV-{###}
+erpnext,Accounts,Process Period Closing Voucher Detail,child,tabProcess Period Closing Voucher Detail,process_period_closing_voucher_detail,4,0,0,0,0,0,0,
+erpnext,Accounts,Process Statement Of Accounts,master,tabProcess Statement Of Accounts,process_statement_of_accounts,38,12,4,0,0,0,0,Prompt
+erpnext,Accounts,Process Statement Of Accounts CC,child,tabProcess Statement Of Accounts CC,process_statement_of_accounts_cc,1,1,0,0,0,0,0,
+erpnext,Accounts,Process Statement Of Accounts Customer,child,tabProcess Statement Of Accounts Customer,process_statement_of_accounts_customer,4,1,0,0,0,0,0,
+erpnext,Accounts,Process Subscription,transaction,tabProcess Subscription,process_subscription,3,2,0,0,1,0,0,
+erpnext,Accounts,Promotional Scheme,master,tabPromotional Scheme,promotional_scheme,15,5,12,0,0,0,0,Prompt
+erpnext,Accounts,Promotional Scheme Price Discount,child,tabPromotional Scheme Price Discount,promotional_scheme_price_discount,17,2,0,0,0,0,0,
+erpnext,Accounts,Promotional Scheme Product Discount,child,tabPromotional Scheme Product Discount,promotional_scheme_product_discount,19,3,0,0,0,0,0,
+erpnext,Accounts,Purchase Invoice,transaction,tabPurchase Invoice,purchase_invoice,125,39,8,6,1,0,0,naming_series:
+erpnext,Accounts,Purchase Invoice Advance,child,tabPurchase Invoice Advance,purchase_invoice_advance,9,1,0,0,0,0,0,
+erpnext,Accounts,Purchase Invoice Item,child,tabPurchase Invoice Item,purchase_invoice_item,82,27,0,11,0,0,0,hash
+erpnext,Accounts,Purchase Taxes and Charges,child,tabPurchase Taxes and Charges,purchase_taxes_and_charges,24,4,0,0,0,0,0,hash
+erpnext,Accounts,Purchase Taxes and Charges Template,master,tabPurchase Taxes and Charges Template,purchase_taxes_and_charges_template,5,2,1,0,0,0,0,
+erpnext,Accounts,Repost Accounting Ledger,transaction,tabRepost Accounting Ledger,repost_accounting_ledger,6,3,1,0,1,0,0,
+erpnext,Accounts,Repost Accounting Ledger Items,child,tabRepost Accounting Ledger Items,repost_accounting_ledger_items,4,1,0,0,0,0,0,
+erpnext,Accounts,Repost Allowed Types,child,tabRepost Allowed Types,repost_allowed_types,1,1,0,0,0,0,0,
+erpnext,Accounts,Repost Payment Ledger,transaction,tabRepost Payment Ledger,repost_payment_ledger,7,3,1,0,1,0,0,
+erpnext,Accounts,Repost Payment Ledger Items,child,tabRepost Payment Ledger Items,repost_payment_ledger_items,2,1,0,0,0,0,0,
+erpnext,Accounts,Sales Invoice,transaction,tabSales Invoice,sales_invoice,143,51,11,6,1,0,0,naming_series:
+erpnext,Accounts,Sales Invoice Advance,child,tabSales Invoice Advance,sales_invoice_advance,9,1,0,0,0,0,0,
+erpnext,Accounts,Sales Invoice Item,child,tabSales Invoice Item,sales_invoice_item,84,26,0,10,0,0,0,hash
+erpnext,Accounts,Sales Invoice Payment,child,tabSales Invoice Payment,sales_invoice_payment,8,2,0,0,0,0,0,
+erpnext,Accounts,Sales Invoice Reference,child,tabSales Invoice Reference,sales_invoice_reference,6,3,0,0,0,0,0,
+erpnext,Accounts,Sales Invoice Timesheet,child,tabSales Invoice Timesheet,sales_invoice_timesheet,9,2,0,0,0,0,0,
+erpnext,Accounts,Sales Partner Item,child,tabSales Partner Item,sales_partner_item,1,1,0,0,0,0,0,
+erpnext,Accounts,Sales Taxes and Charges,child,tabSales Taxes and Charges,sales_taxes_and_charges,21,4,0,1,0,0,0,
+erpnext,Accounts,Sales Taxes and Charges Template,master,tabSales Taxes and Charges Template,sales_taxes_and_charges_template,5,2,1,0,0,0,0,
+erpnext,Accounts,Share Balance,child,tabShare Balance,share_balance,8,1,0,0,0,0,0,
+erpnext,Accounts,Share Transfer,transaction,tabShare Transfer,share_transfer,17,7,0,0,1,0,0,ACC-SHT-.YYYY.-.#####
+erpnext,Accounts,Share Type,master,tabShare Type,share_type,2,0,0,0,0,0,0,field:title
+erpnext,Accounts,Shareholder,master,tabShareholder,shareholder,6,1,1,0,0,0,0,naming_series:
+erpnext,Accounts,Shipping Rule,master,tabShipping Rule,shipping_rule,9,4,2,0,0,0,0,field:label
+erpnext,Accounts,Shipping Rule Condition,child,tabShipping Rule Condition,shipping_rule_condition,3,0,0,0,0,0,0,
+erpnext,Accounts,Shipping Rule Country,child,tabShipping Rule Country,shipping_rule_country,1,1,0,0,0,0,0,
+erpnext,Accounts,South Africa VAT Account,child,tabSouth Africa VAT Account,south_africa_vat_account,1,1,0,0,0,0,0,account
+erpnext,Accounts,Subscription,master,tabSubscription,subscription,26,5,1,0,0,0,0,ACC-SUB-.YYYY.-.#####
+erpnext,Accounts,Subscription Invoice,child,tabSubscription Invoice,subscription_invoice,2,1,0,0,0,0,0,
+erpnext,Accounts,Subscription Plan,master,tabSubscription Plan,subscription_plan,11,5,0,0,0,0,0,field:plan_name
+erpnext,Accounts,Subscription Plan Detail,child,tabSubscription Plan Detail,subscription_plan_detail,2,1,0,0,0,0,0,
+erpnext,Accounts,Subscription Settings,single,tabSubscription Settings,subscription_settings,3,0,0,0,0,0,1,
+erpnext,Accounts,Supplier Group Item,child,tabSupplier Group Item,supplier_group_item,1,1,0,0,0,0,0,
+erpnext,Accounts,Supplier Item,child,tabSupplier Item,supplier_item,1,1,0,0,0,0,0,
+erpnext,Accounts,Tax Category,master,tabTax Category,tax_category,2,0,0,0,0,0,0,field:title
+erpnext,Accounts,Tax Rule,master,tabTax Rule,tax_rule,25,12,0,0,0,0,0,ACC-TAX-RULE-.YYYY.-.#####
+erpnext,Accounts,Tax Withholding Account,child,tabTax Withholding Account,tax_withholding_account,2,2,0,0,0,0,0,
+erpnext,Accounts,Tax Withholding Category,master,tabTax Withholding Category,tax_withholding_category,6,0,2,0,0,0,0,Prompt
+erpnext,Accounts,Tax Withholding Entry,child,tabTax Withholding Entry,tax_withholding_entry,21,8,0,0,0,0,0,
+erpnext,Accounts,Tax Withholding Group,master,tabTax Withholding Group,tax_withholding_group,1,0,0,0,0,0,0,field:group_name
+erpnext,Accounts,Tax Withholding Rate,child,tabTax Withholding Rate,tax_withholding_rate,6,1,0,0,0,0,0,
+erpnext,Accounts,Territory Item,child,tabTerritory Item,territory_item,1,1,0,0,0,0,0,
+erpnext,Accounts,Transaction Deletion Record Details,child,tabTransaction Deletion Record Details,transaction_deletion_record_details,4,1,0,0,0,0,0,
+erpnext,Accounts,Unreconcile Payment,transaction,tabUnreconcile Payment,unreconcile_payment,4,3,1,0,1,0,0,
+erpnext,Accounts,Unreconcile Payment Entries,child,tabUnreconcile Payment Entries,unreconcile_payment_entries,8,2,0,0,0,0,0,
+erpnext,Assets,Asset,transaction,tabAsset,asset,51,16,1,0,1,0,0,naming_series:
+erpnext,Assets,Asset Activity,master,tabAsset Activity,asset_activity,4,2,0,0,0,0,0,
+erpnext,Assets,Asset Capitalization,transaction,tabAsset Capitalization,asset_capitalization,19,8,3,1,1,0,0,naming_series:
+erpnext,Assets,Asset Capitalization Asset Item,child,tabAsset Capitalization Asset Item,asset_capitalization_asset_item,10,6,0,0,0,0,0,
+erpnext,Assets,Asset Capitalization Service Item,child,tabAsset Capitalization Service Item,asset_capitalization_service_item,8,4,0,0,0,0,0,
+erpnext,Assets,Asset Capitalization Stock Item,child,tabAsset Capitalization Stock Item,asset_capitalization_stock_item,14,6,0,0,0,0,0,
+erpnext,Assets,Asset Category,master,tabAsset Category,asset_category,3,0,2,0,0,0,0,field:asset_category_name
+erpnext,Assets,Asset Category Account,child,tabAsset Category Account,asset_category_account,5,5,0,0,0,0,0,
+erpnext,Assets,Asset Depreciation Schedule,transaction,tabAsset Depreciation Schedule,asset_depreciation_schedule,19,4,1,0,1,0,0,naming_series:
+erpnext,Assets,Asset Finance Book,child,tabAsset Finance Book,asset_finance_book,13,1,0,0,0,0,0,
+erpnext,Assets,Asset Maintenance,master,tabAsset Maintenance,asset_maintenance,8,3,1,0,0,0,0,field:asset_name
+erpnext,Assets,Asset Maintenance Log,transaction,tabAsset Maintenance Log,asset_maintenance_log,19,3,0,0,1,0,0,naming_series:
+erpnext,Assets,Asset Maintenance Task,child,tabAsset Maintenance Task,asset_maintenance_task,12,1,0,1,0,0,0,
+erpnext,Assets,Asset Maintenance Team,master,tabAsset Maintenance Team,asset_maintenance_team,4,2,1,0,0,0,0,field:maintenance_team_name
+erpnext,Assets,Asset Movement,transaction,tabAsset Movement,asset_movement,6,3,1,0,1,0,0,format:ACC-ASM-{YYYY}-{#####}
+erpnext,Assets,Asset Movement Item,child,tabAsset Movement Item,asset_movement_item,7,6,0,0,0,0,0,
+erpnext,Assets,Asset Repair,transaction,tabAsset Repair,asset_repair,18,5,2,0,1,0,0,naming_series:
+erpnext,Assets,Asset Repair Consumed Item,child,tabAsset Repair Consumed Item,asset_repair_consumed_item,7,3,0,0,0,0,0,
+erpnext,Assets,Asset Repair Purchase Invoice,child,tabAsset Repair Purchase Invoice,asset_repair_purchase_invoice,3,2,0,0,0,0,0,
+erpnext,Assets,Asset Shift Allocation,transaction,tabAsset Shift Allocation,asset_shift_allocation,4,3,1,1,1,0,0,naming_series:
+erpnext,Assets,Asset Shift Factor,master,tabAsset Shift Factor,asset_shift_factor,3,0,0,0,0,0,0,field:shift_name
+erpnext,Assets,Asset Value Adjustment,transaction,tabAsset Value Adjustment,asset_value_adjustment,12,7,0,0,1,0,0,
+erpnext,Assets,Depreciation Schedule,child,tabDepreciation Schedule,depreciation_schedule,5,2,0,0,0,0,0,
+erpnext,Assets,Linked Location,child,tabLinked Location,linked_location,1,1,0,0,0,0,0,
+erpnext,Assets,Location,tree-master,tabLocation,location,12,2,0,1,0,1,0,field:location_name
+erpnext,Assets,Maintenance Team Member,child,tabMaintenance Team Member,maintenance_team_member,3,2,0,0,0,0,0,field:team_member
+erpnext,Bulk Transaction,Bulk Transaction Log,master,tabBulk Transaction Log,bulk_transaction_log,4,0,0,0,0,0,0,
+erpnext,Bulk Transaction,Bulk Transaction Log Detail,master,tabBulk Transaction Log Detail,bulk_transaction_log_detail,8,2,0,3,0,0,0,
+erpnext,Buying,Buying Settings,single,tabBuying Settings,buying_settings,28,4,0,0,0,0,1,
+erpnext,Buying,Customer Number At Supplier,child,tabCustomer Number At Supplier,customer_number_at_supplier,2,1,0,0,0,0,0,
+erpnext,Buying,Purchase Order,transaction,tabPurchase Order,purchase_order,97,34,5,3,1,0,0,naming_series:
+erpnext,Buying,Purchase Order Item,child,tabPurchase Order Item,purchase_order_item,75,24,0,5,0,0,0,hash
+erpnext,Buying,Purchase Receipt Item Supplied,child,tabPurchase Receipt Item Supplied,purchase_receipt_item_supplied,16,5,0,0,0,0,0,
+erpnext,Buying,Request for Quotation,transaction,tabRequest for Quotation,request_for_quotation,27,11,2,3,1,0,0,naming_series:
+erpnext,Buying,Request for Quotation Item,child,tabRequest for Quotation Item,request_for_quotation_item,19,9,0,2,0,0,0,hash
+erpnext,Buying,Request for Quotation Supplier,child,tabRequest for Quotation Supplier,request_for_quotation_supplier,7,2,0,0,0,0,0,
+erpnext,Buying,Supplier,master,tabSupplier,supplier,39,14,5,0,0,0,0,naming_series:
+erpnext,Buying,Supplier Quotation,transaction,tabSupplier Quotation,supplier_quotation,69,21,4,4,1,0,0,naming_series:
+erpnext,Buying,Supplier Quotation Item,child,tabSupplier Quotation Item,supplier_quotation_item,49,14,0,5,0,0,0,hash
+erpnext,Buying,Supplier Scorecard,master,tabSupplier Scorecard,supplier_scorecard,13,2,2,0,0,0,0,field:supplier
+erpnext,Buying,Supplier Scorecard Criteria,master,tabSupplier Scorecard Criteria,supplier_scorecard_criteria,4,0,0,0,0,0,0,field:criteria_name
+erpnext,Buying,Supplier Scorecard Period,transaction,tabSupplier Scorecard Period,supplier_scorecard_period,7,3,2,0,1,0,0,naming_series:
+erpnext,Buying,Supplier Scorecard Scoring Criteria,child,tabSupplier Scorecard Scoring Criteria,supplier_scorecard_scoring_criteria,5,1,0,0,0,0,0,
+erpnext,Buying,Supplier Scorecard Scoring Standing,child,tabSupplier Scorecard Scoring Standing,supplier_scorecard_scoring_standing,11,2,0,0,0,0,0,
+erpnext,Buying,Supplier Scorecard Scoring Variable,child,tabSupplier Scorecard Scoring Variable,supplier_scorecard_scoring_variable,5,1,0,0,0,0,0,
+erpnext,Buying,Supplier Scorecard Standing,master,tabSupplier Scorecard Standing,supplier_scorecard_standing,11,1,0,0,0,0,0,field:standing_name
+erpnext,Buying,Supplier Scorecard Variable,master,tabSupplier Scorecard Variable,supplier_scorecard_variable,5,0,0,0,0,0,0,field:variable_label
+erpnext,CRM,Appointment,master,tabAppointment,appointment,13,2,0,2,0,0,0,format:APMT-{customer_name}-{####}
+erpnext,CRM,Appointment Booking Settings,single,tabAppointment Booking Settings,appointment_booking_settings,10,1,2,0,0,0,1,
+erpnext,CRM,Appointment Booking Slots,child,tabAppointment Booking Slots,appointment_booking_slots,3,0,0,0,0,0,0,
+erpnext,CRM,Availability Of Slots,child,tabAvailability Of Slots,availability_of_slots,3,0,0,0,0,0,0,
+erpnext,CRM,CRM Note,child,tabCRM Note,crm_note,3,1,0,0,0,0,0,autoincrement
+erpnext,CRM,CRM Settings,single,tabCRM Settings,crm_settings,9,0,1,0,0,0,1,
+erpnext,CRM,Campaign,master,tabCampaign,campaign,3,0,1,0,0,0,0,naming_series:
+erpnext,CRM,Campaign Email Schedule,child,tabCampaign Email Schedule,campaign_email_schedule,2,1,0,0,0,0,0,
+erpnext,CRM,Competitor,master,tabCompetitor,competitor,2,0,0,0,0,0,0,field:competitor_name
+erpnext,CRM,Competitor Detail,child,tabCompetitor Detail,competitor_detail,1,1,0,0,0,0,0,
+erpnext,CRM,Contract,transaction,tabContract,contract,21,4,1,0,1,0,0,CON-.YYYY.-.#####
+erpnext,CRM,Contract Fulfilment Checklist,child,tabContract Fulfilment Checklist,contract_fulfilment_checklist,4,1,0,0,1,0,0,
+erpnext,CRM,Contract Template,master,tabContract Template,contract_template,3,0,1,0,0,0,0,field:title
+erpnext,CRM,Contract Template Fulfilment Terms,child,tabContract Template Fulfilment Terms,contract_template_fulfilment_terms,1,0,0,0,0,0,0,
+erpnext,CRM,Email Campaign,master,tabEmail Campaign,email_campaign,7,2,0,0,0,0,0,format:MAIL-CAMP-{YYYY}-{#####}
+erpnext,CRM,Frappe CRM Allowed User,child,tabFrappe CRM Allowed User,frappe_crm_allowed_user,1,1,0,0,0,0,0,
+erpnext,CRM,Lead,master,tabLead,lead,43,14,1,4,0,0,0,naming_series:
+erpnext,CRM,Lost Reason Detail,child,tabLost Reason Detail,lost_reason_detail,1,1,0,0,0,0,0,
+erpnext,CRM,Market Segment,master,tabMarket Segment,market_segment,1,0,0,0,0,0,0,field:market_segment
+erpnext,CRM,Opportunity,master,tabOpportunity,opportunity,47,18,4,3,0,0,0,naming_series:
+erpnext,CRM,Opportunity Item,child,tabOpportunity Item,opportunity_item,12,4,0,0,0,0,0,
+erpnext,CRM,Opportunity Lost Reason,master,tabOpportunity Lost Reason,opportunity_lost_reason,1,0,0,0,0,0,0,field:lost_reason
+erpnext,CRM,Opportunity Lost Reason Detail,child,tabOpportunity Lost Reason Detail,opportunity_lost_reason_detail,1,1,0,0,0,0,0,
+erpnext,CRM,Opportunity Type,master,tabOpportunity Type,opportunity_type,1,0,0,0,0,0,0,Prompt
+erpnext,CRM,Prospect,master,tabProspect,prospect,11,6,3,0,0,0,0,field:company_name
+erpnext,CRM,Prospect Lead,child,tabProspect Lead,prospect_lead,6,1,0,0,0,0,0,
+erpnext,CRM,Prospect Opportunity,child,tabProspect Opportunity,prospect_opportunity,8,3,0,0,0,0,0,autoincrement
+erpnext,CRM,Sales Stage,master,tabSales Stage,sales_stage,1,0,0,0,0,0,0,field:stage_name
+erpnext,Communication,Communication Medium,master,tabCommunication Medium,communication_medium,5,2,1,0,0,0,0,Prompt
+erpnext,Communication,Communication Medium Timeslot,child,tabCommunication Medium Timeslot,communication_medium_timeslot,4,1,0,0,0,0,0,
+erpnext,EDI,Code List,master,tabCode List,code_list,8,1,0,0,0,0,0,prompt
+erpnext,EDI,Common Code,master,tabCommon Code,common_code,6,1,1,2,0,0,0,hash
+erpnext,ERPNext Integrations,Plaid Settings,single,tabPlaid Settings,plaid_settings,6,0,0,0,0,0,1,
+erpnext,Maintenance,Maintenance Schedule,transaction,tabMaintenance Schedule,maintenance_schedule,15,7,2,1,1,0,0,naming_series:
+erpnext,Maintenance,Maintenance Schedule Detail,child,tabMaintenance Schedule Detail,maintenance_schedule_detail,8,3,0,2,0,0,0,hash
+erpnext,Maintenance,Maintenance Schedule Item,child,tabMaintenance Schedule Item,maintenance_schedule_item,11,4,0,4,0,0,0,hash
+erpnext,Maintenance,Maintenance Visit,transaction,tabMaintenance Visit,maintenance_visit,21,9,1,0,1,0,0,naming_series:
+erpnext,Maintenance,Maintenance Visit Purpose,child,tabMaintenance Visit Purpose,maintenance_visit_purpose,9,4,0,0,0,0,0,hash
+erpnext,Manufacturing,BOM,transaction,tabBOM,bom,53,13,4,3,1,0,0,
+erpnext,Manufacturing,BOM Creator,transaction,tabBOM Creator,bom_creator,22,11,1,0,1,0,0,prompt
+erpnext,Manufacturing,BOM Creator Item,child,tabBOM Creator Item,bom_creator_item,24,6,0,0,0,0,0,
+erpnext,Manufacturing,BOM Explosion Item,child,tabBOM Explosion Item,bom_explosion_item,14,4,0,1,0,0,0,hash
+erpnext,Manufacturing,BOM Item,child,tabBOM Item,bom_item,27,7,0,2,0,0,0,
+erpnext,Manufacturing,BOM Operation,child,tabBOM Operation,bom_operation,27,8,0,0,0,0,0,
+erpnext,Manufacturing,BOM Secondary Item,child,tabBOM Secondary Item,bom_secondary_item,17,3,0,0,0,0,0,
+erpnext,Manufacturing,BOM Update Batch,child,tabBOM Update Batch,bom_update_batch,4,0,0,0,0,0,0,hash
+erpnext,Manufacturing,BOM Update Log,transaction,tabBOM Update Log,bom_update_log,8,4,1,0,1,0,0,BOM-UPDT-LOG-.#####
+erpnext,Manufacturing,BOM Update Tool,single,tabBOM Update Tool,bom_update_tool,2,2,0,0,0,0,1,
+erpnext,Manufacturing,BOM Website Item,child,tabBOM Website Item,bom_website_item,5,1,0,1,0,0,0,
+erpnext,Manufacturing,BOM Website Operation,child,tabBOM Website Operation,bom_website_operation,5,2,0,0,0,0,0,
+erpnext,Manufacturing,Blanket Order,transaction,tabBlanket Order,blanket_order,14,5,1,1,1,0,0,naming_series:
+erpnext,Manufacturing,Blanket Order Item,child,tabBlanket Order Item,blanket_order_item,7,1,0,1,0,0,0,
+erpnext,Manufacturing,Downtime Entry,master,tabDowntime Entry,downtime_entry,8,2,0,0,0,0,0,naming_series:
+erpnext,Manufacturing,Job Card,transaction,tabJob Card,job_card,50,20,6,1,1,0,0,naming_series:
+erpnext,Manufacturing,Job Card Item,child,tabJob Card Item,job_card_item,11,5,0,0,0,0,0,
+erpnext,Manufacturing,Job Card Operation,child,tabJob Card Operation,job_card_operation,4,1,0,0,0,0,0,
+erpnext,Manufacturing,Job Card Scheduled Time,child,tabJob Card Scheduled Time,job_card_scheduled_time,3,0,0,0,0,0,0,
+erpnext,Manufacturing,Job Card Secondary Item,child,tabJob Card Secondary Item,job_card_secondary_item,7,2,0,0,0,0,0,
+erpnext,Manufacturing,Job Card Time Log,child,tabJob Card Time Log,job_card_time_log,6,2,0,0,0,0,0,
+erpnext,Manufacturing,Manufacturing Settings,single,tabManufacturing Settings,manufacturing_settings,19,0,0,0,0,0,1,
+erpnext,Manufacturing,Master Production Schedule,master,tabMaster Production Schedule,master_production_schedule,8,4,4,1,0,0,0,naming_series:
+erpnext,Manufacturing,Master Production Schedule Item,child,tabMaster Production Schedule Item,master_production_schedule_item,9,4,0,0,0,0,0,
+erpnext,Manufacturing,Material Request Plan Item,child,tabMaterial Request Plan Item,material_request_plan_item,23,7,0,3,0,0,0,
+erpnext,Manufacturing,Operation,master,tabOperation,operation,8,2,1,0,0,0,0,Prompt
+erpnext,Manufacturing,Plant Floor,master,tabPlant Floor,plant_floor,3,2,0,0,0,0,0,field:floor_name
+erpnext,Manufacturing,Production Plan,transaction,tabProduction Plan,production_plan,29,9,7,1,1,0,0,naming_series:
+erpnext,Manufacturing,Production Plan Item,child,tabProduction Plan Item,production_plan_item,18,7,0,0,0,0,0,hash
+erpnext,Manufacturing,Production Plan Item Reference,child,tabProduction Plan Item Reference,production_plan_item_reference,4,1,0,0,0,0,0,
+erpnext,Manufacturing,Production Plan Material Request,child,tabProduction Plan Material Request,production_plan_material_request,2,1,0,0,0,0,0,hash
+erpnext,Manufacturing,Production Plan Material Request Warehouse,child,tabProduction Plan Material Request Warehouse,production_plan_material_request_warehouse,1,1,0,0,0,0,0,
+erpnext,Manufacturing,Production Plan Sales Order,child,tabProduction Plan Sales Order,production_plan_sales_order,5,2,0,0,0,0,0,hash
+erpnext,Manufacturing,Production Plan Sub Assembly Item,child,tabProduction Plan Sub Assembly Item,production_plan_sub_assembly_item,25,9,0,0,0,0,0,
+erpnext,Manufacturing,Routing,master,tabRouting,routing,2,0,1,0,0,0,0,field:routing_name
+erpnext,Manufacturing,Sales Forecast,transaction,tabSales Forecast,sales_forecast,9,3,2,1,1,0,0,naming_series:
+erpnext,Manufacturing,Sales Forecast Item,child,tabSales Forecast Item,sales_forecast_item,6,3,0,0,0,0,0,
+erpnext,Manufacturing,Sub Operation,child,tabSub Operation,sub_operation,3,1,0,0,0,0,0,
+erpnext,Manufacturing,Work Order,transaction,tabWork Order,work_order,55,16,4,2,1,0,0,naming_series:
+erpnext,Manufacturing,Work Order Additional Item,child,tabWork Order Additional Item,work_order_additional_item,6,2,0,0,0,0,0,
+erpnext,Manufacturing,Work Order Item,child,tabWork Order Item,work_order_item,21,4,0,1,0,0,0,
+erpnext,Manufacturing,Work Order Operation,child,tabWork Order Operation,work_order_operation,29,9,0,0,0,0,0,
+erpnext,Manufacturing,Workstation,master,tabWorkstation,workstation,13,4,2,0,0,0,0,field:workstation_name
+erpnext,Manufacturing,Workstation Cost,child,tabWorkstation Cost,workstation_cost,2,1,0,0,0,0,0,
+erpnext,Manufacturing,Workstation Operating Component,master,tabWorkstation Operating Component,workstation_operating_component,1,0,1,0,0,0,0,field:component_name
+erpnext,Manufacturing,Workstation Operating Component Account,child,tabWorkstation Operating Component Account,workstation_operating_component_account,2,2,0,0,0,0,0,
+erpnext,Manufacturing,Workstation Type,master,tabWorkstation Type,workstation_type,3,0,1,0,0,0,0,field:workstation_type
+erpnext,Manufacturing,Workstation Working Hour,child,tabWorkstation Working Hour,workstation_working_hour,4,0,0,0,0,0,0,
+erpnext,Portal,Website Attribute,child,tabWebsite Attribute,website_attribute,1,1,0,0,0,0,0,
+erpnext,Portal,Website Filter Field,child,tabWebsite Filter Field,website_filter_field,1,0,0,0,0,0,0,
+erpnext,Projects,Activity Cost,master,tabActivity Cost,activity_cost,7,3,0,0,0,0,0,PROJ-ACC-.#####
+erpnext,Projects,Activity Type,master,tabActivity Type,activity_type,4,0,0,0,0,0,0,field:activity_type
+erpnext,Projects,Dependent Task,child,tabDependent Task,dependent_task,1,1,0,0,0,0,0,
+erpnext,Projects,Project,master,tabProject,project,42,8,1,3,0,0,0,naming_series:
+erpnext,Projects,Project Template,master,tabProject Template,project_template,2,1,1,0,0,0,0,Prompt
+erpnext,Projects,Project Template Task,child,tabProject Template Task,project_template_task,2,1,0,0,0,0,0,
+erpnext,Projects,Project Type,master,tabProject Type,project_type,2,0,0,0,0,0,0,field:project_type
+erpnext,Projects,Project Update,transaction,tabProject Update,project_update,6,2,1,1,1,0,0,naming_series:
+erpnext,Projects,Project User,child,tabProject User,project_user,8,1,0,1,0,0,0,
+erpnext,Projects,Projects Settings,single,tabProjects Settings,projects_settings,4,0,0,0,0,0,1,
+erpnext,Projects,Task,tree-master,tabTask,task,35,7,1,5,0,1,0,TASK-.YYYY.-.#####
+erpnext,Projects,Task Depends On,child,tabTask Depends On,task_depends_on,3,1,0,0,0,0,0,
+erpnext,Projects,Task Type,master,tabTask Type,task_type,2,0,0,0,0,0,0,Prompt
+erpnext,Projects,Timesheet,transaction,tabTimesheet,timesheet,27,9,1,0,1,0,0,naming_series:
+erpnext,Projects,Timesheet Detail,child,tabTimesheet Detail,timesheet_detail,21,4,0,0,0,0,0,
+erpnext,Quality Management,Non Conformance,master,tabNon Conformance,non_conformance,8,1,0,0,0,0,0,format:QA-NC-{#####}
+erpnext,Quality Management,Quality Action,master,tabQuality Action,quality_action,7,4,1,0,0,0,0,format:QA-ACT-{#####}
+erpnext,Quality Management,Quality Action Resolution,child,tabQuality Action Resolution,quality_action_resolution,5,1,0,0,0,0,0,
+erpnext,Quality Management,Quality Feedback,master,tabQuality Feedback,quality_feedback,3,1,1,0,0,0,0,format:QA-FB-{#####}
+erpnext,Quality Management,Quality Feedback Parameter,child,tabQuality Feedback Parameter,quality_feedback_parameter,3,0,0,0,0,0,0,
+erpnext,Quality Management,Quality Feedback Template,master,tabQuality Feedback Template,quality_feedback_template,1,0,1,0,0,0,0,field:template
+erpnext,Quality Management,Quality Feedback Template Parameter,child,tabQuality Feedback Template Parameter,quality_feedback_template_parameter,1,0,0,0,0,0,0,
+erpnext,Quality Management,Quality Goal,master,tabQuality Goal,quality_goal,5,1,1,0,0,0,0,field:goal
+erpnext,Quality Management,Quality Goal Objective,child,tabQuality Goal Objective,quality_goal_objective,3,1,0,0,0,0,0,format:{####}
+erpnext,Quality Management,Quality Meeting,master,tabQuality Meeting,quality_meeting,1,0,2,0,0,0,0,format:QA-MEET-{YY}-{MM}-{DD}
+erpnext,Quality Management,Quality Meeting Agenda,child,tabQuality Meeting Agenda,quality_meeting_agenda,1,0,0,0,0,0,0,
+erpnext,Quality Management,Quality Meeting Minutes,child,tabQuality Meeting Minutes,quality_meeting_minutes,3,0,0,0,0,0,0,
+erpnext,Quality Management,Quality Procedure,tree-master,tabQuality Procedure,quality_procedure,8,2,1,0,0,1,0,field:quality_procedure_name
+erpnext,Quality Management,Quality Procedure Process,child,tabQuality Procedure Process,quality_procedure_process,2,1,0,0,0,0,0,
+erpnext,Quality Management,Quality Review,master,tabQuality Review,quality_review,5,2,1,0,0,0,0,format:QA-REV-{#####}
+erpnext,Quality Management,Quality Review Objective,child,tabQuality Review Objective,quality_review_objective,5,1,0,0,0,0,0,
+erpnext,Regional,Import Supplier Invoice,master,tabImport Supplier Invoice,import_supplier_invoice,8,5,0,0,0,0,0,
+erpnext,Regional,Lower Deduction Certificate,master,tabLower Deduction Certificate,lower_deduction_certificate,10,4,0,0,0,0,0,field:certificate_no
+erpnext,Regional,South Africa VAT Settings,master,tabSouth Africa VAT Settings,south_africa_vat_settings,1,1,1,0,0,0,0,field:company
+erpnext,Regional,UAE VAT Account,child,tabUAE VAT Account,uae_vat_account,1,1,0,0,0,0,0,account
+erpnext,Regional,UAE VAT Settings,master,tabUAE VAT Settings,uae_vat_settings,1,1,1,0,0,0,0,field:company
+erpnext,Selling,Customer,master,tabCustomer,customer,44,22,7,2,0,0,0,naming_series:
+erpnext,Selling,Customer Credit Limit,child,tabCustomer Credit Limit,customer_credit_limit,4,1,0,0,0,0,0,
+erpnext,Selling,Delivery Schedule Item,master,tabDelivery Schedule Item,delivery_schedule_item,10,5,0,2,0,0,0,
+erpnext,Selling,Industry Type,master,tabIndustry Type,industry_type,1,0,0,0,0,0,0,field:industry
+erpnext,Selling,Installation Note,transaction,tabInstallation Note,installation_note,18,8,1,3,1,0,0,naming_series:
+erpnext,Selling,Installation Note Item,child,tabInstallation Note Item,installation_note_item,8,2,0,2,0,0,0,hash
+erpnext,Selling,Party Specific Item,master,tabParty Specific Item,party_specific_item,4,0,0,0,0,0,0,
+erpnext,Selling,Product Bundle,transaction,tabProduct Bundle,product_bundle,5,2,1,0,1,0,0,
+erpnext,Selling,Product Bundle Item,child,tabProduct Bundle Item,product_bundle_item,5,2,0,0,0,0,0,
+erpnext,Selling,Proforma Invoice,transaction,tabProforma Invoice,proforma_invoice,18,7,1,0,1,0,0,naming_series:
+erpnext,Selling,Proforma Invoice Item,child,tabProforma Invoice Item,proforma_invoice_item,7,2,0,0,0,0,0,
+erpnext,Selling,Quotation,transaction,tabQuotation,quotation,77,30,8,2,1,0,0,naming_series:
+erpnext,Selling,Quotation Item,child,tabQuotation Item,quotation_item,55,11,0,1,0,0,0,
+erpnext,Selling,SMS Center,single,tabSMS Center,sms_center,10,5,0,0,0,0,1,
+erpnext,Selling,Sales Order,transaction,tabSales Order,sales_order,104,35,7,5,1,0,0,naming_series:
+erpnext,Selling,Sales Order Item,child,tabSales Order Item,sales_order_item,82,19,0,3,0,0,0,hash
+erpnext,Selling,Sales Partner Type,master,tabSales Partner Type,sales_partner_type,1,0,0,0,0,0,0,field:sales_partner_type
+erpnext,Selling,Sales Team,child,tabSales Team,sales_team,6,1,0,1,0,0,0,
+erpnext,Selling,Selling Settings,single,tabSelling Settings,selling_settings,33,5,0,0,0,0,1,
+erpnext,Selling,Supplier Number At Customer,child,tabSupplier Number At Customer,supplier_number_at_customer,2,1,0,0,0,0,0,
+erpnext,Setup,Authorization Control,single,tabAuthorization Control,authorization_control,0,0,0,0,0,0,1,
+erpnext,Setup,Authorization Rule,master,tabAuthorization Rule,authorization_rule,12,7,0,0,0,0,0,HR-ARU-.#####
+erpnext,Setup,Branch,master,tabBranch,branch,1,0,0,0,0,0,0,field:branch
+erpnext,Setup,Brand,master,tabBrand,brand,3,0,1,0,0,0,0,field:brand
+erpnext,Setup,Company,tree-master,tabCompany,company,100,60,0,2,0,1,0,field:company_name
+erpnext,Setup,Currency Exchange,master,tabCurrency Exchange,currency_exchange,6,2,0,0,0,0,0,
+erpnext,Setup,Customer Group,tree-master,tabCustomer Group,customer_group,8,4,2,2,0,1,0,field:customer_group_name
+erpnext,Setup,Department,tree-master,tabDepartment,department,8,2,0,0,0,1,0,
+erpnext,Setup,Designation,master,tabDesignation,designation,2,0,0,0,0,0,0,field:designation_name
+erpnext,Setup,Driver,master,tabDriver,driver,11,4,1,0,0,0,0,naming_series:
+erpnext,Setup,Driving License Category,child,tabDriving License Category,driving_license_category,4,0,0,0,0,0,0,
+erpnext,Setup,Email Digest,master,tabEmail Digest,email_digest,29,1,1,0,0,0,0,Prompt
+erpnext,Setup,Email Digest Recipient,child,tabEmail Digest Recipient,email_digest_recipient,1,1,0,0,0,0,0,
+erpnext,Setup,Employee,tree-master,tabEmployee,employee,67,10,3,2,0,1,0,naming_series:
+erpnext,Setup,Employee Education,child,tabEmployee Education,employee_education,6,0,0,0,0,0,0,
+erpnext,Setup,Employee External Work History,child,tabEmployee External Work History,employee_external_work_history,6,0,0,0,0,0,0,
+erpnext,Setup,Employee Group,master,tabEmployee Group,employee_group,1,0,1,0,0,0,0,field:employee_group_name
+erpnext,Setup,Employee Group Table,child,tabEmployee Group Table,employee_group_table,3,1,0,0,0,0,0,
+erpnext,Setup,Employee Internal Work History,child,tabEmployee Internal Work History,employee_internal_work_history,5,3,0,0,0,0,0,
+erpnext,Setup,Global Defaults,single,tabGlobal Defaults,global_defaults,9,5,0,0,0,0,1,
+erpnext,Setup,Holiday,child,tabHoliday,holiday,4,0,0,0,0,0,0,
+erpnext,Setup,Holiday List,master,tabHoliday List,holiday_list,9,0,1,0,0,0,0,field:holiday_list_name
+erpnext,Setup,Incoterm,master,tabIncoterm,incoterm,3,0,0,0,0,0,0,field:code
+erpnext,Setup,Item Group,tree-master,tabItem Group,item_group,7,2,2,2,0,1,0,field:item_group_name
+erpnext,Setup,Party Type,master,tabParty Type,party_type,2,1,0,0,0,0,0,field:party_type
+erpnext,Setup,Quotation Lost Reason,master,tabQuotation Lost Reason,quotation_lost_reason,1,0,0,0,0,0,0,field:order_lost_reason
+erpnext,Setup,Quotation Lost Reason Detail,child,tabQuotation Lost Reason Detail,quotation_lost_reason_detail,1,1,0,0,0,0,0,
+erpnext,Setup,Sales Partner,master,tabSales Partner,sales_partner,11,2,1,0,0,0,0,field:partner_name
+erpnext,Setup,Sales Person,tree-master,tabSales Person,sales_person,10,3,1,2,0,1,0,field:sales_person_name
+erpnext,Setup,Supplier Group,tree-master,tabSupplier Group,supplier_group,7,3,1,2,0,1,0,field:supplier_group_name
+erpnext,Setup,Target Detail,child,tabTarget Detail,target_detail,5,3,0,3,0,0,0,
+erpnext,Setup,Terms and Conditions,master,tabTerms and Conditions,terms_and_conditions,6,0,0,0,0,0,0,field:title
+erpnext,Setup,Territory,tree-master,tabTerritory,territory,7,3,1,3,0,1,0,field:territory_name
+erpnext,Setup,Transaction Deletion Record,transaction,tabTransaction Deletion Record,transaction_deletion_record,11,2,3,0,1,0,0,TDL.####
+erpnext,Setup,Transaction Deletion Record Item,child,tabTransaction Deletion Record Item,transaction_deletion_record_item,1,1,0,0,0,0,0,
+erpnext,Setup,Transaction Deletion Record To Delete,child,tabTransaction Deletion Record To Delete,transaction_deletion_record_to_delete,5,1,0,0,0,0,0,
+erpnext,Setup,UOM,master,tabUOM,uom,7,1,0,0,0,0,0,field:uom_name
+erpnext,Setup,UOM Conversion Factor,master,tabUOM Conversion Factor,uom_conversion_factor,4,3,0,0,0,0,0,MAT-UOM-CNV-.#####
+erpnext,Setup,Vehicle,master,tabVehicle,vehicle,21,4,0,0,0,0,0,field:license_plate
+erpnext,Setup,Website Item Group,child,tabWebsite Item Group,website_item_group,1,1,0,0,0,0,0,
+erpnext,Stock,Batch,master,tabBatch,batch,18,5,0,0,0,0,0,field:batch_id
+erpnext,Stock,Bin,master,tabBin,bin,16,4,0,1,0,0,0,hash
+erpnext,Stock,Company Restriction,child,tabCompany Restriction,company_restriction,1,1,0,0,0,0,0,
+erpnext,Stock,Customs Tariff Number,master,tabCustoms Tariff Number,customs_tariff_number,2,0,0,0,0,0,0,field:tariff_number
+erpnext,Stock,Delivery Note,transaction,tabDelivery Note,delivery_note,102,37,6,4,1,0,0,naming_series:
+erpnext,Stock,Delivery Note Item,child,tabDelivery Note Item,delivery_note_item,74,21,0,10,0,0,0,hash
+erpnext,Stock,Delivery Settings,single,tabDelivery Settings,delivery_settings,4,2,0,0,0,0,1,
+erpnext,Stock,Delivery Stop,child,tabDelivery Stop,delivery_stop,16,5,0,0,0,0,0,
+erpnext,Stock,Delivery Trip,transaction,tabDelivery Trip,delivery_trip,14,7,1,0,1,0,0,naming_series:
+erpnext,Stock,Inventory Dimension,master,tabInventory Dimension,inventory_dimension,13,2,0,0,0,0,0,field:dimension_name
+erpnext,Stock,Item,master,tabItem,item,72,15,9,4,0,0,0,field:item_code
+erpnext,Stock,Item Alternative,master,tabItem Alternative,item_alternative,5,2,0,0,0,0,0,
+erpnext,Stock,Item Attribute,master,tabItem Attribute,item_attribute,6,0,1,0,0,0,0,field:attribute_name
+erpnext,Stock,Item Attribute Value,child,tabItem Attribute Value,item_attribute_value,2,0,0,1,0,0,0,
+erpnext,Stock,Item Barcode,child,tabItem Barcode,item_barcode,3,1,0,0,0,0,0,hash
+erpnext,Stock,Item Customer Detail,child,tabItem Customer Detail,item_customer_detail,3,2,0,2,0,0,0,hash
+erpnext,Stock,Item Default,child,tabItem Default,item_default,21,21,0,1,0,0,0,
+erpnext,Stock,Item Lead Time,master,tabItem Lead Time,item_lead_time,13,2,0,0,0,0,0,field:item_code
+erpnext,Stock,Item Manufacturer,master,tabItem Manufacturer,item_manufacturer,6,2,0,0,0,0,0,
+erpnext,Stock,Item Price,master,tabItem Price,item_price,19,8,0,2,0,0,0,hash
+erpnext,Stock,Item Quality Inspection Parameter,child,tabItem Quality Inspection Parameter,item_quality_inspection_parameter,8,2,0,0,0,0,0,hash
+erpnext,Stock,Item Reorder,child,tabItem Reorder,item_reorder,5,2,0,0,0,0,0,hash
+erpnext,Stock,Item Standard Cost,transaction,tabItem Standard Cost,item_standard_cost,7,4,0,3,1,0,0,naming_series:
+erpnext,Stock,Item Supplier,child,tabItem Supplier,item_supplier,2,1,0,0,0,0,0,
+erpnext,Stock,Item Tax,child,tabItem Tax,item_tax,5,2,0,0,0,0,0,
+erpnext,Stock,Item Variant,child,tabItem Variant,item_variant,2,1,0,0,0,0,0,
+erpnext,Stock,Item Variant Attribute,child,tabItem Variant Attribute,item_variant_attribute,8,2,0,2,0,0,0,
+erpnext,Stock,Item Variant Settings,single,tabItem Variant Settings,item_variant_settings,3,0,1,0,0,0,1,
+erpnext,Stock,Item Website Specification,child,tabItem Website Specification,item_website_specification,2,0,0,0,0,0,0,
+erpnext,Stock,Landed Cost Item,child,tabLanded Cost Item,landed_cost_item,12,2,0,0,0,0,0,
+erpnext,Stock,Landed Cost Purchase Receipt,child,tabLanded Cost Purchase Receipt,landed_cost_purchase_receipt,5,1,0,0,0,0,0,
+erpnext,Stock,Landed Cost Taxes and Charges,child,tabLanded Cost Taxes and Charges,landed_cost_taxes_and_charges,11,2,0,0,0,0,0,
+erpnext,Stock,Landed Cost Vendor Invoice,child,tabLanded Cost Vendor Invoice,landed_cost_vendor_invoice,2,1,0,1,0,0,0,
+erpnext,Stock,Landed Cost Voucher,transaction,tabLanded Cost Voucher,landed_cost_voucher,7,2,4,0,1,0,0,naming_series:
+erpnext,Stock,Manufacturer,master,tabManufacturer,manufacturer,6,1,0,0,0,0,0,field:short_name
+erpnext,Stock,Material Request,transaction,tabMaterial Request,material_request,23,11,1,3,1,0,0,naming_series:
+erpnext,Stock,Material Request Item,child,tabMaterial Request Item,material_request_item,41,15,0,5,0,0,0,hash
+erpnext,Stock,Packed Item,child,tabPacked Item,packed_item,28,8,0,1,0,0,0,
+erpnext,Stock,Packing Slip,transaction,tabPacking Slip,packing_slip,10,5,1,0,1,0,0,MAT-PAC-.YYYY.-.#####
+erpnext,Stock,Packing Slip Item,child,tabPacking Slip Item,packing_slip_item,11,4,0,0,0,0,0,hash
+erpnext,Stock,Pick List,transaction,tabPick List,pick_list,20,6,1,1,1,0,0,naming_series:
+erpnext,Stock,Pick List Item,child,tabPick List Item,pick_list_item,25,8,0,4,0,0,0,
+erpnext,Stock,Price List,master,tabPrice List,price_list,6,1,1,0,0,0,0,field:price_list_name
+erpnext,Stock,Price List Country,child,tabPrice List Country,price_list_country,1,1,0,0,0,0,0,
+erpnext,Stock,Purchase Receipt,transaction,tabPurchase Receipt,purchase_receipt,90,29,5,6,1,0,0,naming_series:
+erpnext,Stock,Purchase Receipt Item,child,tabPurchase Receipt Item,purchase_receipt_item,89,28,0,13,0,0,0,hash
+erpnext,Stock,Putaway Rule,master,tabPutaway Rule,putaway_rule,11,5,0,0,0,0,0,PUT-.####
+erpnext,Stock,Quality Inspection,transaction,tabQuality Inspection,quality_inspection,22,9,1,2,1,0,0,naming_series:
+erpnext,Stock,Quality Inspection Parameter,master,tabQuality Inspection Parameter,quality_inspection_parameter,3,1,0,0,0,0,0,field:parameter
+erpnext,Stock,Quality Inspection Parameter Group,master,tabQuality Inspection Parameter Group,quality_inspection_parameter_group,1,0,0,0,0,0,0,field:group_name
+erpnext,Stock,Quality Inspection Reading,child,tabQuality Inspection Reading,quality_inspection_reading,21,2,0,0,0,0,0,hash
+erpnext,Stock,Quality Inspection Template,master,tabQuality Inspection Template,quality_inspection_template,1,0,1,0,0,0,0,field:quality_inspection_template_name
+erpnext,Stock,Quick Stock Balance,single,tabQuick Stock Balance,quick_stock_balance,8,2,0,0,0,0,1,
+erpnext,Stock,Repost Item Valuation,transaction,tabRepost Item Valuation,repost_item_valuation,25,5,0,1,1,0,0,hash
+erpnext,Stock,Serial No,master,tabSerial No,serial_no,24,12,0,2,0,0,0,field:serial_no
+erpnext,Stock,Serial and Batch Bundle,transaction,tabSerial and Batch Bundle,serial_and_batch_bundle,21,6,1,2,1,0,0,hash
+erpnext,Stock,Serial and Batch Entry,child,tabSerial and Batch Entry,serial_and_batch_entry,18,4,0,2,0,0,0,
+erpnext,Stock,Shipment,transaction,tabShipment,shipment,43,14,2,0,1,0,0,SHIPMENT-.#####
+erpnext,Stock,Shipment Delivery Note,child,tabShipment Delivery Note,shipment_delivery_note,2,1,0,0,0,0,0,
+erpnext,Stock,Shipment Parcel,child,tabShipment Parcel,shipment_parcel,5,0,0,0,0,0,0,
+erpnext,Stock,Shipment Parcel Template,master,tabShipment Parcel Template,shipment_parcel_template,5,0,0,0,0,0,0,field:parcel_template_name
+erpnext,Stock,Stock Closing Balance,master,tabStock Closing Balance,stock_closing_balance,17,7,0,7,0,0,0,
+erpnext,Stock,Stock Closing Entry,transaction,tabStock Closing Entry,stock_closing_entry,6,2,0,2,1,0,0,naming_series:
+erpnext,Stock,Stock Entry,transaction,tabStock Entry,stock_entry,55,27,2,8,1,0,0,naming_series:
+erpnext,Stock,Stock Entry Detail,child,tabStock Entry Detail,stock_entry_detail,55,21,0,9,0,0,0,hash
+erpnext,Stock,Stock Entry Type,master,tabStock Entry Type,stock_entry_type,3,0,0,0,0,0,0,Prompt
+erpnext,Stock,Stock Ledger Entry,transaction,tabStock Ledger Entry,stock_ledger_entry,31,7,0,5,1,0,0,MAT-SLE-.YYYY.-.#####
+erpnext,Stock,Stock Reconciliation,transaction,tabStock Reconciliation,stock_reconciliation,13,5,1,0,1,0,0,naming_series:
+erpnext,Stock,Stock Reconciliation Item,child,tabStock Reconciliation Item,stock_reconciliation_item,23,7,0,2,0,0,0,
+erpnext,Stock,Stock Reposting Settings,single,tabStock Reposting Settings,stock_reposting_settings,11,1,0,0,0,0,1,
+erpnext,Stock,Stock Reservation Entry,transaction,tabStock Reservation Entry,stock_reservation_entry,22,6,1,7,1,0,0,MAT-SRE-.YYYY.-.#####
+erpnext,Stock,Stock Settings,single,tabStock Settings,stock_settings,47,5,0,0,0,0,1,
+erpnext,Stock,UOM Category,master,tabUOM Category,uom_category,1,0,0,0,0,0,0,field:category_name
+erpnext,Stock,UOM Conversion Detail,child,tabUOM Conversion Detail,uom_conversion_detail,2,1,0,0,0,0,0,hash
+erpnext,Stock,Variant Field,child,tabVariant Field,variant_field,1,0,0,0,0,0,0,
+erpnext,Stock,Warehouse,tree-master,tabWarehouse,warehouse,21,7,0,2,0,1,0,
+erpnext,Stock,Warehouse Type,master,tabWarehouse Type,warehouse_type,1,0,0,0,0,0,0,Prompt
+erpnext,Subcontracting,Subcontracting BOM,master,tabSubcontracting BOM,subcontracting_bom,9,5,0,3,0,0,0,format:SB-{####}
+erpnext,Subcontracting,Subcontracting Inward Order,transaction,tabSubcontracting Inward Order,subcontracting_inward_order,18,7,4,3,1,0,0,naming_series:
+erpnext,Subcontracting,Subcontracting Inward Order Item,child,tabSubcontracting Inward Order Item,subcontracting_inward_order_item,14,4,0,2,0,0,0,hash
+erpnext,Subcontracting,Subcontracting Inward Order Received Item,child,tabSubcontracting Inward Order Received Item,subcontracting_inward_order_received_item,15,4,0,0,0,0,0,
+erpnext,Subcontracting,Subcontracting Inward Order Secondary Item,child,tabSubcontracting Inward Order Secondary Item,subcontracting_inward_order_secondary_item,8,4,0,0,0,0,0,
+erpnext,Subcontracting,Subcontracting Inward Order Service Item,child,tabSubcontracting Inward Order Service Item,subcontracting_inward_order_service_item,9,3,0,2,0,0,0,hash
+erpnext,Subcontracting,Subcontracting Order,transaction,tabSubcontracting Order,subcontracting_order,35,16,4,3,1,0,0,naming_series:
+erpnext,Subcontracting,Subcontracting Order Item,child,tabSubcontracting Order Item,subcontracting_order_item,31,10,0,5,0,0,0,hash
+erpnext,Subcontracting,Subcontracting Order Service Item,child,tabSubcontracting Order Service Item,subcontracting_order_service_item,10,3,0,2,0,0,0,hash
+erpnext,Subcontracting,Subcontracting Order Supplied Item,child,tabSubcontracting Order Supplied Item,subcontracting_order_supplied_item,15,4,0,0,0,0,0,
+erpnext,Subcontracting,Subcontracting Receipt,transaction,tabSubcontracting Receipt,subcontracting_receipt,47,17,3,3,1,0,0,naming_series:
+erpnext,Subcontracting,Subcontracting Receipt Item,child,tabSubcontracting Receipt Item,subcontracting_receipt_item,48,18,0,6,0,0,0,hash
+erpnext,Subcontracting,Subcontracting Receipt Supplied Item,child,tabSubcontracting Receipt Supplied Item,subcontracting_receipt_supplied_item,21,8,0,0,0,0,0,
+erpnext,Support,Issue,master,tabIssue,issue,34,10,0,2,0,0,0,naming_series:
+erpnext,Support,Issue Priority,master,tabIssue Priority,issue_priority,1,0,0,0,0,0,0,Prompt
+erpnext,Support,Issue Type,master,tabIssue Type,issue_type,1,0,0,0,0,0,0,Prompt
+erpnext,Support,Pause SLA On Status,child,tabPause SLA On Status,pause_sla_on_status,1,0,0,0,0,0,0,
+erpnext,Support,SLA Fulfilled On Status,child,tabSLA Fulfilled On Status,sla_fulfilled_on_status,1,0,0,0,0,0,0,
+erpnext,Support,Service Day,child,tabService Day,service_day,3,0,0,0,0,0,0,
+erpnext,Support,Service Level Agreement,master,tabService Level Agreement,service_level_agreement,12,3,4,0,0,0,0,format:SLA-{document_type}-{service_level}
+erpnext,Support,Service Level Priority,child,tabService Level Priority,service_level_priority,4,1,0,0,0,0,0,
+erpnext,Support,Support Search Source,child,tabSupport Search Source,support_search_source,14,1,0,0,0,0,0,
+erpnext,Support,Support Settings,single,tabSupport Settings,support_settings,14,0,1,0,0,0,1,
+erpnext,Support,Warranty Claim,master,tabWarranty Claim,warranty_claim,29,10,0,10,0,0,0,naming_series:
+erpnext,Telephony,Call Log,master,tabCall Log,call_log,15,4,1,0,0,0,0,field:id
+erpnext,Telephony,Incoming Call Handling Schedule,child,tabIncoming Call Handling Schedule,incoming_call_handling_schedule,4,1,0,0,0,0,0,
+erpnext,Telephony,Incoming Call Settings,master,tabIncoming Call Settings,incoming_call_settings,4,0,1,0,0,0,0,Prompt
+erpnext,Telephony,Telephony Call Type,transaction,tabTelephony Call Type,telephony_call_type,2,1,0,0,1,0,0,field:call_type
+erpnext,Telephony,Voice Call Settings,master,tabVoice Call Settings,voice_call_settings,5,1,0,0,0,0,0,field:user
+erpnext,Utilities,Portal User,child,tabPortal User,portal_user,1,1,0,1,0,0,0,
+erpnext,Utilities,Rename Tool,single,tabRename Tool,rename_tool,2,1,0,0,0,0,1,
+erpnext,Utilities,Video,master,tabVideo,video,12,0,0,0,0,0,0,field:title
+erpnext,Utilities,Video Settings,single,tabVideo Settings,video_settings,3,0,0,0,0,0,1,
+frappe,Automation,Assignment Rule,master,tabAssignment Rule,assignment_rule,12,2,3,0,0,0,0,Prompt
+frappe,Automation,Assignment Rule Day,child,tabAssignment Rule Day,assignment_rule_day,1,0,0,0,0,0,0,
+frappe,Automation,Assignment Rule User,child,tabAssignment Rule User,assignment_rule_user,2,1,0,0,0,0,0,
+frappe,Automation,Auto Repeat,master,tabAuto Repeat,auto_repeat,18,3,2,1,0,0,0,format:AUT-AR-{#####}
+frappe,Automation,Auto Repeat Day,child,tabAuto Repeat Day,auto_repeat_day,1,0,0,0,0,0,0,
+frappe,Automation,Auto Repeat User,child,tabAuto Repeat User,auto_repeat_user,1,1,0,0,0,0,0,
+frappe,Automation,Milestone,master,tabMilestone,milestone,5,2,0,1,0,0,0,
+frappe,Automation,Milestone Tracker,master,tabMilestone Tracker,milestone_tracker,3,1,0,0,0,0,0,format:{document_type}-{track_field}
+frappe,Automation,Reminder,master,tabReminder,reminder,6,2,0,2,0,0,0,hash
+frappe,Contacts,Address,master,tabAddress,address,15,1,1,3,0,0,0,
+frappe,Contacts,Address Template,master,tabAddress Template,address_template,3,1,0,0,0,0,0,field:country
+frappe,Contacts,Contact,master,tabContact,contact,22,5,3,1,0,0,0,
+frappe,Contacts,Contact Email,child,tabContact Email,contact_email,2,0,0,0,0,0,0,
+frappe,Contacts,Contact Phone,child,tabContact Phone,contact_phone,3,0,0,0,0,0,0,
+frappe,Contacts,Gender,master,tabGender,gender,1,0,0,0,0,0,0,field:gender
+frappe,Contacts,Salutation,master,tabSalutation,salutation,1,0,0,0,0,0,0,field:salutation
+frappe,Core,API Request Log,master,tabAPI Request Log,api_request_log,3,1,0,0,0,0,0,
+frappe,Core,Access Log,master,tabAccess Log,access_log,10,1,0,0,0,0,0,hash
+frappe,Core,Activity Log,master,tabActivity Log,activity_log,15,4,0,0,0,0,0,
+frappe,Core,Amended Document Naming Settings,child,tabAmended Document Naming Settings,amended_document_naming_settings,2,1,0,0,0,0,0,
+frappe,Core,Audit Trail,single,tabAudit Trail,audit_trail,4,1,0,0,0,0,1,
+frappe,Core,Background Task,master,tabBackground Task,background_task,21,2,0,0,0,0,0,field:task_id
+frappe,Core,Block Module,child,tabBlock Module,block_module,1,0,0,0,0,0,0,
+frappe,Core,Comment,master,tabComment,comment,11,1,0,0,0,0,0,
+frappe,Core,Communication,master,tabCommunication,communication,34,5,1,1,0,0,0,
+frappe,Core,Communication Link,child,tabCommunication Link,communication_link,4,1,0,0,0,0,0,
+frappe,Core,Custom DocPerm,master,tabCustom DocPerm,custom_docperm,19,1,0,1,0,0,0,hash
+frappe,Core,Custom Role,master,tabCustom Role,custom_role,3,2,1,0,0,0,0,hash
+frappe,Core,Data Export,single,tabData Export,data_export,3,1,0,0,0,0,1,
+frappe,Core,Data Import,master,tabData Import,data_import,14,1,2,0,0,0,0,format:{reference_doctype} Import on {creation}
+frappe,Core,Data Import Log,master,tabData Import Log,data_import_log,8,1,0,0,0,0,0,
+frappe,Core,Data Import Skipped Row,child,tabData Import Skipped Row,data_import_skipped_row,2,0,0,0,0,0,0,
+frappe,Core,Data Import Value Mapping,child,tabData Import Value Mapping,data_import_value_mapping,11,1,0,0,0,0,0,
+frappe,Core,DefaultValue,child,tabDefaultValue,defaultvalue,2,0,0,0,0,0,0,hash
+frappe,Core,Deleted Document,master,tabDeleted Document,deleted_document,5,0,0,0,0,0,0,
+frappe,Core,DocField,child,tabDocField,docfield,66,0,0,3,0,0,0,hash
+frappe,Core,DocPerm,child,tabDocPerm,docperm,18,1,0,0,0,0,0,hash
+frappe,Core,DocShare,master,tabDocShare,docshare,9,2,0,4,0,0,0,hash
+frappe,Core,DocType,master,tabDocType,doctype,66,3,5,1,0,0,0,Prompt
+frappe,Core,DocType Action,child,tabDocType Action,doctype_action,6,0,0,0,0,0,0,
+frappe,Core,DocType Layout,master,tabDocType Layout,doctype_layout,9,5,2,0,0,0,0,field:title
+frappe,Core,DocType Layout Child Table,child,tabDocType Layout Child Table,doctype_layout_child_table,2,1,0,0,0,0,0,
+frappe,Core,DocType Layout Field,child,tabDocType Layout Field,doctype_layout_field,14,0,0,0,0,0,0,
+frappe,Core,DocType Link,child,tabDocType Link,doctype_link,8,2,0,0,0,0,0,
+frappe,Core,DocType Settings Map,master,tabDocType Settings Map,doctype_settings_map,4,2,1,0,0,0,0,
+frappe,Core,DocType Settings Map Item,child,tabDocType Settings Map Item,doctype_settings_map_item,2,1,0,0,0,0,0,
+frappe,Core,DocType State,child,tabDocType State,doctype_state,3,0,0,0,0,0,0,
+frappe,Core,Doctype To Sync,child,tabDoctype To Sync,doctype_to_sync,1,1,0,0,0,0,0,
+frappe,Core,Document Naming Rule,master,tabDocument Naming Rule,document_naming_rule,6,1,1,0,0,0,0,
+frappe,Core,Document Naming Rule Condition,child,tabDocument Naming Rule Condition,document_naming_rule_condition,3,0,0,0,0,0,0,
+frappe,Core,Document Naming Settings,single,tabDocument Naming Settings,document_naming_settings,8,0,1,0,0,0,1,
+frappe,Core,Document Share Key,master,tabDocument Share Key,document_share_key,4,1,0,2,0,0,0,hash
+frappe,Core,Domain,master,tabDomain,domain,1,0,0,0,0,0,0,field:domain
+frappe,Core,Domain Settings,single,tabDomain Settings,domain_settings,0,0,1,0,0,0,1,
+frappe,Core,DuckDB Sync,transaction,tabDuckDB Sync,duckdb_sync,3,2,1,1,1,0,0,
+frappe,Core,DuckDB Sync Item,child,tabDuckDB Sync Item,duckdb_sync_item,2,0,0,0,0,0,0,
+frappe,Core,Dynamic Link,child,tabDynamic Link,dynamic_link,3,1,0,0,0,0,0,
+frappe,Core,Error Log,master,tabError Log,error_log,8,1,0,2,0,0,0,
+frappe,Core,File,master,tabFile,file,17,2,0,1,0,0,0,
+frappe,Core,Has Domain,child,tabHas Domain,has_domain,1,1,0,0,0,0,0,
+frappe,Core,Has Role,child,tabHas Role,has_role,1,1,0,0,0,0,0,hash
+frappe,Core,Installed Application,child,tabInstalled Application,installed_application,5,0,0,0,0,0,0,
+frappe,Core,Installed Applications,single,tabInstalled Applications,installed_applications,0,0,1,0,0,0,1,
+frappe,Core,Language,master,tabLanguage,language,9,1,0,0,0,0,0,field:language_code
+frappe,Core,Log Setting User,child,tabLog Setting User,log_setting_user,1,1,0,0,0,0,0,field:user
+frappe,Core,Log Settings,single,tabLog Settings,log_settings,0,0,1,0,0,0,1,
+frappe,Core,Logs To Clear,child,tabLogs To Clear,logs_to_clear,2,1,0,0,0,0,0,hash
+frappe,Core,Module Def,master,tabModule Def,module_def,5,2,0,0,0,0,0,field:module_name
+frappe,Core,Module Profile,master,tabModule Profile,module_profile,1,0,1,0,0,0,0,field:module_profile_name
+frappe,Core,Navbar Item,child,tabNavbar Item,navbar_item,8,0,0,0,0,0,0,
+frappe,Core,Navbar Settings,single,tabNavbar Settings,navbar_settings,4,0,2,0,0,0,1,
+frappe,Core,Package,master,tabPackage,package,4,0,0,0,0,0,0,Prompt
+frappe,Core,Package Import,master,tabPackage Import,package_import,4,0,0,0,0,0,0,format:Package Import at {creation}
+frappe,Core,Package Release,master,tabPackage Release,package_release,7,1,0,0,0,0,0,
+frappe,Core,Page,master,tabPage,page,7,2,1,1,0,0,0,field:page_name
+frappe,Core,Patch Log,master,tabPatch Log,patch_log,3,0,0,0,0,0,0,hash
+frappe,Core,Permission Inspector,single,tabPermission Inspector,permission_inspector,5,2,0,0,0,0,1,
+frappe,Core,Permission Log,master,tabPermission Log,permission_log,7,3,0,0,0,0,0,hash
+frappe,Core,Permission Type,master,tabPermission Type,permission_type,2,1,0,0,0,0,0,
+frappe,Core,Prepared Report,master,tabPrepared Report,prepared_report,7,0,0,2,0,0,0,hash
+frappe,Core,RQ Job,master,tabRQ Job,rq_job,10,0,0,0,0,0,0,field:job_id
+frappe,Core,RQ Worker,master,tabRQ Worker,rq_worker,12,1,0,0,0,0,0,
+frappe,Core,Recorder,master,tabRecorder,recorder,11,0,2,0,0,0,0,
+frappe,Core,Recorder Query,child,tabRecorder Query,recorder_query,8,0,0,0,0,0,0,
+frappe,Core,Recorder Suggested Index,child,tabRecorder Suggested Index,recorder_suggested_index,2,0,0,0,0,0,0,
+frappe,Core,Report,master,tabReport,report,21,4,4,0,0,0,0,field:report_name
+frappe,Core,Report Column,child,tabReport Column,report_column,5,0,0,0,0,0,0,
+frappe,Core,Report Filter,child,tabReport Filter,report_filter,7,0,0,0,0,0,0,
+frappe,Core,Role,master,tabRole,role,7,1,0,0,0,0,0,field:role_name
+frappe,Core,Role Permission for Page and Report,single,tabRole Permission for Page and Report,role_permission_for_page_and_report,4,2,1,0,0,0,1,
+frappe,Core,Role Profile,master,tabRole Profile,role_profile,1,0,1,0,0,0,0,role_profile
+frappe,Core,SMS Log,master,tabSMS Log,sms_log,7,0,0,0,0,0,0,SYS-SMS-.#####
+frappe,Core,SMS Parameter,child,tabSMS Parameter,sms_parameter,3,0,0,0,0,0,0,
+frappe,Core,SMS Settings,single,tabSMS Settings,sms_settings,4,0,1,0,0,0,1,
+frappe,Core,Scheduled Job Log,master,tabScheduled Job Log,scheduled_job_log,4,1,0,0,0,0,0,
+frappe,Core,Scheduled Job Type,master,tabScheduled Job Type,scheduled_job_type,8,2,0,1,0,0,0,
+frappe,Core,Scheduler Event,master,tabScheduler Event,scheduler_event,2,1,0,0,0,0,0,
+frappe,Core,Security Settings,single,tabSecurity Settings,security_settings,2,0,2,0,0,0,1,
+frappe,Core,Security Settings Contact,child,tabSecurity Settings Contact,security_settings_contact,2,0,0,0,0,0,0,
+frappe,Core,Security Settings Language,child,tabSecurity Settings Language,security_settings_language,1,1,0,0,0,0,0,
+frappe,Core,Server Script,master,tabServer Script,server_script,13,2,0,2,0,0,0,Prompt
+frappe,Core,Session Default,child,tabSession Default,session_default,1,1,0,0,0,0,0,
+frappe,Core,Session Default Settings,single,tabSession Default Settings,session_default_settings,0,0,1,0,0,0,1,
+frappe,Core,Submission Queue,master,tabSubmission Queue,submission_queue,6,2,0,1,0,0,0,hash
+frappe,Core,Success Action,master,tabSuccess Action,success_action,5,1,0,0,0,0,0,field:ref_doctype
+frappe,Core,System Settings,single,tabSystem Settings,system_settings,79,5,0,0,0,0,1,
+frappe,Core,Translation,master,tabTranslation,translation,7,1,0,1,0,0,0,hash
+frappe,Core,User,master,tabUser,user,67,6,8,1,0,0,0,
+frappe,Core,User Document Type,child,tabUser Document Type,user_document_type,12,1,0,0,0,0,0,
+frappe,Core,User Email,child,tabUser Email,user_email,5,1,0,0,0,0,0,
+frappe,Core,User Group,master,tabUser Group,user_group,0,0,1,0,0,0,0,Prompt
+frappe,Core,User Group Member,child,tabUser Group Member,user_group_member,1,1,0,0,0,0,0,
+frappe,Core,User Invitation,master,tabUser Invitation,user_invitation,9,2,1,0,0,0,0,
+frappe,Core,User Permission,master,tabUser Permission,user_permission,7,3,0,1,0,0,0,
+frappe,Core,User Role,child,tabUser Role,user_role,1,1,0,0,0,0,0,
+frappe,Core,User Role Profile,child,tabUser Role Profile,user_role_profile,1,1,0,0,0,0,0,
+frappe,Core,User Select Document Type,child,tabUser Select Document Type,user_select_document_type,1,1,0,0,0,0,0,
+frappe,Core,User Session Display,child,tabUser Session Display,user_session_display,6,0,0,0,0,0,0,
+frappe,Core,User Social Login,child,tabUser Social Login,user_social_login,3,0,0,0,0,0,0,
+frappe,Core,User Type,master,tabUser Type,user_type,4,2,4,0,0,0,0,Prompt
+frappe,Core,User Type Module,child,tabUser Type Module,user_type_module,1,1,0,0,0,0,0,
+frappe,Core,User Workspaces,child,tabUser Workspaces,user_workspaces,1,1,0,0,0,0,0,
+frappe,Core,Version,master,tabVersion,version,3,1,0,0,0,0,0,hash
+frappe,Core,View Log,master,tabView Log,view_log,3,1,0,1,0,0,0,
+frappe,Custom,Client Script,master,tabClient Script,client_script,5,2,0,0,0,0,0,Prompt
+frappe,Custom,Custom Field,master,tabCustom Field,custom_field,58,2,0,1,0,0,0,
+frappe,Custom,Customize Form,single,tabCustomize Form,customize_form,40,3,4,0,0,0,1,DL.####
+frappe,Custom,Customize Form Field,child,tabCustomize Form Field,customize_form_field,58,0,0,3,0,0,0,hash
+frappe,Custom,Property Setter,master,tabProperty Setter,property_setter,10,2,0,3,0,0,0,
+frappe,Desk,Bulk Update,single,tabBulk Update,bulk_update,5,1,0,0,0,0,1,
+frappe,Desk,Calendar View,master,tabCalendar View,calendar_view,5,1,0,0,0,0,0,Prompt
+frappe,Desk,Console Log,master,tabConsole Log,console_log,3,0,0,0,0,0,0,format:Log on {timestamp}
+frappe,Desk,Custom HTML Block,master,tabCustom HTML Block,custom_html_block,4,0,1,0,0,0,0,prompt
+frappe,Desk,Dashboard,master,tabDashboard,dashboard,5,1,2,0,0,0,0,field:dashboard_name
+frappe,Desk,Dashboard Chart,master,tabDashboard Chart,dashboard_chart,31,6,2,0,0,0,0,field:chart_name
+frappe,Desk,Dashboard Chart Field,child,tabDashboard Chart Field,dashboard_chart_field,2,0,0,0,0,0,0,
+frappe,Desk,Dashboard Chart Link,child,tabDashboard Chart Link,dashboard_chart_link,2,1,0,0,0,0,0,
+frappe,Desk,Dashboard Chart Source,master,tabDashboard Chart Source,dashboard_chart_source,3,1,0,0,0,0,0,field:source_name
+frappe,Desk,Dashboard Settings,master,tabDashboard Settings,dashboard_settings,2,1,0,0,0,0,0,Prompt
+frappe,Desk,Desktop Icon,master,tabDesktop Icon,desktop_icon,16,2,1,0,0,0,0,field:label
+frappe,Desk,Desktop Layout,master,tabDesktop Layout,desktop_layout,2,1,0,0,0,0,0,field:user
+frappe,Desk,Desktop Settings,single,tabDesktop Settings,desktop_settings,2,0,0,0,0,0,1,
+frappe,Desk,Document Template,master,tabDocument Template,document_template,5,1,0,1,0,0,0,hash
+frappe,Desk,Event,master,tabEvent,event,32,2,3,1,0,0,0,EV.#####
+frappe,Desk,Event Notifications,child,tabEvent Notifications,event_notifications,4,0,0,0,0,0,0,
+frappe,Desk,Event Participants,child,tabEvent Participants,event_participants,4,1,0,0,0,0,0,
+frappe,Desk,Form Tour,master,tabForm Tour,form_tour,17,6,1,0,0,0,0,field:title
+frappe,Desk,Form Tour Step,child,tabForm Tour Step,form_tour_step,22,1,0,0,0,0,0,
+frappe,Desk,Global Search DocType,child,tabGlobal Search DocType,global_search_doctype,1,1,0,0,0,0,0,
+frappe,Desk,Global Search Settings,single,tabGlobal Search Settings,global_search_settings,0,0,1,0,0,0,1,
+frappe,Desk,Kanban Board,master,tabKanban Board,kanban_board,7,1,1,0,0,0,0,field:kanban_board_name
+frappe,Desk,Kanban Board Column,child,tabKanban Board Column,kanban_board_column,4,0,0,0,0,0,0,
+frappe,Desk,List Filter,master,tabList Filter,list_filter,8,2,0,0,0,0,0,
+frappe,Desk,List View Settings,master,tabList View Settings,list_view_settings,9,0,0,0,0,0,0,Prompt
+frappe,Desk,Module Onboarding,master,tabModule Onboarding,module_onboarding,3,1,2,0,0,0,0,Prompt
+frappe,Desk,Note,master,tabNote,note,6,0,1,1,0,0,0,hash
+frappe,Desk,Note Seen By,child,tabNote Seen By,note_seen_by,1,1,0,0,0,0,0,
+frappe,Desk,Notification Log,master,tabNotification Log,notification_log,14,4,0,3,0,0,0,
+frappe,Desk,Notification Settings,master,tabNotification Settings,notification_settings,9,1,2,0,0,0,0,Prompt
+frappe,Desk,Notification Subscribed Document,child,tabNotification Subscribed Document,notification_subscribed_document,1,1,0,0,0,0,0,
+frappe,Desk,Notification Type,master,tabNotification Type,notification_type,2,0,0,0,0,0,0,field:type_name
+frappe,Desk,Notification Type Preference,child,tabNotification Type Preference,notification_type_preference,1,1,0,0,0,0,0,
+frappe,Desk,Number Card,master,tabNumber Card,number_card,22,5,0,0,0,0,0,
+frappe,Desk,Number Card Link,child,tabNumber Card Link,number_card_link,1,1,0,0,0,0,0,
+frappe,Desk,Onboarding Permission,child,tabOnboarding Permission,onboarding_permission,1,1,0,0,0,0,0,
+frappe,Desk,Onboarding Step,master,tabOnboarding Step,onboarding_step,24,3,0,0,0,0,0,prompt
+frappe,Desk,Onboarding Step Map,child,tabOnboarding Step Map,onboarding_step_map,1,1,0,0,0,0,0,
+frappe,Desk,Route History,master,tabRoute History,route_history,2,1,0,0,0,0,0,
+frappe,Desk,System Console,single,tabSystem Console,system_console,5,0,0,0,0,0,1,
+frappe,Desk,System Health Report,single,tabSystem Health Report,system_health_report,29,1,5,0,0,0,1,
+frappe,Desk,System Health Report Errors,child,tabSystem Health Report Errors,system_health_report_errors,2,0,0,0,0,0,0,
+frappe,Desk,System Health Report Failing Jobs,child,tabSystem Health Report Failing Jobs,system_health_report_failing_jobs,2,1,0,0,0,0,0,
+frappe,Desk,System Health Report Queue,child,tabSystem Health Report Queue,system_health_report_queue,2,0,0,0,0,0,0,
+frappe,Desk,System Health Report Tables,child,tabSystem Health Report Tables,system_health_report_tables,2,0,0,0,0,0,0,
+frappe,Desk,System Health Report Workers,child,tabSystem Health Report Workers,system_health_report_workers,4,0,0,0,0,0,0,
+frappe,Desk,Tag,master,tabTag,tag,1,0,0,0,0,0,0,Prompt
+frappe,Desk,Tag Link,master,tabTag Link,tag_link,4,2,0,0,0,0,0,
+frappe,Desk,ToDo,master,tabToDo,todo,13,5,0,0,0,0,0,hash
+frappe,Desk,Workspace,master,tabWorkspace,workspace,20,4,8,2,0,0,0,field:label
+frappe,Desk,Workspace Chart,child,tabWorkspace Chart,workspace_chart,2,1,0,0,0,0,0,
+frappe,Desk,Workspace Custom Block,child,tabWorkspace Custom Block,workspace_custom_block,2,1,0,0,0,0,0,
+frappe,Desk,Workspace Customization,master,tabWorkspace Customization,workspace_customization,8,1,2,0,0,0,0,field:workspace
+frappe,Desk,Workspace Link,child,tabWorkspace Link,workspace_link,14,3,0,0,0,0,0,
+frappe,Desk,Workspace Number Card,child,tabWorkspace Number Card,workspace_number_card,2,1,0,0,0,0,0,
+frappe,Desk,Workspace Quick List,child,tabWorkspace Quick List,workspace_quick_list,3,1,0,0,0,0,0,
+frappe,Desk,Workspace Shortcut,child,tabWorkspace Shortcut,workspace_shortcut,12,3,0,0,0,0,0,
+frappe,Desk,Workspace Sidebar,master,tabWorkspace Sidebar,workspace_sidebar,7,2,1,0,0,0,0,field:title
+frappe,Desk,Workspace Sidebar Item,child,tabWorkspace Sidebar Item,workspace_sidebar_item,16,0,0,0,0,0,0,hash
+frappe,Email,Auto Email Report,master,tabAuto Email Report,auto_email_report,20,3,0,0,0,0,0,
+frappe,Email,Document Follow,master,tabDocument Follow,document_follow,3,2,0,3,0,0,0,
+frappe,Email,Email Account,master,tabEmail Account,email_account,60,4,2,1,0,0,0,field:email_account_name
+frappe,Email,Email Domain,master,tabEmail Domain,email_domain,15,0,0,0,0,0,0,field:domain_name
+frappe,Email,Email Flag Queue,master,tabEmail Flag Queue,email_flag_queue,5,0,0,0,0,0,0,
+frappe,Email,Email Group,master,tabEmail Group,email_group,6,2,0,0,0,0,0,field:title
+frappe,Email,Email Group Member,master,tabEmail Group Member,email_group_member,3,1,0,2,0,0,0,hash
+frappe,Email,Email Queue,master,tabEmail Queue,email_queue,20,3,1,2,0,0,0,hash
+frappe,Email,Email Queue Recipient,child,tabEmail Queue Recipient,email_queue_recipient,3,0,0,1,0,0,0,
+frappe,Email,Email Rule,master,tabEmail Rule,email_rule,2,0,0,0,0,0,0,field:email_id
+frappe,Email,Email Template,master,tabEmail Template,email_template,5,1,0,0,0,0,0,Prompt
+frappe,Email,Email Unsubscribe,master,tabEmail Unsubscribe,email_unsubscribe,4,1,0,1,0,0,0,
+frappe,Email,IMAP Folder,child,tabIMAP Folder,imap_folder,4,1,0,0,0,0,0,
+frappe,Email,Notification,master,tabNotification,notification,33,6,1,2,0,0,0,Prompt
+frappe,Email,Notification Recipient,child,tabNotification Recipient,notification_recipient,5,1,0,0,0,0,0,
+frappe,Email,Reply To Address,child,tabReply To Address,reply_to_address,2,0,0,0,0,0,0,
+frappe,Email,Unhandled Email,master,tabUnhandled Email,unhandled_email,5,1,0,0,0,0,0,
+frappe,Geo,Country,master,tabCountry,country,5,0,0,0,0,0,0,field:country_name
+frappe,Geo,Currency,master,tabCurrency,currency,8,0,0,0,0,0,0,field:currency_name
+frappe,Integrations,Connected App,master,tabConnected App,connected_app,10,0,2,0,0,0,0,
+frappe,Integrations,Geolocation Settings,single,tabGeolocation Settings,geolocation_settings,4,0,0,0,0,0,1,
+frappe,Integrations,Google Calendar,master,tabGoogle Calendar,google_calendar,10,1,0,0,0,0,0,field:calendar_name
+frappe,Integrations,Google Contacts,master,tabGoogle Contacts,google_contacts,8,0,0,0,0,0,0,format:GC-{email_id}
+frappe,Integrations,Google Settings,single,tabGoogle Settings,google_settings,6,0,0,0,0,0,1,
+frappe,Integrations,Integration Request,master,tabIntegration Request,integration_request,13,1,0,0,0,0,0,
+frappe,Integrations,LDAP Group Mapping,child,tabLDAP Group Mapping,ldap_group_mapping,2,1,0,0,0,0,0,
+frappe,Integrations,LDAP Settings,single,tabLDAP Settings,ldap_settings,27,2,1,0,0,0,1,
+frappe,Integrations,OAuth Authorization Code,master,tabOAuth Authorization Code,oauth_authorization_code,10,2,0,0,0,0,0,field:authorization_code
+frappe,Integrations,OAuth Bearer Token,master,tabOAuth Bearer Token,oauth_bearer_token,8,2,0,2,0,0,0,hash
+frappe,Integrations,OAuth Client,master,tabOAuth Client,oauth_client,19,1,1,1,0,0,0,
+frappe,Integrations,OAuth Client Role,child,tabOAuth Client Role,oauth_client_role,1,1,0,0,0,0,0,
+frappe,Integrations,OAuth Provider Settings,single,tabOAuth Provider Settings,oauth_provider_settings,1,0,0,0,0,0,1,
+frappe,Integrations,OAuth Scope,child,tabOAuth Scope,oauth_scope,1,0,0,0,0,0,0,
+frappe,Integrations,OAuth Settings,single,tabOAuth Settings,oauth_settings,11,0,0,0,0,0,1,
+frappe,Integrations,Push Notification Settings,single,tabPush Notification Settings,push_notification_settings,3,0,0,0,0,0,1,
+frappe,Integrations,Query Parameters,child,tabQuery Parameters,query_parameters,2,0,0,0,0,0,0,
+frappe,Integrations,Slack Webhook URL,master,tabSlack Webhook URL,slack_webhook_url,3,0,0,0,0,0,0,field:webhook_name
+frappe,Integrations,Social Login Key,master,tabSocial Login Key,social_login_key,17,0,0,0,0,0,0,
+frappe,Integrations,Token Cache,master,tabToken Cache,token_cache,9,2,1,0,0,0,0,format:{connected_app}-{user}
+frappe,Integrations,Webhook,master,tabWebhook,webhook,14,1,2,0,0,0,0,prompt
+frappe,Integrations,Webhook Data,child,tabWebhook Data,webhook_data,2,0,0,0,0,0,0,
+frappe,Integrations,Webhook Header,child,tabWebhook Header,webhook_header,2,0,0,0,0,0,0,
+frappe,Integrations,Webhook Request Log,master,tabWebhook Request Log,webhook_request_log,12,2,0,2,0,0,0,hash
+frappe,Printing,Letter Head,master,tabLetter Head,letter_head,21,1,0,1,0,0,0,field:letter_head_name
+frappe,Printing,Network Printer Settings,master,tabNetwork Printer Settings,network_printer_settings,3,0,0,0,0,0,0,Prompt
+frappe,Printing,Print Format,master,tabPrint Format,print_format,33,4,0,1,0,0,0,Prompt
+frappe,Printing,Print Format Field Template,master,tabPrint Format Field Template,print_format_field_template,6,2,0,0,0,0,0,Prompt
+frappe,Printing,Print Format Snippet,master,tabPrint Format Snippet,print_format_snippet,5,2,0,0,0,0,0,Prompt
+frappe,Printing,Print Heading,master,tabPrint Heading,print_heading,2,0,0,0,0,0,0,field:print_heading
+frappe,Printing,Print Settings,single,tabPrint Settings,print_settings,16,1,0,0,0,0,1,
+frappe,Printing,Print Style,master,tabPrint Style,print_style,5,0,0,0,0,0,0,field:print_style_name
+frappe,Website,About Us Settings,single,tabAbout Us Settings,about_us_settings,7,0,2,0,0,0,1,
+frappe,Website,About Us Team Member,child,tabAbout Us Team Member,about_us_team_member,3,0,0,0,0,0,0,
+frappe,Website,Color,master,tabColor,color,1,0,0,0,0,0,0,Prompt
+frappe,Website,Company History,child,tabCompany History,company_history,2,0,0,0,0,0,0,
+frappe,Website,Contact Us Settings,single,tabContact Us Settings,contact_us_settings,15,0,0,0,0,0,1,
+frappe,Website,Discussion Reply,master,tabDiscussion Reply,discussion_reply,2,1,0,0,0,0,0,REPLY.####
+frappe,Website,Discussion Topic,master,tabDiscussion Topic,discussion_topic,3,1,0,0,0,0,0,TOPIC.####
+frappe,Website,Help Article,master,tabHelp Article,help_article,10,1,0,0,0,0,0,
+frappe,Website,Help Category,master,tabHelp Category,help_category,5,0,0,0,0,0,0,
+frappe,Website,Personal Data Deletion Request,master,tabPersonal Data Deletion Request,personal_data_deletion_request,3,0,1,0,0,0,0,
+frappe,Website,Personal Data Deletion Step,child,tabPersonal Data Deletion Step,personal_data_deletion_step,5,0,0,0,0,0,0,
+frappe,Website,Personal Data Download Request,master,tabPersonal Data Download Request,personal_data_download_request,3,2,0,0,0,0,0,
+frappe,Website,Portal Menu Item,child,tabPortal Menu Item,portal_menu_item,6,2,0,0,0,0,0,
+frappe,Website,Portal Settings,single,tabPortal Settings,portal_settings,3,1,2,0,0,0,1,
+frappe,Website,Social Link Settings,child,tabSocial Link Settings,social_link_settings,3,0,0,0,0,0,0,
+frappe,Website,Top Bar Item,child,tabTop Bar Item,top_bar_item,5,0,0,0,0,0,0,
+frappe,Website,UTM Campaign,master,tabUTM Campaign,utm_campaign,2,0,0,0,0,0,0,prompt
+frappe,Website,UTM Medium,master,tabUTM Medium,utm_medium,2,0,0,0,0,0,0,prompt
+frappe,Website,UTM Source,master,tabUTM Source,utm_source,2,0,0,0,0,0,0,prompt
+frappe,Website,Web Form,master,tabWeb Form,web_form,40,4,2,0,0,0,0,
+frappe,Website,Web Form Field,child,tabWeb Form Field,web_form_field,18,0,0,0,0,0,0,
+frappe,Website,Web Form List Column,child,tabWeb Form List Column,web_form_list_column,4,0,0,0,0,0,0,autoincrement
+frappe,Website,Web Form Request,master,tabWeb Form Request,web_form_request,6,1,1,1,0,0,0,hash
+frappe,Website,Web Page,master,tabWeb Page,web_page,29,3,1,0,0,0,0,
+frappe,Website,Web Page Block,child,tabWeb Page Block,web_page_block,13,1,0,0,0,0,0,
+frappe,Website,Web Page View,master,tabWeb Page View,web_page_view,12,0,0,2,0,0,0,
+frappe,Website,Web Template,master,tabWeb Template,web_template,4,1,1,0,0,0,0,Prompt
+frappe,Website,Web Template Field,child,tabWeb Template Field,web_template_field,6,0,0,0,0,0,0,
+frappe,Website,Website Meta Tag,child,tabWebsite Meta Tag,website_meta_tag,2,0,0,0,0,0,0,
+frappe,Website,Website Route Meta,master,tabWebsite Route Meta,website_route_meta,0,0,1,0,0,0,0,Prompt
+frappe,Website,Website Route Redirect,child,tabWebsite Route Redirect,website_route_redirect,4,0,0,0,0,0,0,
+frappe,Website,Website Script,single,tabWebsite Script,website_script,1,0,0,0,0,0,1,
+frappe,Website,Website Settings,single,tabWebsite Settings,website_settings,38,3,3,0,0,0,1,
+frappe,Website,Website Sidebar,master,tabWebsite Sidebar,website_sidebar,1,0,1,0,0,0,0,field:title
+frappe,Website,Website Sidebar Item,child,tabWebsite Sidebar Item,website_sidebar_item,3,0,0,0,0,0,0,
+frappe,Website,Website Slideshow,master,tabWebsite Slideshow,website_slideshow,2,0,1,0,0,0,0,field:slideshow_name
+frappe,Website,Website Slideshow Item,child,tabWebsite Slideshow Item,website_slideshow_item,4,0,0,0,0,0,0,
+frappe,Website,Website Theme,master,tabWebsite Theme,website_theme,19,6,1,0,0,0,0,field:theme
+frappe,Website,Website Theme Ignore App,child,tabWebsite Theme Ignore App,website_theme_ignore_app,1,0,0,0,0,0,0,
+frappe,Workflow,Workflow,master,tabWorkflow,workflow,8,1,2,0,0,0,0,field:workflow_name
+frappe,Workflow,Workflow Action,master,tabWorkflow Action,workflow_action,7,4,1,1,0,0,0,
+frappe,Workflow,Workflow Action Master,master,tabWorkflow Action Master,workflow_action_master,1,0,0,0,0,0,0,field:workflow_action_name
+frappe,Workflow,Workflow Action Permitted Role,child,tabWorkflow Action Permitted Role,workflow_action_permitted_role,1,1,0,0,0,0,0,hash
+frappe,Workflow,Workflow Document State,child,tabWorkflow Document State,workflow_document_state,12,3,0,0,0,0,0,
+frappe,Workflow,Workflow State,master,tabWorkflow State,workflow_state,3,0,0,0,0,0,0,field:workflow_state_name
+frappe,Workflow,Workflow Transition,child,tabWorkflow Transition,workflow_transition,9,5,0,0,0,0,0,
+frappe,Workflow,Workflow Transition Task,child,tabWorkflow Transition Task,workflow_transition_task,4,0,0,0,0,0,0,
+frappe,Workflow,Workflow Transition Tasks,master,tabWorkflow Transition Tasks,workflow_transition_tasks,0,0,1,0,0,0,0,prompt
+hrms,HR,Appointment Letter,master,tabAppointment Letter,appointment_letter,7,3,1,0,0,0,0,HR-APP-LETTER-.#####
+hrms,HR,Appointment Letter Template,master,tabAppointment Letter Template,appointment_letter_template,3,0,1,0,0,0,0,field:template_name
+hrms,HR,Appointment Letter content,child,tabAppointment Letter content,appointment_letter_content,2,0,0,0,0,0,0,
+hrms,HR,Appraisal,transaction,tabAppraisal,appraisal,20,7,3,1,1,0,0,naming_series:
+hrms,HR,Appraisal Cycle,master,tabAppraisal Cycle,appraisal_cycle,12,4,1,0,0,0,0,field:cycle_name
+hrms,HR,Appraisal Goal,child,tabAppraisal Goal,appraisal_goal,4,0,0,0,0,0,0,hash
+hrms,HR,Appraisal KRA,child,tabAppraisal KRA,appraisal_kra,4,1,0,0,0,0,0,hash
+hrms,HR,Appraisal Template,master,tabAppraisal Template,appraisal_template,2,0,2,0,0,0,0,field:template_title
+hrms,HR,Appraisal Template Goal,child,tabAppraisal Template Goal,appraisal_template_goal,2,1,0,0,0,0,0,hash
+hrms,HR,Appraisee,child,tabAppraisee,appraisee,6,4,0,0,0,0,0,
+hrms,HR,Attendance,transaction,tabAttendance,attendance,22,9,0,3,1,0,0,naming_series:
+hrms,HR,Attendance Request,transaction,tabAttendance Request,attendance_request,13,5,0,0,1,0,0,HR-ARQ-.YY.-.MM.-.#####
+hrms,HR,Compensatory Leave Request,transaction,tabCompensatory Leave Request,compensatory_leave_request,11,5,0,0,1,0,0,HR-CMP-.YY.-.MM.-.#####
+hrms,HR,Daily Work Summary,master,tabDaily Work Summary,daily_work_summary,3,1,0,0,0,0,0,
+hrms,HR,Daily Work Summary Group,master,tabDaily Work Summary Group,daily_work_summary_group,5,1,1,0,0,0,0,Prompt
+hrms,HR,Daily Work Summary Group User,child,tabDaily Work Summary Group User,daily_work_summary_group_user,2,1,0,0,0,0,0,
+hrms,HR,Department Approver,child,tabDepartment Approver,department_approver,1,1,0,0,0,0,0,hash
+hrms,HR,Designation Skill,child,tabDesignation Skill,designation_skill,1,1,0,0,0,0,0,
+hrms,HR,Earned Leave Schedule,child,tabEarned Leave Schedule,earned_leave_schedule,7,0,0,0,0,0,0,
+hrms,HR,Employee Advance,transaction,tabEmployee Advance,employee_advance,19,7,0,0,1,0,0,naming_series:
+hrms,HR,Employee Attendance Tool,single,tabEmployee Attendance Tool,employee_attendance_tool,13,7,0,0,0,0,1,
+hrms,HR,Employee Boarding Activity,child,tabEmployee Boarding Activity,employee_boarding_activity,9,3,0,0,0,0,0,
+hrms,HR,Employee Checkin,master,tabEmployee Checkin,employee_checkin,17,4,0,2,0,0,0,EMP-CKIN-.MM.-.YYYY.-.######
+hrms,HR,Employee Feedback Criteria,master,tabEmployee Feedback Criteria,employee_feedback_criteria,1,0,0,0,0,0,0,field:criteria
+hrms,HR,Employee Feedback Rating,child,tabEmployee Feedback Rating,employee_feedback_rating,3,1,0,0,0,0,0,hash
+hrms,HR,Employee Grade,master,tabEmployee Grade,employee_grade,3,2,0,0,0,0,0,Prompt
+hrms,HR,Employee Grievance,transaction,tabEmployee Grievance,employee_grievance,19,9,0,0,1,0,0,HR-GRIEV-.YYYY.-.#####
+hrms,HR,Employee Health Insurance,master,tabEmployee Health Insurance,employee_health_insurance,1,0,0,0,0,0,0,field:health_insurance_name
+hrms,HR,Employee Onboarding,transaction,tabEmployee Onboarding,employee_onboarding,16,11,1,0,1,0,0,HR-EMP-ONB-.YYYY.-.#####
+hrms,HR,Employee Onboarding Template,master,tabEmployee Onboarding Template,employee_onboarding_template,5,4,1,0,0,0,0,HR-EMP-ONT-.#####
+hrms,HR,Employee Performance Feedback,transaction,tabEmployee Performance Feedback,employee_performance_feedback,15,10,1,0,1,0,0,format:HR-PF-{YYYY}-{#####}
+hrms,HR,Employee Promotion,transaction,tabEmployee Promotion,employee_promotion,9,5,1,0,1,0,0,HR-EMP-PRO-.YYYY.-.#####
+hrms,HR,Employee Property History,child,tabEmployee Property History,employee_property_history,4,0,0,0,0,0,0,
+hrms,HR,Employee Referral,transaction,tabEmployee Referral,employee_referral,20,4,0,0,1,0,0,format:HR-REF-{####}
+hrms,HR,Employee Separation,transaction,tabEmployee Separation,employee_separation,14,8,1,0,1,0,0,HR-EMP-SEP-.YYYY.-.#####
+hrms,HR,Employee Separation Template,master,tabEmployee Separation Template,employee_separation_template,5,4,1,0,0,0,0,HR-EMP-STP-.#####
+hrms,HR,Employee Skill,child,tabEmployee Skill,employee_skill,3,1,0,0,0,0,0,
+hrms,HR,Employee Skill Map,master,tabEmployee Skill Map,employee_skill_map,3,1,2,0,0,0,0,field:employee
+hrms,HR,Employee Training,child,tabEmployee Training,employee_training,2,1,0,0,0,0,0,
+hrms,HR,Employee Transfer,transaction,tabEmployee Transfer,employee_transfer,10,6,1,0,1,0,0,HR-EMP-TRN-.YYYY.-.#####
+hrms,HR,Employment Type,master,tabEmployment Type,employment_type,1,0,0,0,0,0,0,field:employee_type_name
+hrms,HR,Exit Interview,transaction,tabExit Interview,exit_interview,18,7,1,0,1,0,0,naming_series:
+hrms,HR,Expected Skill Set,child,tabExpected Skill Set,expected_skill_set,2,1,0,0,0,0,0,
+hrms,HR,Expense Claim,transaction,tabExpense Claim,expense_claim,36,15,3,2,1,0,0,naming_series:
+hrms,HR,Expense Claim Account,child,tabExpense Claim Account,expense_claim_account,2,2,0,0,0,0,0,
+hrms,HR,Expense Claim Advance,child,tabExpense Claim Advance,expense_claim_advance,15,2,0,0,0,0,0,
+hrms,HR,Expense Claim Detail,child,tabExpense Claim Detail,expense_claim_detail,10,4,0,0,0,0,0,
+hrms,HR,Expense Claim Type,master,tabExpense Claim Type,expense_claim_type,3,0,1,0,0,0,0,field:expense_type
+hrms,HR,Expense Taxes and Charges,child,tabExpense Taxes and Charges,expense_taxes_and_charges,9,3,0,0,0,0,0,hash
+hrms,HR,Full and Final Asset,child,tabFull and Final Asset,full_and_final_asset,9,2,0,0,0,0,0,
+hrms,HR,Full and Final Outstanding Statement,child,tabFull and Final Outstanding Statement,full_and_final_outstanding_statement,8,2,0,1,0,0,0,
+hrms,HR,Full and Final Statement,transaction,tabFull and Final Statement,full_and_final_statement,13,5,3,0,1,0,0,HR-FNF-.YYYY.-.#####
+hrms,HR,Goal,tree-master,tabGoal,goal,17,6,0,0,0,1,0,format:HR-GOAL-{YYYY}-{####}
+hrms,HR,Grievance Type,master,tabGrievance Type,grievance_type,1,0,0,0,0,0,0,Prompt
+hrms,HR,HR Settings,single,tabHR Settings,hr_settings,34,9,0,0,0,0,1,
+hrms,HR,Holiday List Assignment,transaction,tabHoliday List Assignment,holiday_list_assignment,8,3,0,1,1,0,0,naming_series:
+hrms,HR,Identification Document Type,master,tabIdentification Document Type,identification_document_type,1,0,0,0,0,0,0,field:identification_document_type
+hrms,HR,Interest,master,tabInterest,interest,1,0,0,0,0,0,0,field:interest
+hrms,HR,Interview,transaction,tabInterview,interview,14,5,1,0,1,0,0,HR-INT-.YYYY.-.####
+hrms,HR,Interview Detail,child,tabInterview Detail,interview_detail,1,1,0,0,0,0,0,
+hrms,HR,Interview Feedback,transaction,tabInterview Feedback,interview_feedback,8,5,1,0,1,0,0,HR-INT-FEED-.####
+hrms,HR,Interview Type,master,tabInterview Type,interview_type,4,1,2,0,0,0,0,field:interview_type_name
+hrms,HR,Interviewer,child,tabInterviewer,interviewer,1,1,0,0,0,0,0,
+hrms,HR,Job Applicant,master,tabJob Applicant,job_applicant,18,7,0,1,0,0,0,HR-APP-.YYYY.-.#####
+hrms,HR,Job Applicant Source,master,tabJob Applicant Source,job_applicant_source,2,0,0,0,0,0,0,field:source_name
+hrms,HR,Job Offer,transaction,tabJob Offer,job_offer,13,8,1,0,1,0,0,HR-OFF-.YYYY.-.#####
+hrms,HR,Job Offer Term,child,tabJob Offer Term,job_offer_term,2,1,0,0,0,0,0,
+hrms,HR,Job Offer Term Template,master,tabJob Offer Term Template,job_offer_term_template,1,0,1,0,0,0,0,field:title
+hrms,HR,Job Opening,master,tabJob Opening,job_opening,26,9,0,0,0,0,0,HR-OPN-.YYYY.-.####
+hrms,HR,Job Opening Template,master,tabJob Opening Template,job_opening_template,11,5,0,0,0,0,0,field:template_title
+hrms,HR,Job Requisition,master,tabJob Requisition,job_requisition,17,6,0,0,0,0,0,naming_series:
+hrms,HR,KRA,master,tabKRA,kra,2,0,0,0,0,0,0,field:title
+hrms,HR,Leave Adjustment,transaction,tabLeave Adjustment,leave_adjustment,14,4,0,1,1,0,0,naming_series:
+hrms,HR,Leave Allocation,transaction,tabLeave Allocation,leave_allocation,21,9,1,3,1,0,0,naming_series:
+hrms,HR,Leave Application,transaction,tabLeave Application,leave_application,22,8,0,4,1,0,0,naming_series:
+hrms,HR,Leave Block List,master,tabLeave Block List,leave_block_list,4,2,2,0,0,0,0,field:leave_block_list_name
+hrms,HR,Leave Block List Allow,child,tabLeave Block List Allow,leave_block_list_allow,1,1,0,0,0,0,0,
+hrms,HR,Leave Block List Date,child,tabLeave Block List Date,leave_block_list_date,2,0,0,0,0,0,0,
+hrms,HR,Leave Control Panel,single,tabLeave Control Panel,leave_control_panel,15,9,0,0,0,0,1,
+hrms,HR,Leave Encashment,transaction,tabLeave Encashment,leave_encashment,22,12,0,0,1,0,0,HR-ENC-.YYYY.-.#####
+hrms,HR,Leave Ledger Entry,transaction,tabLeave Ledger Entry,leave_ledger_entry,14,6,0,3,1,0,0,
+hrms,HR,Leave Period,master,tabLeave Period,leave_period,5,2,0,0,0,0,0,HR-LPR-.YYYY.-.#####
+hrms,HR,Leave Policy,transaction,tabLeave Policy,leave_policy,2,1,1,0,1,0,0,HR-LPOL-.YYYY.-.#####
+hrms,HR,Leave Policy Assignment,transaction,tabLeave Policy Assignment,leave_policy_assignment,11,5,0,0,1,0,0,HR-LPOL-ASSGN-.#####
+hrms,HR,Leave Policy Detail,child,tabLeave Policy Detail,leave_policy_detail,2,1,0,0,0,0,0,
+hrms,HR,Leave Type,master,tabLeave Type,leave_type,23,1,0,0,0,0,0,field:leave_type_name
+hrms,HR,Offer Term,master,tabOffer Term,offer_term,1,0,0,0,0,0,0,field:offer_term
+hrms,HR,Overtime Details,child,tabOvertime Details,overtime_details,6,2,0,0,0,0,0,
+hrms,HR,Overtime Salary Component,child,tabOvertime Salary Component,overtime_salary_component,1,1,0,0,0,0,0,
+hrms,HR,Overtime Slip,transaction,tabOvertime Slip,overtime_slip,12,6,1,1,1,0,0,HR-OT-SLIP-.#####
+hrms,HR,Overtime Type,master,tabOvertime Type,overtime_type,9,1,1,0,0,0,0,Prompt
+hrms,HR,PWA Notification,master,tabPWA Notification,pwa_notification,6,3,0,1,0,0,0,autoincrement
+hrms,HR,Purpose of Travel,master,tabPurpose of Travel,purpose_of_travel,1,0,0,0,0,0,0,field:purpose_of_travel
+hrms,HR,Shift Assignment,transaction,tabShift Assignment,shift_assignment,13,9,0,2,1,0,0,HR-SHA-.YY.-.MM.-.#####
+hrms,HR,Shift Assignment Tool,single,tabShift Assignment Tool,shift_assignment_tool,17,11,0,0,0,0,1,
+hrms,HR,Shift Location,master,tabShift Location,shift_location,5,0,0,0,0,0,0,field:location_name
+hrms,HR,Shift Request,transaction,tabShift Request,shift_request,10,6,0,0,1,0,0,HR-SHR-.YY.-.MM.-.#####
+hrms,HR,Shift Schedule,transaction,tabShift Schedule,shift_schedule,3,2,1,1,1,0,0,prompt
+hrms,HR,Shift Schedule Assignment,master,tabShift Schedule Assignment,shift_schedule_assignment,8,4,0,0,0,0,0,HR-SHSA-.YY.-.MM.-.#####
+hrms,HR,Shift Type,master,tabShift Type,shift_type,21,2,0,0,0,0,0,prompt
+hrms,HR,Skill,master,tabSkill,skill,2,0,0,0,0,0,0,field:skill_name
+hrms,HR,Skill Assessment,child,tabSkill Assessment,skill_assessment,2,1,0,0,0,0,0,
+hrms,HR,Staffing Plan,transaction,tabStaffing Plan,staffing_plan,6,3,1,0,1,0,0,prompt
+hrms,HR,Staffing Plan Detail,child,tabStaffing Plan Detail,staffing_plan_detail,7,1,0,0,0,0,0,
+hrms,HR,Training Event,transaction,tabTraining Event,training_event,18,4,1,0,1,0,0,field:event_name
+hrms,HR,Training Event Employee,child,tabTraining Event Employee,training_event_employee,6,2,0,0,0,0,0,
+hrms,HR,Training Feedback,transaction,tabTraining Feedback,training_feedback,9,4,0,0,1,0,0,HR-TRF-.YYYY.-.#####
+hrms,HR,Training Program,master,tabTraining Program,training_program,9,3,0,0,0,0,0,field:training_program
+hrms,HR,Training Result,transaction,tabTraining Result,training_result,3,2,1,0,1,0,0,HR-TRR-.YYYY.-.#####
+hrms,HR,Training Result Employee,child,tabTraining Result Employee,training_result_employee,6,2,0,0,0,0,0,
+hrms,HR,Travel Itinerary,child,tabTravel Itinerary,travel_itinerary,13,0,0,0,0,0,0,
+hrms,HR,Travel Request,transaction,tabTravel Request,travel_request,20,6,2,0,1,0,0,HR-TRQ-.YYYY.-.#####
+hrms,HR,Travel Request Costing,child,tabTravel Request Costing,travel_request_costing,5,1,0,0,0,0,0,
+hrms,HR,Vehicle Log,transaction,tabVehicle Log,vehicle_log,13,4,1,0,1,0,0,naming_series:
+hrms,HR,Vehicle Service,child,tabVehicle Service,vehicle_service,4,1,0,0,0,0,0,
+hrms,HR,Vehicle Service Item,master,tabVehicle Service Item,vehicle_service_item,1,0,0,0,0,0,0,field:service_item
+hrms,Payroll,Additional Salary,transaction,tabAdditional Salary,additional_salary,19,7,0,3,1,0,0,naming_series:
+hrms,Payroll,Arrear,transaction,tabArrear,arrear,9,6,3,1,1,0,0,format:{Arrear}/{employee}/{#####}
+hrms,Payroll,Bulk Salary Structure Assignment,single,tabBulk Salary Structure Assignment,bulk_salary_structure_assignment,11,10,0,0,0,0,1,
+hrms,Payroll,Employee Benefit Application,transaction,tabEmployee Benefit Application,employee_benefit_application,11,6,1,0,1,0,0,HR-BEN-APP-.YY.-.MM.-.#####
+hrms,Payroll,Employee Benefit Application Detail,child,tabEmployee Benefit Application Detail,employee_benefit_application_detail,3,1,0,0,0,0,0,
+hrms,Payroll,Employee Benefit Claim,transaction,tabEmployee Benefit Claim,employee_benefit_claim,12,6,0,0,1,0,0,HR-BEN-CLM-.YY.-.MM.-.#####
+hrms,Payroll,Employee Benefit Detail,child,tabEmployee Benefit Detail,employee_benefit_detail,2,1,0,0,0,0,0,
+hrms,Payroll,Employee Benefit Ledger,master,tabEmployee Benefit Ledger,employee_benefit_ledger,14,5,0,3,0,0,0,
+hrms,Payroll,Employee Cost Center,child,tabEmployee Cost Center,employee_cost_center,2,1,0,0,0,0,0,
+hrms,Payroll,Employee Incentive,transaction,tabEmployee Incentive,employee_incentive,9,6,0,0,1,0,0,HR-EINV-.YY.-.MM.-.#####
+hrms,Payroll,Employee Other Income,transaction,tabEmployee Other Income,employee_other_income,7,4,0,3,1,0,0,HR-INCOME-.######
+hrms,Payroll,Employee Tax Exemption Category,master,tabEmployee Tax Exemption Category,employee_tax_exemption_category,3,0,0,0,0,0,0,Prompt
+hrms,Payroll,Employee Tax Exemption Declaration,transaction,tabEmployee Tax Exemption Declaration,employee_tax_exemption_declaration,9,6,1,0,1,0,0,HR-TAX-DEC-.YYYY.-.#####
+hrms,Payroll,Employee Tax Exemption Declaration Category,child,tabEmployee Tax Exemption Declaration Category,employee_tax_exemption_declaration_category,4,2,0,0,0,0,0,
+hrms,Payroll,Employee Tax Exemption Proof Submission,transaction,tabEmployee Tax Exemption Proof Submission,employee_tax_exemption_proof_submission,11,6,1,0,1,0,0,HR-TAX-PRF-.YYYY.-.#####
+hrms,Payroll,Employee Tax Exemption Proof Submission Detail,child,tabEmployee Tax Exemption Proof Submission Detail,employee_tax_exemption_proof_submission_detail,6,1,0,0,0,0,0,
+hrms,Payroll,Employee Tax Exemption Sub Category,master,tabEmployee Tax Exemption Sub Category,employee_tax_exemption_sub_category,4,1,0,0,0,0,0,Prompt
+hrms,Payroll,Gratuity,transaction,tabGratuity,gratuity,19,10,0,1,1,0,0,HR-GRA-PAY-.#####
+hrms,Payroll,Gratuity Applicable Component,child,tabGratuity Applicable Component,gratuity_applicable_component,1,1,0,0,0,0,0,
+hrms,Payroll,Gratuity Rule,master,tabGratuity Rule,gratuity_rule,5,0,2,0,0,0,0,Prompt
+hrms,Payroll,Gratuity Rule Slab,child,tabGratuity Rule Slab,gratuity_rule_slab,3,0,0,0,0,0,0,
+hrms,Payroll,Income Tax Slab,transaction,tabIncome Tax Slab,income_tax_slab,8,3,2,0,1,0,0,Prompt
+hrms,Payroll,Income Tax Slab Other Charges,child,tabIncome Tax Slab Other Charges,income_tax_slab_other_charges,4,0,0,0,0,0,0,
+hrms,Payroll,Payroll Correction,transaction,tabPayroll Correction,payroll_correction,13,6,3,1,1,0,0,format:PAYCORR-{payroll_period}-{#####}
+hrms,Payroll,Payroll Correction Child,child,tabPayroll Correction Child,payroll_correction_child,2,1,0,0,0,0,0,
+hrms,Payroll,Payroll Employee Detail,child,tabPayroll Employee Detail,payroll_employee_detail,5,2,0,0,0,0,0,
+hrms,Payroll,Payroll Entry,transaction,tabPayroll Entry,payroll_entry,26,12,1,0,1,0,0,HR-PRUN-.YYYY.-.#####
+hrms,Payroll,Payroll Period,master,tabPayroll Period,payroll_period,3,1,1,0,0,0,0,Prompt
+hrms,Payroll,Payroll Period Date,child,tabPayroll Period Date,payroll_period_date,2,0,0,0,0,0,0,
+hrms,Payroll,Payroll Settings,single,tabPayroll Settings,payroll_settings,18,3,0,0,0,0,1,
+hrms,Payroll,Retention Bonus,transaction,tabRetention Bonus,retention_bonus,10,6,0,0,1,0,0,HR-RTB-.YYYY.-.#####
+hrms,Payroll,Salary Component,master,tabSalary Component,salary_component,26,0,1,1,0,0,0,field:salary_component
+hrms,Payroll,Salary Component Account,child,tabSalary Component Account,salary_component_account,2,2,0,0,0,0,0,
+hrms,Payroll,Salary Detail,child,tabSalary Detail,salary_detail,23,2,0,4,0,0,0,
+hrms,Payroll,Salary Slip,transaction,tabSalary Slip,salary_slip,62,13,5,6,1,0,0,
+hrms,Payroll,Salary Slip Leave,child,tabSalary Slip Leave,salary_slip_leave,6,1,0,0,0,0,0,
+hrms,Payroll,Salary Slip Loan,child,tabSalary Slip Loan,salary_slip_loan,8,5,0,0,0,0,0,
+hrms,Payroll,Salary Slip Timesheet,child,tabSalary Slip Timesheet,salary_slip_timesheet,2,1,0,0,0,0,0,
+hrms,Payroll,Salary Structure,transaction,tabSalary Structure,salary_structure,17,7,4,4,1,0,0,Prompt
+hrms,Payroll,Salary Structure Assignment,transaction,tabSalary Structure Assignment,salary_structure_assignment,20,10,2,2,1,0,0,HR-SSA-.YY.-.MM.-.#####
+hrms,Payroll,Salary Withholding,transaction,tabSalary Withholding,salary_withholding,13,3,1,2,1,0,0,format:SAL-WTH-{#####}
+hrms,Payroll,Salary Withholding Cycle,child,tabSalary Withholding Cycle,salary_withholding_cycle,4,1,0,0,0,0,0,
+hrms,Payroll,Taxable Salary Slab,child,tabTaxable Salary Slab,taxable_salary_slab,4,0,0,0,0,0,0,
+payments,Payment Gateways,Braintree Settings,master,tabBraintree Settings,braintree_settings,6,0,0,0,0,0,0,field:gateway_name
+payments,Payment Gateways,GoCardless Mandate,master,tabGoCardless Mandate,gocardless_mandate,3,0,0,0,0,0,0,field:mandate
+payments,Payment Gateways,GoCardless Settings,master,tabGoCardless Settings,gocardless_settings,5,0,0,0,0,0,0,field:gateway_name
+payments,Payment Gateways,Mpesa Settings,master,tabMpesa Settings,mpesa_settings,11,0,0,0,0,0,0,field:payment_gateway_name
+payments,Payment Gateways,PayPal Settings,single,tabPayPal Settings,paypal_settings,5,0,0,0,0,0,1,
+payments,Payment Gateways,Paymob Settings,single,tabPaymob Settings,paymob_settings,9,0,0,0,0,0,1,
+payments,Payment Gateways,Paytm Settings,single,tabPaytm Settings,paytm_settings,5,0,0,0,0,0,1,
+payments,Payment Gateways,Razorpay Settings,single,tabRazorpay Settings,razorpay_settings,3,0,0,0,0,0,1,
+payments,Payment Gateways,Stripe Settings,master,tabStripe Settings,stripe_settings,5,0,0,0,0,0,0,field:gateway_name
+payments,Payments,Payment Gateway,master,tabPayment Gateway,payment_gateway,3,1,0,0,0,0,0,field:gateway
+webshop,Webshop,Homepage Featured Product,child,tabHomepage Featured Product,homepage_featured_product,6,1,0,0,0,0,0,
+webshop,Webshop,Item Review,master,tabItem Review,item_review,8,4,0,0,0,0,0,
+webshop,Webshop,Recommended Items,child,tabRecommended Items,recommended_items,6,1,0,0,0,0,0,
+webshop,Webshop,Webshop Settings,single,tabWebshop Settings,webshop_settings,33,5,2,0,0,0,1,
+webshop,Webshop,Website Item,master,tabWebsite Item,website_item,23,7,5,3,0,0,0,naming_series
+webshop,Webshop,Website Item Tabbed Section,child,tabWebsite Item Tabbed Section,website_item_tabbed_section,2,0,0,0,0,0,0,
+webshop,Webshop,Website Offer,child,tabWebsite Offer,website_offer,3,0,0,0,0,0,0,
+webshop,Webshop,Wishlist,master,tabWishlist,wishlist,1,1,1,0,0,0,0,field:user
+webshop,Webshop,Wishlist Item,child,tabWishlist Item,wishlist_item,9,4,0,0,0,0,0,

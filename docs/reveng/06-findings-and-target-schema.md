@@ -1,7 +1,9 @@
 # Findings and the schema we should build
 
-Conclusions from parsing all 532 ERPNext DocTypes (6,983 columns), with the accounting and
-trade/inventory modules studied field by field.
+Conclusions from parsing a full bench — `frappe`, `erpnext`, `payments`, `hrms`, `webshop`:
+**997 DocTypes, 908 physical tables, 10,995 columns**. The `erpnext` accounting and
+trade/inventory modules (532 DocTypes, 6,983 columns) were studied field by field.
+See [07-table-counts.md](07-table-counts.md) for the count breakdown.
 
 ---
 
@@ -34,7 +36,7 @@ trade/inventory modules studied field by field.
 | ERPNext choice | Cost | Our replacement |
 |---|---|---|
 | `varchar(140)` business-key PK, FKs by name | renames cascade across ~2,000 link columns; wide indexes; no referential integrity | `bigint` identity PK; `doc_no varchar(140)` with `UNIQUE (company_id, doc_type, doc_no)` |
-| **Zero** FK constraints in the database | integrity depends entirely on the app; orphans are normal in real installs | real FKs (1,590 of them generated in `schema/ddl/clean_02_constraints.sql`) |
+| **Zero** FK constraints in the database | integrity depends entirely on the app; orphans are normal in real installs | real FKs (2,051 of them generated in `schema/ddl/clean_02_constraints.sql`) |
 | 42 child tables shared by multiple parents via `parenttype` | the direct cause of the no-FK decision | one child table per (parent, field), CASCADE delete |
 | `Dynamic Link` polymorphism (78 columns) | unindexable joins, no constraints | `party` supertype table for Customer/Supplier/Employee; typed FK + audit `(source_table, source_id)` pair on ledger rows |
 | Runtime DDL for accounting dimensions | migrations at business-config time | fixed dimension FKs + a dimension side table |
@@ -114,16 +116,25 @@ raw-material consumption and cost roll-up into the finished item.
 | `docs/reveng/02-core-erd.md` | Mermaid ER diagrams: masters, O2C, P2P, inventory, ledgers |
 | `docs/reveng/03-document-flows.md` | auto-derived document chain + fulfilment roll-up columns |
 | `docs/reveng/04-patterns.md` | shared child tables, polymorphism, denormalisation, naming, trees |
+| `docs/reveng/07-table-counts.md` | table-count reconciliation across all five apps |
 | `docs/reveng/05-ledger-anatomy.md` | field-by-field semantics of the four ledger engines |
 | `docs/reveng/modules/*.md` | full column-level reference for Accounts, Selling, Buying, Stock, Subcontracting, Setup |
-| `schema/erpnext_doctypes.json` | complete machine-readable schema dump |
-| `schema/catalog_tables.csv` · `catalog_columns.csv` · `catalog_relations.csv` | spreadsheet-friendly catalog (6,983 columns, all relations) |
-| `schema/ddl/*_asis.sql` | ERPNext physical layout as PostgreSQL DDL — **verified: 338 tables created, 0 errors** |
-| `schema/ddl/clean_01_tables.sql` + `clean_02_constraints.sql` | normalised reference DDL — **verified: 388 tables, 1,590 FKs, 1,111 indexes, 0 errors** |
+| `schema/bench_doctypes.json` | complete machine-readable schema dump, all 997 DocTypes |
+| `schema/catalog_tables.csv` · `catalog_columns.csv` · `catalog_relations.csv` | spreadsheet-friendly catalog (10,995 columns, every relation, with owning app) |
+| `schema/ddl/*_asis.sql` | ERPNext physical layout as PostgreSQL DDL — **verified: 338 tables, 0 errors** |
+| `schema/ddl/clean_01_tables.sql` + `clean_02_constraints.sql` | normalised reference DDL — **verified: 429 tables (388 modelled + 41 out-of-scope stubs), 2,051 FKs, 1,193 indexes, 0 dangling FK targets, 0 errors** |
 | `tools/reveng/` | the parser toolkit, re-runnable against any Frappe app |
+| `tools/verify_ddl.sh` | installs PostgreSQL if needed, loads both schemas, reports errors |
 
 Regenerate everything with:
 
 ```bash
-python3 tools/reveng/run.py --app /path/to/erpnext/erpnext --out /path/to/erp
+python3 tools/reveng/run.py --out . \
+  --app erpnext=/path/to/erpnext/erpnext \
+  --app frappe=/path/to/frappe/frappe \
+  --app payments=/path/to/payments/payments \
+  --app hrms=/path/to/hrms/hrms \
+  --app webshop=/path/to/webshop/webshop
+
+./tools/verify_ddl.sh          # loads the generated DDL into a throwaway PostgreSQL
 ```

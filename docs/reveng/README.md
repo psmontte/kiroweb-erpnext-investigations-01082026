@@ -1,7 +1,9 @@
 # ERPNext reverse engineering — reading order
 
-Source: `frappe/erpnext` (cloned at `/projects/sandbox/erpnext`), 532 DocTypes, 6,983 columns.
-Everything here is generated or verified from the actual DocType JSON definitions and
+Source: a full Frappe bench app set — `frappe`, `erpnext`, `payments`, `hrms`, `webshop`.
+**997 DocTypes, 10,995 columns, 908 physical tables** parsed. The accounting and
+trade/inventory modules of `erpnext` (532 DocTypes, 6,983 columns) are documented at column
+level. Everything here is generated or verified from the actual DocType JSON definitions and
 controller code — not from documentation.
 
 | Read | File | Why |
@@ -12,7 +14,8 @@ controller code — not from documentation.
 | 4 | [03-document-flows.md](03-document-flows.md) | how documents feed each other, and the roll-up columns that make status derivable |
 | 5 | [04-patterns.md](04-patterns.md) | the cross-cutting tricks (shared child tables, polymorphism, denormalisation, naming, trees) |
 | 6 | [05-ledger-anatomy.md](05-ledger-anatomy.md) | **the important one** — the four ledger engines, field by field, with invariants |
-| 7 | [06-findings-and-target-schema.md](06-findings-and-target-schema.md) | what to copy, what to reject, proposed build order, open decisions |
+| 7 | [07-table-counts.md](07-table-counts.md) | why the count is 532 *or* ~1,000 depending on what you count, per app |
+| 8 | [06-findings-and-target-schema.md](06-findings-and-target-schema.md) | what to copy, what to reject, proposed build order, open decisions |
 
 Column-level reference per module:
 
@@ -23,5 +26,5 @@ Column-level reference per module:
 - [modules/subcontracting.md](modules/subcontracting.md) (13) · [erd](modules/subcontracting-erd.md)
 - [modules/setup.md](modules/setup.md) (40 — shared masters: Company, UOM, Item Group, Territory …) · [erd](modules/setup-erd.md)
 
-Machine-readable: `../../schema/erpnext_doctypes.json`, `../../schema/catalog_*.csv`,
-DDL in `../../schema/ddl/`.
+Machine-readable: `../../schema/bench_doctypes.json` (all 997 DocTypes),
+`../../schema/catalog_*.csv`, DDL in `../../schema/ddl/`.

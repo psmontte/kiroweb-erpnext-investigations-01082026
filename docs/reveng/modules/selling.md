@@ -24,6 +24,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabSMS Center`  (proposed: `sms_center`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Selling
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -42,6 +43,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabSelling Settings`  (proposed: `selling_settings`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Selling
 - **Description**: Settings for Selling Module
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -60,7 +62,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 | 12 | `validate_selling_price` | Check | `smallint` | default=0 |  |
 | 13 | `hide_tax_id` | Check | `smallint` | default=0 |  |
 | 14 | `maintain_same_rate_action` | Select | `varchar(140)` | default=Stop | enum: Stop, Warn |
-| 15 | `role_to_override_stop_action` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
+| 15 | `role_to_override_stop_action` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
 | 16 | `editable_bundle_item_rates` | Check | `smallint` | default=0 |  |
 | 17 | `enable_discount_accounting` | Check | `smallint` | default=0 |  |
 | 18 | `allow_sales_order_creation_for_expired_quotation` | Check | `smallint` | default=0 |  |
@@ -78,7 +80,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 | 30 | `enable_utm` | Check | `smallint` | default=0 |  |
 | 31 | `deliver_secondary_items` | Check | `smallint` | default=0 |  |
 | 32 | `enable_proforma_invoice` | Check | `smallint` | default=0 |  |
-| 33 | `default_proforma_print_format` | Link | `varchar(140)` |  | → `Print Format` *(frappe core)* |
+| 33 | `default_proforma_print_format` | Link | `varchar(140)` |  | → `Print Format` *(frappe/Printing)* |
 
 ---
 
@@ -88,6 +90,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabCustomer`  (proposed: `customer`)
 - **Kind**: Master
+- **Owned by**: erpnext / Selling
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `customer_name`
 - **Description**: Buyer of Goods and Services.
@@ -97,12 +100,12 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 |--:|---|---|---|---|---|
 | 1 | `naming_series` | Select | `varchar(140)` |  | enum: CUST-.YYYY.- |
 | 2 | `customer_name` | Data | `varchar(140)` | NOT NULL, INDEX |  |
-| 3 | `gender` | Link | `varchar(140)` |  | → `Gender` *(frappe core)* |
+| 3 | `gender` | Link | `varchar(140)` |  | → `Gender` *(frappe/Contacts)* |
 | 4 | `customer_type` | Select | `varchar(140)` | NOT NULL, default=Company | enum: Company, Individual, Partnership |
 | 5 | `default_bank_account` | Link | `varchar(140)` |  | → `Bank Account` |
 | 6 | `lead_name` | Link | `varchar(140)` | ro | → `Lead` |
 | 7 | `image` | Attach Image | `text` | hidden |  |
-| 8 | `account_manager` | Link | `varchar(140)` |  | → `User` *(frappe core)* |
+| 8 | `account_manager` | Link | `varchar(140)` |  | → `User` *(frappe/Core)* |
 | 9 | `customer_group` | Link | `varchar(140)` | INDEX | → `Customer Group` |
 | 10 | `territory` | Link | `varchar(140)` |  | → `Territory` |
 | 11 | `tax_id` | Data | `varchar(140)` |  |  |
@@ -110,14 +113,14 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 | 13 | `disabled` | Check | `smallint` | default=0 |  |
 | 14 | `is_internal_customer` | Check | `smallint` | default=0 |  |
 | 15 | `represents_company` | Link | `varchar(140)` | UNIQUE | → `Company` |
-| 16 | `default_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe core)* |
+| 16 | `default_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe/Geo)* |
 | 17 | `default_price_list` | Link | `varchar(140)` |  | → `Price List` |
-| 18 | `language` | Link | `varchar(140)` |  | → `Language` *(frappe core)* |
+| 18 | `language` | Link | `varchar(140)` |  | → `Language` *(frappe/Core)* |
 | 19 | `website` | Data | `varchar(140)` |  |  |
-| 20 | `customer_primary_contact` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 20 | `customer_primary_contact` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 21 | `mobile_no` | Read Only | `varchar(140)` | denorm←customer_primary_contact.mobile_no |  |
 | 22 | `email_id` | Read Only | `varchar(140)` | denorm←customer_primary_contact.email_id |  |
-| 23 | `customer_primary_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 23 | `customer_primary_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 24 | `primary_address` | Text Editor | `text` | ro |  |
 | 25 | `payment_terms` | Link | `varchar(140)` |  | → `Payment Terms Template` |
 | 26 | `customer_details` | Text | `text` |  |  |
@@ -150,12 +153,13 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 - `portal_users` → `Portal User` (line items)
 - `supplier_numbers` → `Supplier Number At Customer` (line items)
 
-**Referenced by (43):** `Bank Guarantee`.`customer`, `Coupon Code`.`customer`, `Customer Item`.`customer`, `Discounted Invoice`.`customer`, `Dunning`.`customer`, `Loyalty Point Entry`.`customer`, `POS Invoice`.`customer`, `POS Invoice Merge Log`.`customer`, `POS Invoice Reference`.`customer`, `POS Profile`.`customer`, `Pricing Rule`.`customer`, `Process Statement Of Accounts Customer`.`customer`, `Sales Invoice`.`customer`, `Sales Invoice Reference`.`customer`, `Tax Rule`.`customer` … (+28 more)
+**Referenced by (44):** `Bank Guarantee`.`customer`, `Coupon Code`.`customer`, `Customer Item`.`customer`, `Discounted Invoice`.`customer`, `Dunning`.`customer`, `Loyalty Point Entry`.`customer`, `POS Invoice`.`customer`, `POS Invoice Merge Log`.`customer`, `POS Invoice Reference`.`customer`, `POS Profile`.`customer`, `Pricing Rule`.`customer`, `Process Statement Of Accounts Customer`.`customer`, `Sales Invoice`.`customer`, `Sales Invoice Reference`.`customer`, `Tax Rule`.`customer` … (+29 more)
 
 ## Delivery Schedule Item
 
 - **Table**: `tabDelivery Schedule Item`  (proposed: `delivery_schedule_item`)
 - **Kind**: Master
+- **Owned by**: erpnext / Selling
 - **Title field**: `item_code`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -175,6 +179,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabIndustry Type`  (proposed: `industry_type`)
 - **Kind**: Master
+- **Owned by**: erpnext / Selling
 - **Naming**: `field:industry`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -187,6 +192,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabParty Specific Item`  (proposed: `party_specific_item`)
 - **Kind**: Master
+- **Owned by**: erpnext / Selling
 - **Title field**: `party`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -205,6 +211,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabSales Partner Type`  (proposed: `sales_partner_type`)
 - **Kind**: Master
+- **Owned by**: erpnext / Selling
 - **Naming**: `field:sales_partner_type`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -221,6 +228,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabInstallation Note`  (proposed: `installation_note`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Selling
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `customer_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -229,8 +237,8 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 |--:|---|---|---|---|---|
 | 1 | `naming_series` | Select | `varchar(140)` | NOT NULL | enum: MAT-INS-.YYYY.- |
 | 2 | `customer` | Link | `varchar(140)` | NOT NULL, INDEX | → `Customer` |
-| 3 | `customer_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
-| 4 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 3 | `customer_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
+| 4 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 5 | `customer_name` | Data | `varchar(140)` | ro |  |
 | 6 | `address_display` | Text Editor | `text` | ro, hidden |  |
 | 7 | `contact_display` | Small Text | `text` | ro, hidden |  |
@@ -256,6 +264,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabProduct Bundle`  (proposed: `product_bundle`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Selling
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 - **Description**: Aggregate a group of Items into another Item. This is useful if you are maintaining the stock of the packed items and not the bundled item
 - **Search fields**: `new_item_code,description`
@@ -278,6 +287,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabProforma Invoice`  (proposed: `proforma_invoice`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Selling
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `customer_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -290,13 +300,13 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 | 4 | `customer_name` | Data | `varchar(140)` | ro, denorm←customer.customer_name |  |
 | 5 | `proforma_date` | Date | `date` | NOT NULL, default=Today |  |
 | 6 | `company` | Link | `varchar(140)` | NOT NULL, ro, denorm←sales_order.company | → `Company` |
-| 7 | `currency` | Link | `varchar(140)` | ro, denorm←sales_order.currency | → `Currency` *(frappe core)* |
+| 7 | `currency` | Link | `varchar(140)` | ro, denorm←sales_order.currency | → `Currency` *(frappe/Geo)* |
 | 8 | `based_on` | Select | `varchar(140)` | ro, default=Quantity | enum: Quantity, Amount |
 | 9 | `hide_item_qty` | Check | `smallint` | ro, default=0 |  |
 | 10 | `total_qty` | Float | `numeric(21,9)` | ro |  |
 | 11 | `grand_total` | Currency | `numeric(21,9)` | ro |  |
-| 12 | `print_format` | Link | `varchar(140)` | ro | → `Print Format` *(frappe core)* |
-| 13 | `letter_head` | Link | `varchar(140)` | ro | → `Letter Head` *(frappe core)* |
+| 12 | `print_format` | Link | `varchar(140)` | ro | → `Print Format` *(frappe/Printing)* |
+| 13 | `letter_head` | Link | `varchar(140)` | ro | → `Letter Head` *(frappe/Printing)* |
 | 14 | `proforma_pdf` | Attach | `text` | ro |  |
 | 15 | `status` | Select | `varchar(140)` | ro, default=Draft | enum: Draft, Issued, Cancelled |
 | 16 | `sent_on` | Datetime | `timestamp` | ro |  |
@@ -313,6 +323,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabQuotation`  (proposed: `quotation`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Selling
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `customer_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -321,7 +332,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `naming_series` | Select | `varchar(140)` | NOT NULL | enum: SAL-QTN-.YYYY.- |
-| 2 | `quotation_to` | Link | `varchar(140)` | NOT NULL, default=Customer | → `DocType` *(frappe core)* |
+| 2 | `quotation_to` | Link | `varchar(140)` | NOT NULL, default=Customer | → `DocType` *(frappe/Core)* |
 | 3 | `party_name` | Dynamic Link | `varchar(140)` | INDEX | → polymorphic, doctype in `quotation_to` |
 | 4 | `customer_name` | Data | `varchar(140)` | ro, hidden |  |
 | 5 | `amended_from` | Link | `varchar(140)` | ro | → `Quotation` |
@@ -329,20 +340,20 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 | 7 | `transaction_date` | Date | `date` | NOT NULL, INDEX, default=Today |  |
 | 8 | `valid_till` | Date | `date` |  |  |
 | 9 | `order_type` | Select | `varchar(140)` | NOT NULL, default=Sales | enum: Sales, Maintenance, Shopping Cart |
-| 10 | `customer_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 10 | `customer_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 11 | `address_display` | Text Editor | `text` | ro |  |
-| 12 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 12 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 13 | `contact_display` | Small Text | `text` | ro |  |
 | 14 | `contact_mobile` | Small Text | `text` | ro |  |
 | 15 | `contact_email` | Data | `varchar(140)` | ro, hidden |  |
-| 16 | `shipping_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 16 | `shipping_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 17 | `shipping_address` | Text Editor | `text` | ro |  |
 | 18 | `customer_group` | Link | `varchar(140)` | hidden | → `Customer Group` |
 | 19 | `territory` | Link | `varchar(140)` |  | → `Territory` |
-| 20 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe core)* |
+| 20 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe/Geo)* |
 | 21 | `conversion_rate` | Float | `numeric(21,9)` | NOT NULL |  |
 | 22 | `selling_price_list` | Link | `varchar(140)` | NOT NULL | → `Price List` |
-| 23 | `price_list_currency` | Link | `varchar(140)` | NOT NULL, ro | → `Currency` *(frappe core)* |
+| 23 | `price_list_currency` | Link | `varchar(140)` | NOT NULL, ro | → `Currency` *(frappe/Geo)* |
 | 24 | `plc_conversion_rate` | Float | `numeric(21,9)` | NOT NULL |  |
 | 25 | `ignore_pricing_rule` | Check | `smallint` | default=0 |  |
 | 26 | `total_qty` | Float | `numeric(21,9)` | ro |  |
@@ -374,27 +385,27 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 | 52 | `payment_terms_template` | Link | `varchar(140)` |  | → `Payment Terms Template` |
 | 53 | `tc_name` | Link | `varchar(140)` |  | → `Terms and Conditions` |
 | 54 | `terms` | Text Editor | `text` |  |  |
-| 55 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
+| 55 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
 | 56 | `group_same_items` | Check | `smallint` | default=0 |  |
-| 57 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
-| 58 | `language` | Link | `varchar(140)` | ro | → `Language` *(frappe core)* |
-| 59 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe core)* |
+| 57 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
+| 58 | `language` | Link | `varchar(140)` | ro | → `Language` *(frappe/Core)* |
+| 59 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe/Automation)* |
 | 60 | `order_lost_reason` | Small Text | `text` |  |  |
 | 61 | `status` | Select | `varchar(140)` | NOT NULL, ro, default=Draft | enum: Draft, Open, Replied, Partially Ordered, Ordered, Lost, Cancelled, Expired |
 | 62 | `enq_det` | Text | `text` | ro, hidden |  |
 | 63 | `supplier_quotation` | Link | `varchar(140)` |  | → `Supplier Quotation` |
 | 64 | `opportunity` | Link | `varchar(140)` | ro | → `Opportunity` |
-| 65 | `company_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 65 | `company_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 66 | `company_address_display` | Text Editor | `text` | ro |  |
 | 67 | `scan_barcode` | Data | `varchar(140)` |  |  |
 | 68 | `incoterm` | Link | `varchar(140)` |  | → `Incoterm` |
 | 69 | `named_place` | Data | `varchar(140)` |  |  |
-| 70 | `utm_campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe core)* |
-| 71 | `utm_source` | Link | `varchar(140)` |  | → `UTM Source` *(frappe core)* |
-| 72 | `utm_medium` | Link | `varchar(140)` |  | → `UTM Medium` *(frappe core)* |
+| 70 | `utm_campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe/Website)* |
+| 71 | `utm_source` | Link | `varchar(140)` |  | → `UTM Source` *(frappe/Website)* |
+| 72 | `utm_medium` | Link | `varchar(140)` |  | → `UTM Medium` *(frappe/Website)* |
 | 73 | `utm_content` | Data | `varchar(140)` |  |  |
 | 74 | `disable_rounded_total` | Check | `smallint` | default=0 |  |
-| 75 | `company_contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 75 | `company_contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 76 | `has_unit_price_items` | Check | `smallint` | hidden, default=0 |  |
 | 77 | `title` | Data | `varchar(140)` |  |  |
 
@@ -419,6 +430,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabSales Order`  (proposed: `sales_order`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Selling
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `customer_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -437,22 +449,22 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 | 9 | `po_no` | Data | `varchar(140)` |  |  |
 | 10 | `po_date` | Date | `date` |  |  |
 | 11 | `tax_id` | Data | `varchar(140)` | ro, denorm←customer.tax_id |  |
-| 12 | `customer_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 12 | `customer_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 13 | `address_display` | Text Editor | `text` | ro |  |
-| 14 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 14 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 15 | `contact_display` | Small Text | `text` | ro |  |
 | 16 | `contact_mobile` | Small Text | `text` | ro |  |
 | 17 | `contact_email` | Data | `varchar(140)` | ro, hidden |  |
 | 18 | `company_address_display` | Text Editor | `text` | ro |  |
-| 19 | `company_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
-| 20 | `shipping_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 19 | `company_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
+| 20 | `shipping_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 21 | `shipping_address` | Text Editor | `text` | ro |  |
 | 22 | `customer_group` | Link | `varchar(140)` | hidden | → `Customer Group` |
 | 23 | `territory` | Link | `varchar(140)` |  | → `Territory` |
-| 24 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe core)* |
+| 24 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe/Geo)* |
 | 25 | `conversion_rate` | Float | `numeric(21,9)` | NOT NULL |  |
 | 26 | `selling_price_list` | Link | `varchar(140)` | NOT NULL | → `Price List` |
-| 27 | `price_list_currency` | Link | `varchar(140)` | NOT NULL, ro | → `Currency` *(frappe core)* |
+| 27 | `price_list_currency` | Link | `varchar(140)` | NOT NULL, ro | → `Currency` *(frappe/Geo)* |
 | 28 | `plc_conversion_rate` | Float | `numeric(21,9)` | NOT NULL |  |
 | 29 | `ignore_pricing_rule` | Check | `smallint` | default=0 |  |
 | 30 | `set_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
@@ -490,10 +502,10 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 | 62 | `terms` | Text Editor | `text` |  |  |
 | 63 | `inter_company_order_reference` | Link | `varchar(140)` | INDEX, ro | → `Purchase Order` |
 | 64 | `project` | Link | `varchar(140)` | INDEX | → `Project` |
-| 65 | `party_account_currency` | Link | `varchar(140)` | ro, hidden | → `Currency` *(frappe core)* |
-| 66 | `language` | Link | `varchar(140)` | ro, denorm←customer.language | → `Language` *(frappe core)* |
-| 67 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
-| 68 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
+| 65 | `party_account_currency` | Link | `varchar(140)` | ro, hidden | → `Currency` *(frappe/Geo)* |
+| 66 | `language` | Link | `varchar(140)` | ro, denorm←customer.language | → `Language` *(frappe/Core)* |
+| 67 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
+| 68 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
 | 69 | `group_same_items` | Check | `smallint` | default=0 |  |
 | 70 | `status` | Select | `varchar(140)` | NOT NULL, INDEX, ro, default=Draft | enum: Draft, On Hold, To Pay, To Deliver and Bill, To Bill, To Deliver, Completed, Cancelled … (+1) |
 | 71 | `delivery_status` | Select | `varchar(140)` | hidden | enum: Not Delivered, Fully Delivered, Partly Delivered, Closed, Not Applicable |
@@ -505,13 +517,13 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 | 77 | `total_commission` | Currency | `numeric(21,9)` |  |  |
 | 78 | `from_date` | Date | `date` |  |  |
 | 79 | `to_date` | Date | `date` |  |  |
-| 80 | `auto_repeat` | Link | `varchar(140)` |  | → `Auto Repeat` *(frappe core)* |
+| 80 | `auto_repeat` | Link | `varchar(140)` |  | → `Auto Repeat` *(frappe/Automation)* |
 | 81 | `contact_phone` | Data | `varchar(140)` | ro |  |
 | 82 | `skip_delivery_note` | Check | `smallint` | default=0 |  |
 | 83 | `is_internal_customer` | Check | `smallint` | ro, denorm←customer.is_internal_customer, default=0 |  |
 | 84 | `represents_company` | Link | `varchar(140)` | ro, denorm←customer.represents_company | → `Company` |
 | 85 | `disable_rounded_total` | Check | `smallint` | default=0 |  |
-| 86 | `dispatch_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 86 | `dispatch_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 87 | `dispatch_address` | Text Editor | `text` | ro |  |
 | 88 | `amount_eligible_for_commission` | Currency | `numeric(21,9)` | ro |  |
 | 89 | `per_picked` | Percent | `numeric(21,9)` | ro |  |
@@ -520,11 +532,11 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 | 92 | `named_place` | Data | `varchar(140)` |  |  |
 | 93 | `reserve_stock` | Check | `smallint` | default=0 |  |
 | 94 | `advance_payment_status` | Select | `varchar(140)` | hidden | enum: Not Requested, Requested, Partially Paid, Fully Paid |
-| 95 | `utm_medium` | Link | `varchar(140)` |  | → `UTM Medium` *(frappe core)* |
+| 95 | `utm_medium` | Link | `varchar(140)` |  | → `UTM Medium` *(frappe/Website)* |
 | 96 | `utm_content` | Data | `varchar(140)` |  |  |
-| 97 | `utm_source` | Link | `varchar(140)` |  | → `UTM Source` *(frappe core)* |
-| 98 | `utm_campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe core)* |
-| 99 | `company_contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 97 | `utm_source` | Link | `varchar(140)` |  | → `UTM Source` *(frappe/Website)* |
+| 98 | `utm_campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe/Website)* |
+| 99 | `company_contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 100 | `has_unit_price_items` | Check | `smallint` | hidden, default=0 |  |
 | 101 | `is_subcontracted` | Check | `smallint` | default=0 |  |
 | 102 | `transaction_time` | Time | `time(6)` | default=Now |  |
@@ -551,6 +563,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabCustomer Credit Limit`  (proposed: `customer_credit_limit`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Selling
 - **Embedded in**: `Customer`.`credit_limits`, `Customer Group`.`credit_limits`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -564,6 +577,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabInstallation Note Item`  (proposed: `installation_note_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Selling
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Installation Note`.`items`
 
@@ -582,6 +596,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabProduct Bundle Item`  (proposed: `product_bundle_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Selling
 - **Embedded in**: `Product Bundle`.`items`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -596,6 +611,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabProforma Invoice Item`  (proposed: `proforma_invoice_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Selling
 - **Embedded in**: `Proforma Invoice`.`items`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -612,6 +628,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabQuotation Item`  (proposed: `quotation_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Selling
 - **Embedded in**: `Quotation`.`items`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -652,7 +669,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 | 34 | `warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
 | 35 | `projected_qty` | Float | `numeric(21,9)` | ro |  |
 | 36 | `actual_qty` | Float | `numeric(21,9)` | ro |  |
-| 37 | `prevdoc_doctype` | Link | `varchar(140)` | ro, hidden | → `DocType` *(frappe core)* |
+| 37 | `prevdoc_doctype` | Link | `varchar(140)` | ro, hidden | → `DocType` *(frappe/Core)* |
 | 38 | `prevdoc_docname` | Dynamic Link | `varchar(140)` | ro | → polymorphic, doctype in `prevdoc_doctype` |
 | 39 | `item_tax_rate` | Code | `text` | ro, hidden |  |
 | 40 | `item_tax_template` | Link | `varchar(140)` |  | → `Item Tax Template` |
@@ -680,6 +697,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabSales Order Item`  (proposed: `sales_order_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Selling
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Sales Order`.`items`
 
@@ -772,6 +790,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabSales Team`  (proposed: `sales_team`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Selling
 - **Embedded in**: `POS Invoice`.`sales_team`, `Sales Invoice`.`sales_team`, `Customer`.`sales_team`, `Sales Order`.`sales_team`, `Delivery Note`.`sales_team`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -787,6 +806,7 @@ Stock/Accounts documents (e.g. `Sales Taxes and Charges`, `Packed Item`).
 
 - **Table**: `tabSupplier Number At Customer`  (proposed: `supplier_number_at_customer`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Selling
 - **Embedded in**: `Customer`.`supplier_numbers`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |

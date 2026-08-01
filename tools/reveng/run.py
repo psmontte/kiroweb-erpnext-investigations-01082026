@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 """
-Reverse-engineer ERPNext into a schema catalog + study docs.
+Reverse-engineer a Frappe/ERPNext bench into a schema catalog + study docs.
 
 Usage:
-    python3 run.py --app /projects/sandbox/erpnext/erpnext --out /projects/sandbox/erp
+    python3 run.py --out /projects/sandbox/erp \
+        --app erpnext=/projects/sandbox/erpnext/erpnext \
+        --app frappe=/projects/sandbox/frappe/frappe \
+        --app payments=/projects/sandbox/payments/payments \
+        --app hrms=/projects/sandbox/hrms/hrms \
+        --app webshop=/projects/sandbox/webshop/webshop
+
+Deep dives and DDL cover the erpnext accounting/trade/inventory modules; the other apps
+are parsed so that every Link column resolves to a known table.
 """
 
 from __future__ import annotations
@@ -12,6 +20,7 @@ import argparse
 import os
 
 import catalog
+import counts
 import ddl
 import erd
 import flows
@@ -63,9 +72,24 @@ MODULE_NOTES = {
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--app", required=True, help="path to the erpnext python package root")
+    ap.add_argument(
+        "--app",
+        required=True,
+        action="append",
+        metavar="NAME=PATH",
+        help="app to parse, repeatable, e.g. erpnext=/path/to/erpnext/erpnext",
+    )
     ap.add_argument("--out", required=True, help="output repo root")
     args = ap.parse_args()
+
+    apps: dict[str, str] = {}
+    for spec in args.app:
+        if "=" not in spec:
+            ap.error(f"--app expects NAME=PATH, got {spec!r}")
+        name, path = spec.split("=", 1)
+        if not os.path.isdir(path):
+            ap.error(f"no such directory: {path}")
+        apps[name] = path
 
     schema_dir = os.path.join(args.out, "schema")
     docs_dir = os.path.join(args.out, "docs", "reveng")
@@ -74,8 +98,11 @@ def main() -> None:
     for p in (schema_dir, docs_dir, mod_dir, ddl_dir):
         os.makedirs(p, exist_ok=True)
 
-    reg = Registry.from_app(args.app)
-    print(f"parsed {len(reg.doctypes)} doctypes across {len(reg.modules())} modules")
+    reg = Registry.from_apps(apps)
+    print(
+        f"parsed {len(reg.doctypes)} doctypes from {len(apps)} apps "
+        f"({', '.join(reg.apps())}) across {len(reg.modules())} modules"
+    )
 
     # 1. machine readable catalog
     jp = catalog.write_json(reg, schema_dir)
@@ -129,7 +156,10 @@ def main() -> None:
     # 4b. auto-derived document flow graph
     _w(os.path.join(docs_dir, "03-document-flows.md"), flows.render(reg, FLOW_MODULES))
 
-    # 4c. cross-cutting patterns
+    # 4c. table-count reconciliation
+    _w(os.path.join(docs_dir, "07-table-counts.md"), counts.render(reg))
+
+    # 4d. cross-cutting patterns
     _w(os.path.join(docs_dir, "04-patterns.md"), patterns.render(reg, DEEP_DIVE_MODULES))
 
     # 5. DDL

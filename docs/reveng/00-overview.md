@@ -5,7 +5,7 @@ exactly one physical table named `tab<DocType Name>`; child tables are the physi
 storage for repeating line items and are always referenced from a parent through a
 `Table` field.
 
-**Total DocTypes parsed: 532** across 21 modules.
+**Total DocTypes parsed: 997** across 37 modules.
 
 ## Framework conventions you must decide to keep or drop
 
@@ -35,119 +35,139 @@ storage for repeating line items and are always referenced from a parent through
 
 Child tables additionally carry: `parent`, `parentfield`, `parenttype`.
 
-## Modules
-
 | Module | DocTypes | Masters | Trees | Transactions | Child tables | Singles | Columns |
 |---|--:|--:|--:|--:|--:|--:|--:|
-| Accounts | 191 | 47 | 2 | 31 | 99 | 12 | 2323 |
-| Assets | 26 | 5 | 1 | 8 | 12 | 0 | 270 |
-| Bulk Transaction | 2 | 2 | 0 | 0 | 0 | 0 | 12 |
-| Buying | 19 | 5 | 0 | 4 | 9 | 1 | 489 |
-| CRM | 28 | 12 | 0 | 1 | 13 | 2 | 219 |
-| Communication | 2 | 1 | 0 | 0 | 1 | 0 | 9 |
-| EDI | 2 | 2 | 0 | 0 | 0 | 0 | 14 |
-| ERPNext Integrations | 1 | 0 | 0 | 0 | 0 | 1 | 6 |
-| Maintenance | 5 | 0 | 0 | 2 | 3 | 0 | 64 |
-| Manufacturing | 48 | 8 | 0 | 8 | 30 | 2 | 628 |
-| Portal | 2 | 0 | 0 | 0 | 2 | 0 | 2 |
-| Projects | 15 | 6 | 1 | 2 | 5 | 1 | 166 |
-| Quality Management | 16 | 7 | 1 | 0 | 8 | 0 | 61 |
-| Regional | 5 | 4 | 0 | 0 | 1 | 0 | 21 |
-| Selling | 20 | 5 | 0 | 5 | 8 | 2 | 494 |
-| Setup | 40 | 17 | 8 | 1 | 12 | 2 | 405 |
-| Stock | 77 | 22 | 1 | 17 | 32 | 5 | 1358 |
-| Subcontracting | 13 | 1 | 0 | 3 | 9 | 0 | 280 |
-| Support | 11 | 5 | 0 | 0 | 5 | 1 | 114 |
-| Telephony | 5 | 3 | 0 | 1 | 1 | 0 | 30 |
-| Utilities | 4 | 1 | 0 | 0 | 1 | 2 | 18 |
-| **TOTAL** | **532** | | | | | | **6983** |
+| App | Module | DocTypes | Masters | Trees | Transactions | Child tables | Singles | Columns |
+|---|---|--:|--:|--:|--:|--:|--:|--:|
+| erpnext | Accounts | 191 | 47 | 2 | 31 | 99 | 12 | 2323 |
+| erpnext | Assets | 26 | 5 | 1 | 8 | 12 | 0 | 270 |
+| erpnext | Bulk Transaction | 2 | 2 | 0 | 0 | 0 | 0 | 12 |
+| erpnext | Buying | 19 | 5 | 0 | 4 | 9 | 1 | 489 |
+| erpnext | CRM | 28 | 12 | 0 | 1 | 13 | 2 | 219 |
+| erpnext | Communication | 2 | 1 | 0 | 0 | 1 | 0 | 9 |
+| erpnext | EDI | 2 | 2 | 0 | 0 | 0 | 0 | 14 |
+| erpnext | ERPNext Integrations | 1 | 0 | 0 | 0 | 0 | 1 | 6 |
+| erpnext | Maintenance | 5 | 0 | 0 | 2 | 3 | 0 | 64 |
+| erpnext | Manufacturing | 48 | 8 | 0 | 8 | 30 | 2 | 628 |
+| erpnext | Portal | 2 | 0 | 0 | 0 | 2 | 0 | 2 |
+| erpnext | Projects | 15 | 6 | 1 | 2 | 5 | 1 | 166 |
+| erpnext | Quality Management | 16 | 7 | 1 | 0 | 8 | 0 | 61 |
+| erpnext | Regional | 5 | 4 | 0 | 0 | 1 | 0 | 21 |
+| erpnext | Selling | 20 | 5 | 0 | 5 | 8 | 2 | 494 |
+| erpnext | Setup | 40 | 17 | 8 | 1 | 12 | 2 | 405 |
+| erpnext | Stock | 77 | 22 | 1 | 17 | 32 | 5 | 1358 |
+| erpnext | Subcontracting | 13 | 1 | 0 | 3 | 9 | 0 | 280 |
+| erpnext | Support | 11 | 5 | 0 | 0 | 5 | 1 | 114 |
+| erpnext | Telephony | 5 | 3 | 0 | 1 | 1 | 0 | 30 |
+| erpnext | Utilities | 4 | 1 | 0 | 0 | 1 | 2 | 18 |
+| frappe | Automation | 9 | 5 | 0 | 0 | 4 | 0 | 49 |
+| frappe | Contacts | 7 | 5 | 0 | 0 | 2 | 0 | 47 |
+| frappe | Core | 108 | 52 | 0 | 1 | 42 | 13 | 875 |
+| frappe | Custom | 5 | 3 | 0 | 0 | 1 | 1 | 171 |
+| frappe | Desk | 59 | 29 | 0 | 0 | 25 | 5 | 433 |
+| frappe | Email | 17 | 13 | 0 | 0 | 4 | 0 | 195 |
+| frappe | Geo | 2 | 2 | 0 | 0 | 0 | 0 | 13 |
+| frappe | Integrations | 24 | 12 | 0 | 0 | 6 | 6 | 195 |
+| frappe | Printing | 8 | 7 | 0 | 0 | 0 | 1 | 91 |
+| frappe | Website | 39 | 19 | 0 | 0 | 15 | 5 | 289 |
+| frappe | Workflow | 9 | 5 | 0 | 0 | 4 | 0 | 45 |
+| hrms | HR | 116 | 39 | 1 | 36 | 36 | 4 | 1021 |
+| hrms | Payroll | 43 | 6 | 0 | 17 | 18 | 2 | 442 |
+| payments | Payment Gateways | 9 | 5 | 0 | 0 | 0 | 4 | 52 |
+| payments | Payments | 1 | 1 | 0 | 0 | 0 | 0 | 3 |
+| webshop | Webshop | 9 | 3 | 0 | 0 | 5 | 1 | 91 |
+| | **TOTAL** | **997** | | | | | | **10995** |
 
 ## Fieldtype usage (drives our type mapping)
 
 | Fieldtype | Count | Postgres type |
 |---|--:|---|
-| Link | 2183 | `varchar(140)` |
-| Section Break | 1467 | *layout only — no column* |
-| Column Break | 1339 | *layout only — no column* |
-| Check | 891 | `smallint` |
-| Data | 875 | `varchar(140)` |
-| Currency | 738 | `numeric(21,9)` |
-| Float | 568 | `numeric(21,9)` |
-| Select | 461 | `varchar(140)` |
-| Date | 325 | `date` |
-| Table | 299 | *child table relation — no column* |
-| Tab Break | 215 | *layout only — no column* |
-| Int | 169 | `integer` |
-| Small Text | 164 | `text` |
-| Text Editor | 151 | `text` |
-| HTML | 101 | *layout only — no column* |
-| Dynamic Link | 78 | `varchar(140)` |
-| Button | 77 | *layout only — no column* |
-| Percent | 70 | `numeric(21,9)` |
-| Read Only | 61 | `varchar(140)` |
-| Datetime | 59 | `timestamp` |
-| Text | 56 | `text` |
-| Time | 46 | `time(6)` |
-| Attach | 30 | `text` |
-| Code | 26 | `text` |
-| Table MultiSelect | 24 | *child table relation — no column* |
-| Long Text | 20 | `text` |
-| Attach Image | 19 | `text` |
-| Image | 18 | *layout only — no column* |
-| Duration | 10 | `numeric(21,9)` |
+| Link | 3062 | `varchar(140)` |
+| Section Break | 2131 | *layout only — no column* |
+| Column Break | 1867 | *layout only — no column* |
+| Check | 1730 | `smallint` |
+| Data | 1621 | `varchar(140)` |
+| Currency | 886 | `numeric(21,9)` |
+| Select | 812 | `varchar(140)` |
+| Float | 674 | `numeric(21,9)` |
+| Table | 491 | *child table relation — no column* |
+| Date | 460 | `date` |
+| Tab Break | 335 | *layout only — no column* |
+| Int | 324 | `integer` |
+| Small Text | 283 | `text` |
+| Text Editor | 196 | `text` |
+| HTML | 185 | *layout only — no column* |
+| Code | 184 | `text` |
+| Dynamic Link | 122 | `varchar(140)` |
+| Datetime | 118 | `timestamp` |
+| Button | 113 | *layout only — no column* |
+| Text | 105 | `text` |
+| Percent | 81 | `numeric(21,9)` |
+| Read Only | 81 | `varchar(140)` |
+| Time | 52 | `time(6)` |
+| Attach | 44 | `text` |
+| Attach Image | 42 | `text` |
+| Table MultiSelect | 39 | *child table relation — no column* |
+| Password | 33 | `text` |
+| Long Text | 33 | `text` |
+| Image | 20 | *layout only — no column* |
+| Color | 17 | `varchar(140)` |
+| Duration | 15 | `numeric(21,9)` |
+| HTML Editor | 13 | `text` |
+| JSON | 12 | `jsonb` |
+| Autocomplete | 12 | `varchar(140)` |
+| Rating | 9 | `numeric(3,2)` |
 | Heading | 7 | *layout only — no column* |
-| JSON | 4 | `jsonb` |
-| Autocomplete | 4 | `varchar(140)` |
-| Color | 3 | `varchar(140)` |
-| Password | 2 | `text` |
-| Geolocation | 1 | `text` |
+| Icon | 6 | `varchar(140)` |
+| Markdown Editor | 5 | `text` |
+| Geolocation | 3 | `text` |
 | Signature | 1 | `text` |
 | Barcode | 1 | `text` |
 
 ## Most referenced entities (inbound Link count) — the true core of the model
 
-| Target DocType | Inbound links | In ERPNext app |
+| Target DocType | Inbound links | Owned by (app/module) |
 |---|--:|---|
-| `Account` | 165 | yes |
-| `Company` | 156 | yes |
-| `Warehouse` | 131 | yes |
-| `Item` | 114 | yes |
-| `UOM` | 110 | yes |
-| `Currency` | 80 | no (frappe core) |
-| `Cost Center` | 76 | yes |
-| `DocType` | 75 | no (frappe core) |
-| `Project` | 59 | yes |
-| `Address` | 59 | no (frappe core) |
-| `Customer` | 43 | yes |
-| `User` | 35 | no (frappe core) |
-| `Supplier` | 33 | yes |
-| `Contact` | 33 | no (frappe core) |
-| `Item Group` | 30 | yes |
-| `BOM` | 27 | yes |
-| `Letter Head` | 24 | no (frappe core) |
-| `Price List` | 24 | yes |
-| `Customer Group` | 22 | yes |
-| `Serial and Batch Bundle` | 22 | yes |
-| `Territory` | 21 | yes |
-| `Batch` | 21 | yes |
-| `Sales Order` | 21 | yes |
-| `Employee` | 19 | yes |
-| `Asset` | 18 | yes |
-| `Role` | 17 | no (frappe core) |
-| `Print Heading` | 17 | no (frappe core) |
-| `Brand` | 17 | yes |
-| `Tax Category` | 16 | yes |
-| `Terms and Conditions` | 16 | yes |
-| `Material Request` | 16 | yes |
-| `Finance Book` | 15 | yes |
-| `Bank Account` | 15 | yes |
-| `Mode of Payment` | 14 | yes |
-| `Sales Invoice` | 14 | yes |
-| `Auto Repeat` | 12 | no (frappe core) |
-| `Payment Terms Template` | 12 | yes |
-| `Purchase Order` | 12 | yes |
-| `Operation` | 12 | yes |
-| `UTM Campaign` | 11 | no (frappe core) |
+| `Company` | 218 | erpnext/Setup |
+| `Account` | 187 | erpnext/Accounts |
+| `DocType` | 174 | frappe/Core |
+| `Warehouse` | 133 | erpnext/Stock |
+| `Item` | 118 | erpnext/Stock |
+| `UOM` | 111 | erpnext/Setup |
+| `Currency` | 106 | frappe/Geo |
+| `User` | 93 | frappe/Core |
+| `Cost Center` | 84 | erpnext/Accounts |
+| `Employee` | 76 | erpnext/Setup |
+| `Project` | 65 | erpnext/Projects |
+| `Address` | 60 | frappe/Contacts |
+| `Department` | 58 | erpnext/Setup |
+| `Customer` | 44 | erpnext/Selling |
+| `Role` | 36 | frappe/Core |
+| `Supplier` | 36 | erpnext/Buying |
+| `Contact` | 33 | frappe/Contacts |
+| `Item Group` | 32 | erpnext/Setup |
+| `Designation` | 31 | erpnext/Setup |
+| `Letter Head` | 29 | frappe/Printing |
+| `Module Def` | 27 | frappe/Core |
+| `BOM` | 27 | erpnext/Manufacturing |
+| `Price List` | 25 | erpnext/Stock |
+| `Customer Group` | 23 | erpnext/Setup |
+| `Serial and Batch Bundle` | 22 | erpnext/Stock |
+| `Territory` | 21 | erpnext/Setup |
+| `Batch` | 21 | erpnext/Stock |
+| `Sales Order` | 21 | erpnext/Selling |
+| `Email Template` | 19 | frappe/Email |
+| `Mode of Payment` | 18 | erpnext/Accounts |
+| `Print Heading` | 18 | frappe/Printing |
+| `Asset` | 18 | erpnext/Assets |
+| `Brand` | 18 | erpnext/Setup |
+| `Terms and Conditions` | 17 | erpnext/Setup |
+| `Bank Account` | 16 | erpnext/Accounts |
+| `Language` | 16 | frappe/Core |
+| `Tax Category` | 16 | erpnext/Accounts |
+| `Material Request` | 16 | erpnext/Stock |
+| `Country` | 16 | frappe/Geo |
+| `Finance Book` | 15 | erpnext/Accounts |
 
 ## Widest tables (column count) — candidates for normalisation in our design
 
@@ -165,6 +185,7 @@ Child tables additionally carry: `parent`, `parentfield`, `parenttype`.
 | `Sales Invoice Item` | Accounts | child | 84 |
 | `Purchase Invoice Item` | Accounts | child | 82 |
 | `Sales Order Item` | Selling | child | 82 |
+| `System Settings` | Core | single | 79 |
 | `Quotation` | Selling | transaction | 77 |
 | `Purchase Order Item` | Buying | child | 75 |
 | `Delivery Note Item` | Stock | child | 74 |
@@ -172,14 +193,13 @@ Child tables additionally carry: `parent`, `parentfield`, `parenttype`.
 | `POS Invoice Item` | Accounts | child | 71 |
 | `Supplier Quotation` | Buying | transaction | 69 |
 | `Employee` | Setup | tree-master | 67 |
+| `User` | Core | master | 67 |
+| `DocField` | Core | child | 66 |
+| `DocType` | Core | master | 66 |
 | `Accounts Settings` | Accounts | single | 64 |
 | `Payment Entry` | Accounts | transaction | 63 |
+| `Salary Slip` | Payroll | transaction | 62 |
+| `Email Account` | Email | master | 60 |
 | `Pricing Rule` | Accounts | master | 59 |
-| `Work Order` | Manufacturing | transaction | 55 |
-| `Quotation Item` | Selling | child | 55 |
-| `Stock Entry` | Stock | transaction | 55 |
-| `Stock Entry Detail` | Stock | child | 55 |
-| `BOM` | Manufacturing | transaction | 53 |
-| `Asset` | Assets | transaction | 51 |
-| `Job Card` | Manufacturing | transaction | 50 |
-| `Supplier Quotation Item` | Buying | child | 49 |
+| `Custom Field` | Custom | master | 58 |
+| `Customize Form Field` | Custom | child | 58 |

@@ -27,11 +27,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabAccounts Settings`  (proposed: `accounts_settings`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `determine_address_tax_category_from` | Select | `varchar(140)` | default=Billing Address | enum: Billing Address, Shipping Address |
-| 2 | `credit_controller` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
+| 2 | `credit_controller` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
 | 3 | `check_supplier_invoice_uniqueness` | Check | `smallint` | default=0 |  |
 | 4 | `make_payment_via_journal_entry` | Check | `smallint` | hidden, default=0 |  |
 | 5 | `unlink_payment_on_cancellation_of_invoice` | Check | `smallint` | default=1 |  |
@@ -49,9 +50,9 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 17 | `submit_journal_entries` | Check | `smallint` | default=0 |  |
 | 18 | `book_deferred_entries_based_on` | Select | `varchar(140)` | default=Days | enum: Days, Months |
 | 19 | `delete_linked_ledger_entries` | Check | `smallint` | default=0 |  |
-| 20 | `role_allowed_to_over_bill` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
+| 20 | `role_allowed_to_over_bill` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
 | 21 | `enable_overdue_billing_threshold` | Check | `smallint` | default=0 |  |
-| 22 | `role_allowed_to_bypass_overdue_billing` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
+| 22 | `role_allowed_to_bypass_overdue_billing` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
 | 23 | `enable_common_party_accounting` | Check | `smallint` | default=0 |  |
 | 24 | `allow_multi_currency_invoices_against_single_party_account` | Check | `smallint` | default=0 |  |
 | 25 | `show_balance_in_coa` | Check | `smallint` | default=1 |  |
@@ -75,7 +76,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 43 | `receivable_payable_fetch_method` | Select | `varchar(140)` | default=Buffered Cursor | enum: Buffered Cursor, UnBuffered Cursor |
 | 44 | `maintain_same_internal_transaction_rate` | Check | `smallint` | default=0 |  |
 | 45 | `maintain_same_rate_action` | Select | `varchar(140)` | default=Stop | enum: Stop, Warn |
-| 46 | `role_to_override_stop_action` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
+| 46 | `role_to_override_stop_action` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
 | 47 | `confirm_before_resetting_posting_date` | Check | `smallint` | default=1 |  |
 | 48 | `allow_pegged_currencies_exchange_rates` | Check | `smallint` | default=0 |  |
 | 49 | `add_taxes_from_taxes_and_charges_template` | Check | `smallint` | default=0 |  |
@@ -83,7 +84,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 51 | `use_legacy_budget_controller` | Check | `smallint` | default=0 |  |
 | 52 | `use_legacy_controller_for_pcv` | Check | `smallint` | default=1 |  |
 | 53 | `pcv_job_timeout` | Int | `integer` | default=3600 |  |
-| 54 | `role_to_notify_on_depreciation_failure` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
+| 54 | `role_to_notify_on_depreciation_failure` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
 | 55 | `default_ageing_range` | Data | `varchar(140)` | default=30, 60, 90, 120 |  |
 | 56 | `enable_discounts_and_margin` | Check | `smallint` | default=0 |  |
 | 57 | `enable_loyalty_point_program` | Check | `smallint` | default=0 |  |
@@ -103,11 +104,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Clearance`  (proposed: `bank_clearance`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `account` | Link | `varchar(140)` | NOT NULL, denorm←bank_account.account | → `Account` |
-| 2 | `account_currency` | Link | `varchar(140)` | hidden | → `Currency` *(frappe core)* |
+| 2 | `account_currency` | Link | `varchar(140)` | hidden | → `Currency` *(frappe/Geo)* |
 | 3 | `from_date` | Date | `date` | NOT NULL |  |
 | 4 | `to_date` | Date | `date` | NOT NULL |  |
 | 5 | `bank_account` | Link | `varchar(140)` |  | → `Bank Account` |
@@ -122,6 +124,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Reconciliation Tool`  (proposed: `bank_reconciliation_tool`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -134,12 +137,13 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 7 | `from_reference_date` | Date | `date` |  |  |
 | 8 | `to_reference_date` | Date | `date` |  |  |
 | 9 | `filter_by_reference_date` | Check | `smallint` | default=0 |  |
-| 10 | `account_currency` | Link | `varchar(140)` | hidden | → `Currency` *(frappe core)* |
+| 10 | `account_currency` | Link | `varchar(140)` | hidden | → `Currency` *(frappe/Geo)* |
 
 ## Bisect Accounting Statements
 
 - **Table**: `tabBisect Accounting Statements`  (proposed: `bisect_accounting_statements`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -158,6 +162,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabChart of Accounts Importer`  (proposed: `chart_of_accounts_importer`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Accounts
 - **Description**: Import Chart of Accounts from a csv file
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -169,6 +174,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabCurrency Exchange Settings`  (proposed: `currency_exchange_settings`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -188,6 +194,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabLedger Health Monitor`  (proposed: `ledger_health_monitor`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -204,6 +211,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabOpening Invoice Creation Tool`  (proposed: `opening_invoice_creation_tool`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -221,6 +229,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPOS Settings`  (proposed: `pos_settings`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -236,11 +245,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPayment Reconciliation`  (proposed: `payment_reconciliation`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `company` | Link | `varchar(140)` | NOT NULL | → `Company` |
-| 2 | `party_type` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe core)* |
+| 2 | `party_type` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe/Core)* |
 | 3 | `party` | Dynamic Link | `varchar(140)` | NOT NULL | → polymorphic, doctype in `party_type` |
 | 4 | `receivable_payable_account` | Link | `varchar(140)` | NOT NULL | → `Account` |
 | 5 | `bank_cash_account` | Link | `varchar(140)` |  | → `Account` |
@@ -274,6 +284,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPegged Currencies`  (proposed: `pegged_currencies`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -286,6 +297,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSubscription Settings`  (proposed: `subscription_settings`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -301,6 +313,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabAccount Category`  (proposed: `account_category`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:account_category_name`  (By fieldname)
 - **Search fields**: `account_category_name, root_type`
 
@@ -316,13 +329,14 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabAccounting Dimension`  (proposed: `accounting_dimension`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:label`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `label` | Data | `varchar(140)` | UNIQUE |  |
 | 2 | `fieldname` | Data | `varchar(140)` | hidden |  |
-| 3 | `document_type` | Link | `varchar(140)` | NOT NULL, INDEX | → `DocType` *(frappe core)* |
+| 3 | `document_type` | Link | `varchar(140)` | NOT NULL, INDEX | → `DocType` *(frappe/Core)* |
 | 4 | `disabled` | Check | `smallint` | ro, hidden, default=0 |  |
 
 **Child tables (1-N):**
@@ -333,6 +347,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabAccounting Dimension Filter`  (proposed: `accounting_dimension_filter`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `format:{accounting_dimension}-{#####}`  (Expression)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -353,6 +368,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabAccounting Period`  (proposed: `accounting_period`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:period_name`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -362,7 +378,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 3 | `end_date` | Date | `date` | NOT NULL |  |
 | 4 | `company` | Link | `varchar(140)` | NOT NULL | → `Company` |
 | 5 | `disabled` | Check | `smallint` | default=0 |  |
-| 6 | `exempted_role` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
+| 6 | `exempted_role` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
 
 **Child tables (1-N):**
 
@@ -372,6 +388,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank`  (proposed: `bank`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:bank_name`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -391,6 +408,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Account`  (proposed: `bank_account`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Search fields**: `bank,account`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -403,7 +421,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 6 | `is_default` | Check | `smallint` | default=0 |  |
 | 7 | `is_company_account` | Check | `smallint` | default=0 |  |
 | 8 | `company` | Link | `varchar(140)` |  | → `Company` |
-| 9 | `party_type` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 9 | `party_type` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 10 | `party` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `party_type` |
 | 11 | `iban` | Data | `varchar(140)` |  |  |
 | 12 | `bank_account_no` | Data | `varchar(140)` |  |  |
@@ -419,12 +437,13 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - `party` — target DocType read from `party_type`
 
-**Referenced by (15):** `Bank Account Balance`.`bank_account`, `Bank Clearance`.`bank_account`, `Bank Guarantee`.`bank_account`, `Bank Reconciliation Tool`.`bank_account`, `Bank Statement Import`.`bank_account`, `Bank Statement Import Log`.`bank_account`, `Bank Transaction`.`bank_account`, `Journal Entry Account`.`bank_account`, `Payment Entry`.`bank_account`, `Payment Entry`.`party_bank_account`, `Payment Order`.`company_bank_account`, `Payment Order Reference`.`bank_account`, `Payment Request`.`bank_account`, `Supplier`.`default_bank_account`, `Customer`.`default_bank_account`
+**Referenced by (16):** `Bank Account Balance`.`bank_account`, `Bank Clearance`.`bank_account`, `Bank Guarantee`.`bank_account`, `Bank Reconciliation Tool`.`bank_account`, `Bank Statement Import`.`bank_account`, `Bank Statement Import Log`.`bank_account`, `Bank Transaction`.`bank_account`, `Journal Entry Account`.`bank_account`, `Payment Entry`.`bank_account`, `Payment Entry`.`party_bank_account`, `Payment Order`.`company_bank_account`, `Payment Order Reference`.`bank_account`, `Payment Request`.`bank_account`, `Supplier`.`default_bank_account`, `Customer`.`default_bank_account` … (+1 more)
 
 ## Bank Account Balance
 
 - **Table**: `tabBank Account Balance`  (proposed: `bank_account_balance`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -437,6 +456,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Account Subtype`  (proposed: `bank_account_subtype`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:account_subtype`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -449,6 +469,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Account Type`  (proposed: `bank_account_type`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:account_type`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -461,6 +482,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Statement Import`  (proposed: `bank_statement_import`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `format:Bank Statement Import on {creation}`  (Expression (old style))
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -474,7 +496,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 7 | `template_warnings` | Code | `text` | hidden |  |
 | 8 | `show_failed_logs` | Check | `smallint` | default=0 |  |
 | 9 | `google_sheets_url` | Data | `varchar(140)` |  |  |
-| 10 | `reference_doctype` | Link | `varchar(140)` | NOT NULL, hidden, default=Bank Transaction | → `DocType` *(frappe core)* |
+| 10 | `reference_doctype` | Link | `varchar(140)` | NOT NULL, hidden, default=Bank Transaction | → `DocType` *(frappe/Core)* |
 | 11 | `import_type` | Select | `varchar(140)` | NOT NULL, hidden, default=Insert New Records | enum: Insert New Records, Update Existing Records |
 | 12 | `submit_after_import` | Check | `smallint` | hidden, default=1 |  |
 | 13 | `mute_emails` | Check | `smallint` | hidden, default=1 |  |
@@ -487,6 +509,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Statement Import Log`  (proposed: `bank_statement_import_log`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `hash`  (Random)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -504,7 +527,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 11 | `detected_transaction_ending_index` | Int | `integer` | ro |  |
 | 12 | `pdf_tables` | JSON | `jsonb` | ro |  |
 | 13 | `status` | Select | `varchar(140)` | ro, default=Not Started | enum: Not Started, Completed |
-| 14 | `currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe core)* |
+| 14 | `currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe/Geo)* |
 | 15 | `total_debits` | Currency | `numeric(21,9)` | ro |  |
 | 16 | `total_credits` | Currency | `numeric(21,9)` | ro |  |
 | 17 | `total_debit_transactions` | Int | `integer` | ro |  |
@@ -518,6 +541,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Transaction Rule`  (proposed: `bank_transaction_rule`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:rule_name`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -529,7 +553,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 5 | `rule_description` | Small Text | `text` |  |  |
 | 6 | `classify_as` | Select | `varchar(140)` | NOT NULL | enum: Bank Entry, Payment Entry, Transfer |
 | 7 | `account` | Link | `varchar(140)` |  | → `Account` |
-| 8 | `party_type` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 8 | `party_type` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 9 | `party` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `party_type` |
 | 10 | `priority` | Int | `integer` | NOT NULL |  |
 | 11 | `company` | Link | `varchar(140)` | NOT NULL | → `Company` |
@@ -550,6 +574,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBisect Nodes`  (proposed: `bisect_nodes`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `autoincrement`  (Autoincrement)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -570,6 +595,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabCheque Print Template`  (proposed: `cheque_print_template`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:bank_name`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -604,6 +630,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabCoupon Code`  (proposed: `coupon_code`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:coupon_name`  (By fieldname)
 - **Title field**: `coupon_name`
 
@@ -628,6 +655,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabDunning Type`  (proposed: `dunning_type`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: By script
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -650,6 +678,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabFinance Book`  (proposed: `finance_book`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:finance_book_name`
 - **Search fields**: `finance_book_name`
 
@@ -663,6 +692,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabFinancial Report Template`  (proposed: `financial_report_template`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:template_name`  (By fieldname)
 - **Title field**: `template_name`
 
@@ -670,7 +700,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 |--:|---|---|---|---|---|
 | 1 | `template_name` | Data | `varchar(140)` | NOT NULL, UNIQUE |  |
 | 2 | `report_type` | Select | `varchar(140)` | NOT NULL | enum: Profit and Loss Statement, Balance Sheet, Cash Flow, Custom Financial Statement |
-| 3 | `module` | Link | `varchar(140)` |  | → `Module Def` *(frappe core)* |
+| 3 | `module` | Link | `varchar(140)` |  | → `Module Def` *(frappe/Core)* |
 | 4 | `disabled` | Check | `smallint` | default=0 |  |
 
 **Child tables (1-N):**
@@ -681,6 +711,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabFiscal Year`  (proposed: `fiscal_year`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:year`  (By fieldname)
 - **Description**: Represents a Financial Year. All accounting entries and other major transactions are tracked against the Fiscal Year.
 
@@ -703,6 +734,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabItem Tax Template`  (proposed: `item_tax_template`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Title field**: `title`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -721,6 +753,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabJournal Entry Template`  (proposed: `journal_entry_template`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:template_title`
 - **Title field**: `template_title`
 - **Search fields**: `voucher_type, company`
@@ -744,6 +777,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabLedger Health`  (proposed: `ledger_health`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `autoincrement`  (Autoincrement)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -758,6 +792,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabLedger Merge`  (proposed: `ledger_merge`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `format:{account_name} merger on {creation}`  (Expression)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -777,6 +812,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabLoyalty Point Entry`  (proposed: `loyalty_point_entry`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Title field**: `customer`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -790,7 +826,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 7 | `expiry_date` | Date | `date` | NOT NULL |  |
 | 8 | `posting_date` | Date | `date` | NOT NULL |  |
 | 9 | `company` | Link | `varchar(140)` | NOT NULL | → `Company` |
-| 10 | `invoice_type` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe core)* |
+| 10 | `invoice_type` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe/Core)* |
 | 11 | `invoice` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `invoice_type` |
 | 12 | `discretionary_reason` | Data | `varchar(140)` |  |  |
 
@@ -804,6 +840,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabLoyalty Program`  (proposed: `loyalty_program`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:loyalty_program_name`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -832,6 +869,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabMode of Payment`  (proposed: `mode_of_payment`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:mode_of_payment`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -844,12 +882,13 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - `accounts` → `Mode of Payment Account` (line items)
 
-**Referenced by (14):** `Cashier Closing Payments`.`mode_of_payment`, `Journal Entry`.`mode_of_payment`, `Overdue Payment`.`mode_of_payment`, `POS Closing Entry Detail`.`mode_of_payment`, `POS Opening Entry Detail`.`mode_of_payment`, `POS Payment Method`.`mode_of_payment`, `Payment Entry`.`mode_of_payment`, `Payment Order Reference`.`mode_of_payment`, `Payment Request`.`mode_of_payment`, `Payment Schedule`.`mode_of_payment`, `Payment Term`.`mode_of_payment`, `Payment Terms Template Detail`.`mode_of_payment`, `Purchase Invoice`.`mode_of_payment`, `Sales Invoice Payment`.`mode_of_payment`
+**Referenced by (18):** `Cashier Closing Payments`.`mode_of_payment`, `Journal Entry`.`mode_of_payment`, `Overdue Payment`.`mode_of_payment`, `POS Closing Entry Detail`.`mode_of_payment`, `POS Opening Entry Detail`.`mode_of_payment`, `POS Payment Method`.`mode_of_payment`, `Payment Entry`.`mode_of_payment`, `Payment Order Reference`.`mode_of_payment`, `Payment Request`.`mode_of_payment`, `Payment Schedule`.`mode_of_payment`, `Payment Term`.`mode_of_payment`, `Payment Terms Template Detail`.`mode_of_payment`, `Purchase Invoice`.`mode_of_payment`, `Sales Invoice Payment`.`mode_of_payment`, `Employee Advance`.`mode_of_payment` … (+3 more)
 
 ## Monthly Distribution
 
 - **Table**: `tabMonthly Distribution`  (proposed: `monthly_distribution`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:distribution_id`  (By fieldname)
 - **Description**: Helps you distribute the Budget/Target across months if you have seasonality in your business.
 
@@ -868,6 +907,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPOS Profile`  (proposed: `pos_profile`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `Prompt`  (Set by user)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -876,12 +916,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 2 | `customer` | Link | `varchar(140)` |  | → `Customer` |
 | 3 | `company` | Link | `varchar(140)` | NOT NULL | → `Company` |
 | 4 | `country` | Read Only | `varchar(140)` | denorm←company.country |  |
-| 5 | `company_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
-| 6 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
+| 5 | `company_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
+| 6 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
 | 7 | `tc_name` | Link | `varchar(140)` |  | → `Terms and Conditions` |
-| 8 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
+| 8 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
 | 9 | `selling_price_list` | Link | `varchar(140)` |  | → `Price List` |
-| 10 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe core)* |
+| 10 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe/Geo)* |
 | 11 | `write_off_account` | Link | `varchar(140)` | NOT NULL | → `Account` |
 | 12 | `write_off_cost_center` | Link | `varchar(140)` | NOT NULL | → `Cost Center` |
 | 13 | `account_for_change_amount` | Link | `varchar(140)` |  | → `Account` |
@@ -891,7 +931,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 17 | `taxes_and_charges` | Link | `varchar(140)` |  | → `Sales Taxes and Charges Template` |
 | 18 | `apply_discount_on` | Select | `varchar(140)` | default=Grand Total | enum: Grand Total, Net Total |
 | 19 | `tax_category` | Link | `varchar(140)` |  | → `Tax Category` |
-| 20 | `print_format` | Link | `varchar(140)` |  | → `Print Format` *(frappe core)* |
+| 20 | `print_format` | Link | `varchar(140)` |  | → `Print Format` *(frappe/Printing)* |
 | 21 | `warehouse` | Link | `varchar(140)` | NOT NULL | → `Warehouse` |
 | 22 | `ignore_pricing_rule` | Check | `smallint` | default=0 |  |
 | 23 | `update_stock` | Check | `smallint` | ro, hidden, default=1 |  |
@@ -903,9 +943,9 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 29 | `validate_stock_on_save` | Check | `smallint` | default=0 |  |
 | 30 | `write_off_limit` | Currency | `numeric(21,9)` | NOT NULL, default=1 |  |
 | 31 | `disable_rounded_total` | Check | `smallint` | default=0 |  |
-| 32 | `utm_campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe core)* |
-| 33 | `utm_source` | Link | `varchar(140)` |  | → `UTM Source` *(frappe core)* |
-| 34 | `utm_medium` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe core)* |
+| 32 | `utm_campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe/Website)* |
+| 33 | `utm_source` | Link | `varchar(140)` |  | → `UTM Source` *(frappe/Website)* |
+| 34 | `utm_medium` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe/Website)* |
 | 35 | `print_receipt_on_order_complete` | Check | `smallint` | default=0 |  |
 | 36 | `project` | Link | `varchar(140)` |  | → `Project` |
 | 37 | `set_grand_total_to_default_mop` | Check | `smallint` | default=1 |  |
@@ -926,13 +966,14 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabParty Link`  (proposed: `party_link`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `ACC-PT-LNK-.###.`
 - **Title field**: `primary_party`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `primary_role` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe core)* |
-| 2 | `secondary_role` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 1 | `primary_role` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe/Core)* |
+| 2 | `secondary_role` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 3 | `primary_party` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `primary_role` |
 | 4 | `secondary_party` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `secondary_role` |
 
@@ -945,10 +986,11 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPayment Gateway Account`  (proposed: `payment_gateway_account`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `payment_gateway` | Link | `varchar(140)` | NOT NULL | → `Payment Gateway` *(frappe core)* |
+| 1 | `payment_gateway` | Link | `varchar(140)` | NOT NULL | → `Payment Gateway` *(payments/Payments)* |
 | 2 | `is_default` | Check | `smallint` | default=0 |  |
 | 3 | `payment_account` | Link | `varchar(140)` | NOT NULL | → `Account` |
 | 4 | `currency` | Read Only | `varchar(140)` | denorm←payment_account.account_currency |  |
@@ -956,12 +998,13 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 6 | `payment_channel` | Select | `varchar(140)` | default=Email | enum: Email, Phone, Other |
 | 7 | `company` | Link | `varchar(140)` | NOT NULL | → `Company` |
 
-**Referenced by (2):** `Payment Request`.`payment_gateway_account`, `Subscription Plan`.`payment_gateway`
+**Referenced by (3):** `Payment Request`.`payment_gateway_account`, `Subscription Plan`.`payment_gateway`, `Webshop Settings`.`payment_gateway_account`
 
 ## Payment Term
 
 - **Table**: `tabPayment Term`  (proposed: `payment_term`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:payment_term_name`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -984,6 +1027,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPayment Terms Template`  (proposed: `payment_terms_template`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:template_name`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1001,6 +1045,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPricing Rule`  (proposed: `pricing_rule`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `title`
 
@@ -1025,7 +1070,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 17 | `customer_group` | Link | `varchar(140)` |  | → `Customer Group` |
 | 18 | `territory` | Link | `varchar(140)` |  | → `Territory` |
 | 19 | `sales_partner` | Link | `varchar(140)` |  | → `Sales Partner` |
-| 20 | `campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe core)* |
+| 20 | `campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe/Website)* |
 | 21 | `supplier` | Link | `varchar(140)` |  | → `Supplier` |
 | 22 | `supplier_group` | Link | `varchar(140)` |  | → `Supplier Group` |
 | 23 | `min_qty` | Float | `numeric(21,9)` |  |  |
@@ -1035,7 +1080,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 27 | `valid_from` | Date | `date` | default=Today |  |
 | 28 | `valid_upto` | Date | `date` |  |  |
 | 29 | `company` | Link | `varchar(140)` |  | → `Company` |
-| 30 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe core)* |
+| 30 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe/Geo)* |
 | 31 | `margin_type` | Select | `varchar(140)` | default=Percentage | enum: Percentage, Amount |
 | 32 | `margin_rate_or_amount` | Float | `numeric(21,9)` | default=0 |  |
 | 33 | `rate_or_discount` | Select | `varchar(140)` | default=Discount Percentage | enum: Rate, Discount Percentage, Discount Amount |
@@ -1078,6 +1123,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabProcess Payment Reconciliation Log`  (proposed: `process_payment_reconciliation_log`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `format:PPR-LOG-{##}`  (Expression)
 - **Search fields**: `allocated, reconciled, total_allocations, reconciled_entries`
 
@@ -1099,6 +1145,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabProcess Statement Of Accounts`  (proposed: `process_statement_of_accounts`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `Prompt`  (Set by user)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1113,7 +1160,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 8 | `finance_book` | Link | `varchar(140)` |  | → `Finance Book` |
 | 9 | `orientation` | Select | `varchar(140)` |  | enum: Landscape, Portrait |
 | 10 | `start_date` | Date | `date` | default=Today |  |
-| 11 | `currency` | Link | `varchar(140)` |  | → `Currency` *(frappe core)* |
+| 11 | `currency` | Link | `varchar(140)` |  | → `Currency` *(frappe/Geo)* |
 | 12 | `include_ageing` | Check | `smallint` | default=0 |  |
 | 13 | `ageing_based_on` | Select | `varchar(140)` | default=Due Date | enum: Due Date, Posting Date |
 | 14 | `enable_auto_email` | Check | `smallint` | default=0 |  |
@@ -1121,11 +1168,11 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 16 | `filter_duration` | Int | `integer` | default=1 |  |
 | 17 | `subject` | Data | `varchar(140)` |  |  |
 | 18 | `body` | Text Editor | `text` |  |  |
-| 19 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
+| 19 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
 | 20 | `terms_and_conditions` | Link | `varchar(140)` |  | → `Terms and Conditions` |
 | 21 | `include_break` | Check | `smallint` | default=1 |  |
 | 22 | `show_net_values_in_party_account` | Check | `smallint` | default=0 |  |
-| 23 | `sender` | Link | `varchar(140)` |  | → `Email Account` *(frappe core)* |
+| 23 | `sender` | Link | `varchar(140)` |  | → `Email Account` *(frappe/Email)* |
 | 24 | `report` | Select | `varchar(140)` | NOT NULL | enum: General Ledger, Accounts Receivable |
 | 25 | `posting_date` | Date | `date` | default=Today |  |
 | 26 | `payment_terms_template` | Link | `varchar(140)` |  | → `Payment Terms Template` |
@@ -1139,7 +1186,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 34 | `show_remarks` | Check | `smallint` | default=0 |  |
 | 35 | `categorize_by` | Select | `varchar(140)` | default=Categorize by Voucher (C | enum: Categorize by Voucher, Categorize by Voucher (Consolidated) |
 | 36 | `show_future_payments` | Check | `smallint` | default=0 |  |
-| 37 | `print_format` | Link | `varchar(140)` |  | → `Print Format` *(frappe core)* |
+| 37 | `print_format` | Link | `varchar(140)` |  | → `Print Format` *(frappe/Printing)* |
 | 38 | `show_opening_entries` | Check | `smallint` | default=0 |  |
 
 **Child tables (1-N):**
@@ -1157,6 +1204,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPromotional Scheme`  (proposed: `promotional_scheme`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `Prompt`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1175,7 +1223,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 12 | `valid_from` | Date | `date` | default=Today |  |
 | 13 | `valid_upto` | Date | `date` |  |  |
 | 14 | `company` | Link | `varchar(140)` | NOT NULL | → `Company` |
-| 15 | `currency` | Link | `varchar(140)` |  | → `Currency` *(frappe core)* |
+| 15 | `currency` | Link | `varchar(140)` |  | → `Currency` *(frappe/Geo)* |
 
 **Child tables (1-N):**
 
@@ -1198,6 +1246,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPurchase Taxes and Charges Template`  (proposed: `purchase_taxes_and_charges_template`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Title field**: `title`
 - **Description**: Standard tax template that can be applied to all Purchase Transactions. This template can contain a list of tax heads and also other expense heads like "Shipping", "Insurance", "Handling", etc.
 
@@ -1219,6 +1268,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSales Taxes and Charges Template`  (proposed: `sales_taxes_and_charges_template`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Title field**: `title`
 - **Description**: Standard tax template that can be applied to all Sales Transactions. This template can contain a list of tax heads and also other expense/income heads like "Shipping", "Insurance", "Handling" etc.
 
@@ -1240,6 +1290,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabShare Type`  (proposed: `share_type`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:title`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1253,6 +1304,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabShareholder`  (proposed: `shareholder`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `title`
 - **Search fields**: `folio_no`
@@ -1276,6 +1328,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabShipping Rule`  (proposed: `shipping_rule`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:label`  (By fieldname)
 - **Description**: Specify conditions to calculate shipping amount
 
@@ -1302,6 +1355,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSubscription`  (proposed: `subscription`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `ACC-SUB-.YYYY.-.#####`  (Expression)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1319,7 +1373,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 11 | `apply_additional_discount` | Select | `varchar(140)` |  | enum: Grand Total, Net Total |
 | 12 | `additional_discount_percentage` | Percent | `numeric(21,9)` |  |  |
 | 13 | `additional_discount_amount` | Currency | `numeric(21,9)` |  |  |
-| 14 | `party_type` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe core)* |
+| 14 | `party_type` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe/Core)* |
 | 15 | `party` | Dynamic Link | `varchar(140)` | NOT NULL | → polymorphic, doctype in `party_type` |
 | 16 | `sales_tax_template` | Link | `varchar(140)` |  | → `Sales Taxes and Charges Template` |
 | 17 | `purchase_tax_template` | Link | `varchar(140)` |  | → `Purchase Taxes and Charges Template` |
@@ -1347,12 +1401,13 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSubscription Plan`  (proposed: `subscription_plan`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:plan_name`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `plan_name` | Data | `varchar(140)` | NOT NULL, UNIQUE |  |
-| 2 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe core)* |
+| 2 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe/Geo)* |
 | 3 | `item` | Link | `varchar(140)` | NOT NULL | → `Item` |
 | 4 | `price_determination` | Select | `varchar(140)` | NOT NULL | enum: Fixed Rate, Based On Price List, Monthly Rate |
 | 5 | `cost` | Currency | `numeric(21,9)` |  |  |
@@ -1369,6 +1424,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabTax Category`  (proposed: `tax_category`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:title`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1382,6 +1438,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabTax Rule`  (proposed: `tax_rule`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `ACC-TAX-RULE-.YYYY.-.#####`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1397,7 +1454,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 9 | `billing_county` | Data | `varchar(140)` |  |  |
 | 10 | `billing_state` | Data | `varchar(140)` |  |  |
 | 11 | `billing_zipcode` | Data | `varchar(140)` |  |  |
-| 12 | `billing_country` | Link | `varchar(140)` |  | → `Country` *(frappe core)* |
+| 12 | `billing_country` | Link | `varchar(140)` |  | → `Country` *(frappe/Geo)* |
 | 13 | `tax_category` | Link | `varchar(140)` |  | → `Tax Category` |
 | 14 | `customer_group` | Link | `varchar(140)` | denorm←customer.customer_group | → `Customer Group` |
 | 15 | `supplier_group` | Link | `varchar(140)` | denorm←supplier.supplier_group | → `Supplier Group` |
@@ -1406,7 +1463,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 18 | `shipping_county` | Data | `varchar(140)` |  |  |
 | 19 | `shipping_state` | Data | `varchar(140)` |  |  |
 | 20 | `shipping_zipcode` | Data | `varchar(140)` |  |  |
-| 21 | `shipping_country` | Link | `varchar(140)` |  | → `Country` *(frappe core)* |
+| 21 | `shipping_country` | Link | `varchar(140)` |  | → `Country` *(frappe/Geo)* |
 | 22 | `from_date` | Date | `date` |  |  |
 | 23 | `to_date` | Date | `date` |  |  |
 | 24 | `priority` | Int | `integer` | default=1 |  |
@@ -1416,6 +1473,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabTax Withholding Category`  (proposed: `tax_withholding_category`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `Prompt`  (Set by user)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1438,6 +1496,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabTax Withholding Group`  (proposed: `tax_withholding_group`)
 - **Kind**: Master
+- **Owned by**: erpnext / Accounts
 - **Naming**: `field:group_name`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1454,6 +1513,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabAccount`  (proposed: `account`)
 - **Kind**: Tree master (hierarchy)
+- **Owned by**: erpnext / Accounts
 - **Tree**: yes — nested set (`lft`, `rgt`, `old_parent`)
 - **Description**: Heads (or groups) against which Accounting Entries are made and balances are maintained.
 - **Search fields**: `account_number`
@@ -1466,7 +1526,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 4 | `company` | Link | `varchar(140)` | NOT NULL, denorm←parent_account.company | → `Company` |
 | 5 | `root_type` | Select | `varchar(140)` | ro | enum: Asset, Liability, Income, Expense, Equity |
 | 6 | `report_type` | Select | `varchar(140)` | ro | enum: Balance Sheet, Profit and Loss |
-| 7 | `account_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe core)* |
+| 7 | `account_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe/Geo)* |
 | 8 | `parent_account` | Link | `varchar(140)` | NOT NULL, INDEX | → `Account` |
 | 9 | `account_type` | Select | `varchar(140)` | INDEX | enum: Accumulated Depreciation, Asset Received But Not Billed, Bank, Cash, Chargeable, Capital Work in Progress, Cost of Goods Sold, Current Asset … (+24) |
 | 10 | `tax_rate` | Float | `numeric(21,9)` |  |  |
@@ -1479,12 +1539,13 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 17 | `disabled` | Check | `smallint` | default=0 |  |
 | 18 | `account_category` | Link | `varchar(140)` |  | → `Account Category` |
 
-**Referenced by (165):** `Account`.`parent_account`, `Account Closing Balance`.`account`, `Accounting Dimension Detail`.`offsetting_account`, `Advance Taxes and Charges`.`account_head`, `Applicable On Account`.`applicable_on_account`, `Bank Account`.`account`, `Bank Clearance`.`account`, `Bank Guarantee`.`account`, `Bank Transaction Rule`.`account`, `Bank Transaction Rule Accounts`.`account`, `Budget`.`account`, `Budget Account`.`account`, `Discounted Invoice`.`debit_to`, `Dunning`.`income_account`, `Dunning Type`.`income_account` … (+150 more)
+**Referenced by (187):** `Account`.`parent_account`, `Account Closing Balance`.`account`, `Accounting Dimension Detail`.`offsetting_account`, `Advance Taxes and Charges`.`account_head`, `Applicable On Account`.`applicable_on_account`, `Bank Account`.`account`, `Bank Clearance`.`account`, `Bank Guarantee`.`account`, `Bank Transaction Rule`.`account`, `Bank Transaction Rule Accounts`.`account`, `Budget`.`account`, `Budget Account`.`account`, `Discounted Invoice`.`debit_to`, `Dunning`.`income_account`, `Dunning Type`.`income_account` … (+172 more)
 
 ## Cost Center
 
 - **Table**: `tabCost Center`  (proposed: `cost_center`)
 - **Kind**: Tree master (hierarchy)
+- **Owned by**: erpnext / Accounts
 - **Tree**: yes — nested set (`lft`, `rgt`, `old_parent`)
 - **Description**: Track separate Income and Expense for product verticals or divisions.
 - **Search fields**: `parent_cost_center, is_group`
@@ -1501,7 +1562,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 8 | `old_parent` | Link | `varchar(140)` | hidden | → `Cost Center` |
 | 9 | `disabled` | Check | `smallint` | default=0 |  |
 
-**Referenced by (76):** `Account Closing Balance`.`cost_center`, `Advance Taxes and Charges`.`cost_center`, `Budget`.`cost_center`, `Cost Center`.`parent_cost_center`, `Cost Center`.`old_parent`, `Cost Center Allocation`.`main_cost_center`, `Cost Center Allocation Percentage`.`cost_center`, `Dunning`.`cost_center`, `Dunning Type`.`cost_center`, `GL Entry`.`cost_center`, `Journal Entry Account`.`cost_center`, `Journal Entry Template Account`.`cost_center`, `Loyalty Program`.`cost_center`, `Opening Invoice Creation Tool`.`cost_center`, `Opening Invoice Creation Tool Item`.`cost_center` … (+61 more)
+**Referenced by (84):** `Account Closing Balance`.`cost_center`, `Advance Taxes and Charges`.`cost_center`, `Budget`.`cost_center`, `Cost Center`.`parent_cost_center`, `Cost Center`.`old_parent`, `Cost Center Allocation`.`main_cost_center`, `Cost Center Allocation Percentage`.`cost_center`, `Dunning`.`cost_center`, `Dunning Type`.`cost_center`, `GL Entry`.`cost_center`, `Journal Entry Account`.`cost_center`, `Journal Entry Template Account`.`cost_center`, `Loyalty Program`.`cost_center`, `Opening Invoice Creation Tool`.`cost_center`, `Opening Invoice Creation Tool Item`.`cost_center` … (+69 more)
 
 ---
 
@@ -1511,6 +1572,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabAccount Closing Balance`  (proposed: `account_closing_balance`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1520,7 +1582,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 3 | `cost_center` | Link | `varchar(140)` |  | → `Cost Center` |
 | 4 | `debit` | Currency | `numeric(21,9)` |  |  |
 | 5 | `credit` | Currency | `numeric(21,9)` |  |  |
-| 6 | `account_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe core)* |
+| 6 | `account_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe/Geo)* |
 | 7 | `debit_in_account_currency` | Currency | `numeric(21,9)` |  |  |
 | 8 | `credit_in_account_currency` | Currency | `numeric(21,9)` |  |  |
 | 9 | `project` | Link | `varchar(140)` |  | → `Project` |
@@ -1536,16 +1598,17 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabAdvance Payment Ledger Entry`  (proposed: `advance_payment_ledger_entry`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `voucher_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe core)* |
+| 1 | `voucher_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe/Core)* |
 | 2 | `voucher_no` | Dynamic Link | `varchar(140)` | ro | → polymorphic, doctype in `voucher_type` |
-| 3 | `against_voucher_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe core)* |
+| 3 | `against_voucher_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe/Core)* |
 | 4 | `against_voucher_no` | Dynamic Link | `varchar(140)` | ro | → polymorphic, doctype in `against_voucher_type` |
 | 5 | `amount` | Currency | `numeric(21,9)` | ro |  |
-| 6 | `currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe core)* |
+| 6 | `currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe/Geo)* |
 | 7 | `event` | Data | `varchar(140)` | ro |  |
 | 8 | `company` | Link | `varchar(140)` | ro | → `Company` |
 | 9 | `delinked` | Check | `smallint` | ro, default=0 |  |
@@ -1561,6 +1624,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Guarantee`  (proposed: `bank_guarantee`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `ACC-BG-.YYYY.-.#####`  (Expression)
 - **Title field**: `customer`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -1569,7 +1633,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `bg_type` | Select | `varchar(140)` | NOT NULL | enum: Receiving, Providing |
-| 2 | `reference_doctype` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 2 | `reference_doctype` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 3 | `reference_docname` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `reference_doctype` |
 | 4 | `customer` | Link | `varchar(140)` |  | → `Customer` |
 | 5 | `supplier` | Link | `varchar(140)` |  | → `Supplier` |
@@ -1603,6 +1667,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Transaction`  (proposed: `bank_transaction`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `bank_account`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -1614,14 +1679,14 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 3 | `status` | Select | `varchar(140)` | default=Pending | enum: Pending, Settled, Unreconciled, Reconciled, Cancelled |
 | 4 | `bank_account` | Link | `varchar(140)` |  | → `Bank Account` |
 | 5 | `company` | Link | `varchar(140)` | ro, denorm←bank_account.company | → `Company` |
-| 6 | `currency` | Link | `varchar(140)` |  | → `Currency` *(frappe core)* |
+| 6 | `currency` | Link | `varchar(140)` |  | → `Currency` *(frappe/Geo)* |
 | 7 | `description` | Small Text | `text` |  |  |
 | 8 | `reference_number` | Small Text | `text` |  |  |
 | 9 | `transaction_id` | Data | `varchar(140)` | ro |  |
 | 10 | `allocated_amount` | Currency | `numeric(21,9)` | ro |  |
 | 11 | `amended_from` | Link | `varchar(140)` | ro | → `Bank Transaction` |
 | 12 | `unallocated_amount` | Currency | `numeric(21,9)` | ro |  |
-| 13 | `party_type` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 13 | `party_type` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 14 | `party` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `party_type` |
 | 15 | `deposit` | Currency | `numeric(21,9)` |  |  |
 | 16 | `withdrawal` | Currency | `numeric(21,9)` |  |  |
@@ -1648,6 +1713,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBudget`  (proposed: `budget`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -1692,13 +1758,14 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabCashier Closing`  (proposed: `cashier_closing`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `naming_series` | Select | `varchar(140)` | ro, default=POS-CLO- | enum: POS-CLO- |
-| 2 | `user` | Link | `varchar(140)` | NOT NULL, ro | → `User` *(frappe core)* |
+| 2 | `user` | Link | `varchar(140)` | NOT NULL, ro | → `User` *(frappe/Core)* |
 | 3 | `date` | Date | `date` | ro, default=Today |  |
 | 4 | `from_time` | Time | `time(6)` | NOT NULL |  |
 | 5 | `time` | Time | `time(6)` | NOT NULL |  |
@@ -1719,6 +1786,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabCost Center Allocation`  (proposed: `cost_center_allocation`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `CC-ALLOC-.#####`  (Expression (old style))
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -1739,6 +1807,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabDunning`  (proposed: `dunning`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `customer_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -1751,8 +1820,8 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 4 | `posting_date` | Date | `date` | NOT NULL, default=Today |  |
 | 5 | `dunning_type` | Link | `varchar(140)` |  | → `Dunning Type` |
 | 6 | `dunning_fee` | Currency | `numeric(21,2)` | denorm←dunning_type.dunning_fee, default=0 |  |
-| 7 | `language` | Link | `varchar(140)` |  | → `Language` *(frappe core)* |
-| 8 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
+| 7 | `language` | Link | `varchar(140)` |  | → `Language` *(frappe/Core)* |
+| 8 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
 | 9 | `amended_from` | Link | `varchar(140)` | ro | → `Dunning` |
 | 10 | `body_text` | Text Editor | `text` |  |  |
 | 11 | `closing_text` | Text Editor | `text` |  |  |
@@ -1769,13 +1838,13 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 22 | `income_account` | Link | `varchar(140)` | denorm←dunning_type.income_account | → `Account` |
 | 23 | `total_interest` | Currency | `numeric(21,2)` | ro, default=0 |  |
 | 24 | `total_outstanding` | Currency | `numeric(21,9)` | ro |  |
-| 25 | `customer_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
-| 26 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 25 | `customer_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
+| 26 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 27 | `dunning_amount` | Currency | `numeric(21,9)` | ro, default=0 |  |
 | 28 | `cost_center` | Link | `varchar(140)` | denorm←dunning_type.cost_center | → `Cost Center` |
 | 29 | `spacer` | Data | `varchar(140)` | ro, hidden |  |
-| 30 | `company_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
-| 31 | `currency` | Link | `varchar(140)` |  | → `Currency` *(frappe core)* |
+| 30 | `company_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
+| 31 | `currency` | Link | `varchar(140)` |  | → `Currency` *(frappe/Geo)* |
 | 32 | `conversion_rate` | Float | `numeric(21,9)` |  |  |
 | 33 | `base_dunning_amount` | Currency | `numeric(21,9)` | ro, default=0 |  |
 
@@ -1789,6 +1858,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabExchange Rate Revaluation`  (proposed: `exchange_rate_revaluation`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `ACC-ERR-.YYYY.-.#####`  (Expression (old style))
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -1812,6 +1882,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabGL Entry`  (proposed: `gl_entry`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `ACC-GLE-.YYYY.-.#####`  (Expression (old style))
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 - **Search fields**: `voucher_no,account,posting_date,against_voucher`
@@ -1821,18 +1892,18 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 1 | `posting_date` | Date | `date` | INDEX |  |
 | 2 | `transaction_date` | Date | `date` |  |  |
 | 3 | `account` | Link | `varchar(140)` | INDEX | → `Account` |
-| 4 | `party_type` | Link | `varchar(140)` | INDEX | → `DocType` *(frappe core)* |
+| 4 | `party_type` | Link | `varchar(140)` | INDEX | → `DocType` *(frappe/Core)* |
 | 5 | `party` | Dynamic Link | `varchar(140)` | INDEX | → polymorphic, doctype in `party_type` |
 | 6 | `cost_center` | Link | `varchar(140)` | INDEX | → `Cost Center` |
 | 7 | `debit` | Currency | `numeric(21,9)` |  |  |
 | 8 | `credit` | Currency | `numeric(21,9)` |  |  |
-| 9 | `account_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe core)* |
+| 9 | `account_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe/Geo)* |
 | 10 | `debit_in_account_currency` | Currency | `numeric(21,9)` |  |  |
 | 11 | `credit_in_account_currency` | Currency | `numeric(21,9)` |  |  |
 | 12 | `against` | Text | `text` |  |  |
-| 13 | `against_voucher_type` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 13 | `against_voucher_type` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 14 | `against_voucher` | Dynamic Link | `varchar(140)` | INDEX | → polymorphic, doctype in `against_voucher_type` |
-| 15 | `voucher_type` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 15 | `voucher_type` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 16 | `voucher_no` | Dynamic Link | `varchar(140)` | INDEX | → polymorphic, doctype in `voucher_type` |
 | 17 | `voucher_detail_no` | Data | `varchar(140)` | INDEX, ro |  |
 | 18 | `project` | Link | `varchar(140)` |  | → `Project` |
@@ -1845,7 +1916,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 25 | `to_rename` | Check | `smallint` | INDEX, hidden, default=1 |  |
 | 26 | `due_date` | Date | `date` |  |  |
 | 27 | `is_cancelled` | Check | `smallint` | default=0 |  |
-| 28 | `transaction_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe core)* |
+| 28 | `transaction_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe/Geo)* |
 | 29 | `transaction_exchange_rate` | Float | `numeric(21,9)` |  |  |
 | 30 | `debit_in_transaction_currency` | Currency | `numeric(21,9)` |  |  |
 | 31 | `credit_in_transaction_currency` | Currency | `numeric(21,9)` |  |  |
@@ -1864,6 +1935,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabInvoice Discounting`  (proposed: `invoice_discounting`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `ACC-INV-DISC-.YYYY.-.#####`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -1895,6 +1967,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabJournal Entry`  (proposed: `journal_entry`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `title`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -1915,7 +1988,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 11 | `total_credit` | Currency | `numeric(21,9)` | ro |  |
 | 12 | `difference` | Currency | `numeric(21,9)` | ro |  |
 | 13 | `multi_currency` | Check | `smallint` | default=0 |  |
-| 14 | `total_amount_currency` | Link | `varchar(140)` | ro, hidden | → `Currency` *(frappe core)* |
+| 14 | `total_amount_currency` | Link | `varchar(140)` | ro, hidden | → `Currency` *(frappe/Geo)* |
 | 15 | `total_amount` | Currency | `numeric(21,9)` | ro, hidden |  |
 | 16 | `total_amount_in_words` | Data | `varchar(140)` | ro, hidden |  |
 | 17 | `clearance_date` | Date | `date` | INDEX, ro |  |
@@ -1927,13 +2000,13 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 23 | `write_off_based_on` | Select | `varchar(140)` | default=Accounts Receivable | enum: Accounts Receivable, Accounts Payable |
 | 24 | `write_off_amount` | Currency | `numeric(21,9)` |  |  |
 | 25 | `pay_to_recd_from` | Data | `varchar(140)` |  |  |
-| 26 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
-| 27 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
+| 26 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
+| 27 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
 | 28 | `mode_of_payment` | Link | `varchar(140)` |  | → `Mode of Payment` |
 | 29 | `payment_order` | Link | `varchar(140)` | ro | → `Payment Order` |
 | 30 | `is_opening` | Select | `varchar(140)` | INDEX, default=No | enum: No, Yes |
 | 31 | `stock_entry` | Link | `varchar(140)` | ro | → `Stock Entry` |
-| 32 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe core)* |
+| 32 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe/Automation)* |
 | 33 | `amended_from` | Link | `varchar(140)` | ro | → `Journal Entry` |
 | 34 | `from_template` | Link | `varchar(140)` |  | → `Journal Entry Template` |
 | 35 | `tax_withholding_category` | Link | `varchar(140)` |  | → `Tax Withholding Category` |
@@ -1955,12 +2028,13 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 - `accounts` → `Journal Entry Account` (line items)
 - `tax_withholding_entries` → `Tax Withholding Entry` (line items)
 
-**Referenced by (7):** `Journal Entry`.`inter_company_journal_entry_reference`, `Journal Entry`.`amended_from`, `Journal Entry`.`reversal_of`, `Asset`.`journal_entry_for_scrap`, `Asset Value Adjustment`.`journal_entry`, `Depreciation Schedule`.`journal_entry`, `Stock Entry`.`credit_note`
+**Referenced by (9):** `Journal Entry`.`inter_company_journal_entry_reference`, `Journal Entry`.`amended_from`, `Journal Entry`.`reversal_of`, `Asset`.`journal_entry_for_scrap`, `Asset Value Adjustment`.`journal_entry`, `Depreciation Schedule`.`journal_entry`, `Stock Entry`.`credit_note`, `Salary Slip`.`journal_entry`, `Salary Withholding Cycle`.`journal_entry`
 
 ## POS Closing Entry
 
 - **Table**: `tabPOS Closing Entry`  (proposed: `pos_closing_entry`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `POS-CLO-.YYYY.-.#####`  (Expression (old style))
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -1971,7 +2045,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 3 | `posting_date` | Date | `date` | NOT NULL, default=Today |  |
 | 4 | `company` | Link | `varchar(140)` | NOT NULL, ro, denorm←pos_opening_entry.company | → `Company` |
 | 5 | `pos_profile` | Link | `varchar(140)` | NOT NULL, ro, denorm←pos_opening_entry.pos_profile | → `POS Profile` |
-| 6 | `user` | Link | `varchar(140)` | NOT NULL, ro, denorm←pos_opening_entry.user | → `User` *(frappe core)* |
+| 6 | `user` | Link | `varchar(140)` | NOT NULL, ro, denorm←pos_opening_entry.user | → `User` *(frappe/Core)* |
 | 7 | `grand_total` | Currency | `numeric(21,9)` | ro, default=0 |  |
 | 8 | `net_total` | Currency | `numeric(21,9)` | ro, default=0 |  |
 | 9 | `total_quantity` | Float | `numeric(21,9)` | ro |  |
@@ -1995,6 +2069,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPOS Invoice`  (proposed: `pos_invoice`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `customer_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -2021,21 +2096,21 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 17 | `cost_center` | Link | `varchar(140)` |  | → `Cost Center` |
 | 18 | `po_no` | Data | `varchar(140)` |  |  |
 | 19 | `po_date` | Date | `date` |  |  |
-| 20 | `customer_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 20 | `customer_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 21 | `address_display` | Text Editor | `text` | ro |  |
-| 22 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 22 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 23 | `contact_display` | Small Text | `text` | ro |  |
 | 24 | `contact_mobile` | Data | `varchar(140)` | ro, hidden |  |
 | 25 | `contact_email` | Data | `varchar(140)` | ro, hidden |  |
 | 26 | `territory` | Link | `varchar(140)` |  | → `Territory` |
-| 27 | `shipping_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 27 | `shipping_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 28 | `shipping_address` | Text Editor | `text` | ro |  |
-| 29 | `company_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 29 | `company_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 30 | `company_address_display` | Text Editor | `text` | ro, hidden |  |
-| 31 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe core)* |
+| 31 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe/Geo)* |
 | 32 | `conversion_rate` | Float | `numeric(21,9)` | NOT NULL |  |
 | 33 | `selling_price_list` | Link | `varchar(140)` | NOT NULL | → `Price List` |
-| 34 | `price_list_currency` | Link | `varchar(140)` | NOT NULL, ro | → `Currency` *(frappe core)* |
+| 34 | `price_list_currency` | Link | `varchar(140)` | NOT NULL, ro | → `Currency` *(frappe/Geo)* |
 | 35 | `plc_conversion_rate` | Float | `numeric(21,9)` | NOT NULL |  |
 | 36 | `ignore_pricing_rule` | Check | `smallint` | default=0 |  |
 | 37 | `set_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
@@ -2089,16 +2164,16 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 85 | `write_off_cost_center` | Link | `varchar(140)` |  | → `Cost Center` |
 | 86 | `tc_name` | Link | `varchar(140)` |  | → `Terms and Conditions` |
 | 87 | `terms` | Text Editor | `text` |  |  |
-| 88 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
+| 88 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
 | 89 | `group_same_items` | Check | `smallint` | default=0 |  |
 | 90 | `language` | Data | `varchar(140)` | ro |  |
-| 91 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
+| 91 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
 | 92 | `inter_company_invoice_reference` | Link | `varchar(140)` | ro | → `Purchase Invoice` |
 | 93 | `customer_group` | Link | `varchar(140)` | hidden | → `Customer Group` |
 | 94 | `is_discounted` | Check | `smallint` | ro, default=0 |  |
 | 95 | `status` | Select | `varchar(140)` | ro, default=Draft | enum: Draft, Return, Credit Note Issued, Consolidated, Submitted, Paid, Partly Paid, Unpaid … (+5) |
 | 96 | `debit_to` | Link | `varchar(140)` | NOT NULL, INDEX | → `Account` |
-| 97 | `party_account_currency` | Link | `varchar(140)` | ro, hidden | → `Currency` *(frappe core)* |
+| 97 | `party_account_currency` | Link | `varchar(140)` | ro, hidden | → `Currency` *(frappe/Geo)* |
 | 98 | `is_opening` | Select | `varchar(140)` | default=No | enum: No, Yes |
 | 99 | `remarks` | Small Text | `text` |  |  |
 | 100 | `sales_partner` | Link | `varchar(140)` |  | → `Sales Partner` |
@@ -2106,16 +2181,16 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 102 | `total_commission` | Currency | `numeric(21,9)` |  |  |
 | 103 | `from_date` | Date | `date` |  |  |
 | 104 | `to_date` | Date | `date` |  |  |
-| 105 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe core)* |
+| 105 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe/Automation)* |
 | 106 | `against_income_account` | Small Text | `text` | hidden |  |
 | 107 | `consolidated_invoice` | Link | `varchar(140)` | ro | → `Sales Invoice` |
 | 108 | `coupon_code` | Link | `varchar(140)` |  | → `Coupon Code` |
 | 109 | `amount_eligible_for_commission` | Currency | `numeric(21,9)` | ro |  |
 | 110 | `update_billed_amount_in_delivery_note` | Check | `smallint` | default=1 |  |
-| 111 | `utm_medium` | Link | `varchar(140)` |  | → `UTM Medium` *(frappe core)* |
-| 112 | `utm_campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe core)* |
-| 113 | `utm_source` | Link | `varchar(140)` |  | → `UTM Source` *(frappe core)* |
-| 114 | `company_contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 111 | `utm_medium` | Link | `varchar(140)` |  | → `UTM Medium` *(frappe/Website)* |
+| 112 | `utm_campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe/Website)* |
+| 113 | `utm_source` | Link | `varchar(140)` |  | → `UTM Source` *(frappe/Website)* |
+| 114 | `company_contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 115 | `title` | Data | `varchar(140)` |  |  |
 
 **Child tables (1-N):**
@@ -2137,6 +2212,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPOS Invoice Merge Log`  (proposed: `pos_invoice_merge_log`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -2162,6 +2238,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPOS Opening Entry`  (proposed: `pos_opening_entry`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `POS-OPE-.YYYY.-.#####`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -2172,7 +2249,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 3 | `posting_date` | Date | `date` | NOT NULL, default=Today |  |
 | 4 | `company` | Link | `varchar(140)` | NOT NULL | → `Company` |
 | 5 | `pos_profile` | Link | `varchar(140)` | NOT NULL | → `POS Profile` |
-| 6 | `user` | Link | `varchar(140)` | NOT NULL | → `User` *(frappe core)* |
+| 6 | `user` | Link | `varchar(140)` | NOT NULL | → `User` *(frappe/Core)* |
 | 7 | `amended_from` | Link | `varchar(140)` | ro | → `POS Opening Entry` |
 | 8 | `set_posting_date` | Check | `smallint` | default=0 |  |
 | 9 | `status` | Select | `varchar(140)` | ro, hidden, default=Draft | enum: Draft, Open, Closed, Cancelled |
@@ -2188,6 +2265,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPayment Entry`  (proposed: `payment_entry`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `title`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -2200,15 +2278,15 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 4 | `company` | Link | `varchar(140)` | NOT NULL | → `Company` |
 | 5 | `cost_center` | Link | `varchar(140)` |  | → `Cost Center` |
 | 6 | `mode_of_payment` | Link | `varchar(140)` |  | → `Mode of Payment` |
-| 7 | `party_type` | Link | `varchar(140)` | INDEX | → `DocType` *(frappe core)* |
+| 7 | `party_type` | Link | `varchar(140)` | INDEX | → `DocType` *(frappe/Core)* |
 | 8 | `party` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `party_type` |
 | 9 | `party_name` | Data | `varchar(140)` |  |  |
-| 10 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 10 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 11 | `contact_email` | Data | `varchar(140)` | ro |  |
 | 12 | `paid_from` | Link | `varchar(140)` | NOT NULL | → `Account` |
-| 13 | `paid_from_account_currency` | Link | `varchar(140)` | NOT NULL, ro | → `Currency` *(frappe core)* |
+| 13 | `paid_from_account_currency` | Link | `varchar(140)` | NOT NULL, ro | → `Currency` *(frappe/Geo)* |
 | 14 | `paid_to` | Link | `varchar(140)` | NOT NULL | → `Account` |
-| 15 | `paid_to_account_currency` | Link | `varchar(140)` | NOT NULL, ro | → `Currency` *(frappe core)* |
+| 15 | `paid_to_account_currency` | Link | `varchar(140)` | NOT NULL, ro | → `Currency` *(frappe/Geo)* |
 | 16 | `paid_amount` | Currency | `numeric(21,9)` | NOT NULL |  |
 | 17 | `source_exchange_rate` | Float | `numeric(21,9)` | NOT NULL |  |
 | 18 | `base_paid_amount` | Currency | `numeric(21,9)` | NOT NULL, ro |  |
@@ -2224,12 +2302,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 28 | `clearance_date` | Date | `date` | ro |  |
 | 29 | `project` | Link | `varchar(140)` |  | → `Project` |
 | 30 | `remarks` | Small Text | `text` |  |  |
-| 31 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
-| 32 | `print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
+| 31 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
+| 32 | `print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
 | 33 | `bank` | Read Only | `varchar(140)` | denorm←bank_account.bank |  |
 | 34 | `bank_account_no` | Read Only | `varchar(140)` | denorm←bank_account.bank_account_no |  |
 | 35 | `payment_order` | Link | `varchar(140)` | ro | → `Payment Order` |
-| 36 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe core)* |
+| 36 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe/Automation)* |
 | 37 | `amended_from` | Link | `varchar(140)` | ro | → `Payment Entry` |
 | 38 | `title` | Data | `varchar(140)` | ro, hidden |  |
 | 39 | `bank_account` | Link | `varchar(140)` |  | → `Bank Account` |
@@ -2275,6 +2353,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPayment Ledger Entry`  (proposed: `payment_ledger_entry`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 - **Search fields**: `voucher_no, against_voucher_no`
 
@@ -2283,14 +2362,14 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 1 | `posting_date` | Date | `date` | INDEX |  |
 | 2 | `account_type` | Select | `varchar(140)` |  | enum: Receivable, Payable |
 | 3 | `account` | Link | `varchar(140)` | INDEX | → `Account` |
-| 4 | `party_type` | Link | `varchar(140)` | INDEX | → `DocType` *(frappe core)* |
+| 4 | `party_type` | Link | `varchar(140)` | INDEX | → `DocType` *(frappe/Core)* |
 | 5 | `party` | Dynamic Link | `varchar(140)` | INDEX | → polymorphic, doctype in `party_type` |
-| 6 | `voucher_type` | Link | `varchar(140)` | INDEX | → `DocType` *(frappe core)* |
+| 6 | `voucher_type` | Link | `varchar(140)` | INDEX | → `DocType` *(frappe/Core)* |
 | 7 | `voucher_no` | Dynamic Link | `varchar(140)` | INDEX | → polymorphic, doctype in `voucher_type` |
-| 8 | `against_voucher_type` | Link | `varchar(140)` | INDEX | → `DocType` *(frappe core)* |
+| 8 | `against_voucher_type` | Link | `varchar(140)` | INDEX | → `DocType` *(frappe/Core)* |
 | 9 | `against_voucher_no` | Dynamic Link | `varchar(140)` | INDEX | → polymorphic, doctype in `against_voucher_type` |
 | 10 | `amount` | Currency | `numeric(21,9)` |  |  |
-| 11 | `account_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe core)* |
+| 11 | `account_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe/Geo)* |
 | 12 | `amount_in_account_currency` | Currency | `numeric(21,9)` |  |  |
 | 13 | `delinked` | Check | `smallint` | default=0 |  |
 | 14 | `company` | Link | `varchar(140)` | INDEX | → `Company` |
@@ -2311,6 +2390,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPayment Order`  (proposed: `payment_order`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `naming_series:`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -2336,6 +2416,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPayment Request`  (proposed: `payment_request`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -2345,13 +2426,13 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 2 | `transaction_date` | Date | `date` |  |  |
 | 3 | `naming_series` | Select | `varchar(140)` | NOT NULL | enum: ACC-PRQ-.YYYY.- |
 | 4 | `mode_of_payment` | Link | `varchar(140)` |  | → `Mode of Payment` |
-| 5 | `party_type` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 5 | `party_type` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 6 | `party` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `party_type` |
-| 7 | `reference_doctype` | Link | `varchar(140)` | ro | → `DocType` *(frappe core)* |
+| 7 | `reference_doctype` | Link | `varchar(140)` | ro | → `DocType` *(frappe/Core)* |
 | 8 | `reference_name` | Dynamic Link | `varchar(140)` | INDEX, ro | → polymorphic, doctype in `reference_doctype` |
 | 9 | `grand_total` | Currency | `numeric(21,9)` | NOT NULL |  |
 | 10 | `is_a_subscription` | Check | `smallint` | default=0 |  |
-| 11 | `currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe core)* |
+| 11 | `currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe/Geo)* |
 | 12 | `bank_account` | Link | `varchar(140)` |  | → `Bank Account` |
 | 13 | `bank` | Link | `varchar(140)` | ro, denorm←bank_account.bank | → `Bank` |
 | 14 | `bank_account_no` | Read Only | `varchar(140)` | denorm←bank_account.bank_account_no |  |
@@ -2378,7 +2459,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 35 | `failed_reason` | Data | `varchar(140)` | ro, hidden |  |
 | 36 | `outstanding_amount` | Currency | `numeric(21,9)` | ro |  |
 | 37 | `company` | Link | `varchar(140)` | ro | → `Company` |
-| 38 | `party_account_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe core)* |
+| 38 | `party_account_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe/Geo)* |
 | 39 | `party_name` | Data | `varchar(140)` | ro |  |
 | 40 | `phone_number` | Data | `varchar(140)` |  |  |
 
@@ -2398,6 +2479,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPeriod Closing Voucher`  (proposed: `period_closing_voucher`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `ACC-PCV-.YYYY.-.#####`  (Expression (old style))
 - **Title field**: `closing_account_head`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -2422,6 +2504,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabProcess Deferred Accounting`  (proposed: `process_deferred_accounting`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `ACC-PDA-.#####`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -2441,6 +2524,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabProcess Payment Reconciliation`  (proposed: `process_payment_reconciliation`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `format:ACC-PPR-{#####}`  (Expression)
 - **Title field**: `company`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -2449,7 +2533,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 |--:|---|---|---|---|---|
 | 1 | `status` | Select | `varchar(140)` | ro | enum: Queued, Running, Paused, Completed, Partially Reconciled, Failed, Cancelled |
 | 2 | `company` | Link | `varchar(140)` | NOT NULL | → `Company` |
-| 3 | `party_type` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe core)* |
+| 3 | `party_type` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe/Core)* |
 | 4 | `party` | Dynamic Link | `varchar(140)` | NOT NULL | → polymorphic, doctype in `party_type` |
 | 5 | `receivable_payable_account` | Link | `varchar(140)` | NOT NULL | → `Account` |
 | 6 | `from_invoice_date` | Date | `date` |  |  |
@@ -2472,6 +2556,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabProcess Period Closing Voucher`  (proposed: `process_period_closing_voucher`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `format:Process-PCV-{###}`  (Expression (old style))
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -2494,6 +2579,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabProcess Subscription`  (proposed: `process_subscription`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -2508,6 +2594,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPurchase Invoice`  (proposed: `purchase_invoice`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `supplier_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -2538,18 +2625,18 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 21 | `return_against` | Link | `varchar(140)` | INDEX, ro | → `Purchase Invoice` |
 | 22 | `update_billed_amount_in_purchase_order` | Check | `smallint` | default=0 |  |
 | 23 | `update_billed_amount_in_purchase_receipt` | Check | `smallint` | default=1 |  |
-| 24 | `supplier_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 24 | `supplier_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 25 | `address_display` | Text Editor | `text` | ro |  |
-| 26 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 26 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 27 | `contact_display` | Small Text | `text` | ro |  |
 | 28 | `contact_mobile` | Small Text | `text` | ro |  |
 | 29 | `contact_email` | Small Text | `text` | ro |  |
-| 30 | `shipping_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 30 | `shipping_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 31 | `shipping_address_display` | Text Editor | `text` | ro |  |
-| 32 | `currency` | Link | `varchar(140)` |  | → `Currency` *(frappe core)* |
+| 32 | `currency` | Link | `varchar(140)` |  | → `Currency` *(frappe/Geo)* |
 | 33 | `conversion_rate` | Float | `numeric(21,9)` |  |  |
 | 34 | `buying_price_list` | Link | `varchar(140)` |  | → `Price List` |
-| 35 | `price_list_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe core)* |
+| 35 | `price_list_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe/Geo)* |
 | 36 | `plc_conversion_rate` | Float | `numeric(21,9)` |  |  |
 | 37 | `ignore_pricing_rule` | Check | `smallint` | default=0 |  |
 | 38 | `set_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
@@ -2601,13 +2688,13 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 84 | `payment_terms_template` | Link | `varchar(140)` |  | → `Payment Terms Template` |
 | 85 | `tc_name` | Link | `varchar(140)` |  | → `Terms and Conditions` |
 | 86 | `terms` | Text Editor | `text` |  |  |
-| 87 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
+| 87 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
 | 88 | `group_same_items` | Check | `smallint` | default=0 |  |
-| 89 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
+| 89 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
 | 90 | `language` | Data | `varchar(140)` | ro |  |
 | 91 | `is_internal_supplier` | Check | `smallint` | ro, denorm←supplier.is_internal_supplier, default=0 |  |
 | 92 | `credit_to` | Link | `varchar(140)` | NOT NULL, INDEX | → `Account` |
-| 93 | `party_account_currency` | Link | `varchar(140)` | ro, hidden | → `Currency` *(frappe core)* |
+| 93 | `party_account_currency` | Link | `varchar(140)` | ro, hidden | → `Currency` *(frappe/Geo)* |
 | 94 | `is_opening` | Select | `varchar(140)` | default=No | enum: No, Yes |
 | 95 | `against_expense_account` | Small Text | `text` | hidden |  |
 | 96 | `status` | Select | `varchar(140)` | default=Draft | enum: Draft, Return, Debit Note Issued, Submitted, Paid, Partly Paid, Unpaid, Overdue … (+2) |
@@ -2615,8 +2702,8 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 98 | `remarks` | Small Text | `text` |  |  |
 | 99 | `from_date` | Date | `date` |  |  |
 | 100 | `to_date` | Date | `date` |  |  |
-| 101 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe core)* |
-| 102 | `billing_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 101 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe/Automation)* |
+| 102 | `billing_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 103 | `billing_address_display` | Text Editor | `text` | ro |  |
 | 104 | `project` | Link | `varchar(140)` |  | → `Project` |
 | 105 | `unrealized_profit_loss_account` | Link | `varchar(140)` |  | → `Account` |
@@ -2635,7 +2722,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 118 | `update_outstanding_for_self` | Check | `smallint` | default=1 |  |
 | 119 | `sender` | Data | `varchar(140)` |  |  |
 | 120 | `dispatch_address_display` | Text Editor | `text` | ro |  |
-| 121 | `dispatch_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 121 | `dispatch_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 122 | `claimed_landed_cost_amount` | Currency | `numeric(21,9)` | ro |  |
 | 123 | `tax_withholding_group` | Link | `varchar(140)` |  | → `Tax Withholding Group` |
 | 124 | `ignore_tax_withholding_threshold` | Check | `smallint` | default=0 |  |
@@ -2658,6 +2745,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabRepost Accounting Ledger`  (proposed: `repost_accounting_ledger`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -2667,7 +2755,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 3 | `delete_cancelled_entries` | Check | `smallint` | default=0 |  |
 | 4 | `error_log` | Code | `text` | ro |  |
 | 5 | `status` | Select | `varchar(140)` | ro | enum: Queued, In Progress, Partially Reposted, Completed, Failed, Cancelled |
-| 6 | `scheduled_job` | Link | `varchar(140)` | ro, hidden | → `RQ Job` *(frappe core)* |
+| 6 | `scheduled_job` | Link | `varchar(140)` | ro, hidden | → `RQ Job` *(frappe/Core)* |
 
 **Child tables (1-N):**
 
@@ -2679,12 +2767,13 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabRepost Payment Ledger`  (proposed: `repost_payment_ledger`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `posting_date` | Date | `date` | NOT NULL, default=Today |  |
-| 2 | `voucher_type` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 2 | `voucher_type` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 3 | `amended_from` | Link | `varchar(140)` | ro | → `Repost Payment Ledger` |
 | 4 | `company` | Link | `varchar(140)` | NOT NULL | → `Company` |
 | 5 | `repost_status` | Select | `varchar(140)` | ro | enum: Queued, Failed, Completed |
@@ -2701,6 +2790,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSales Invoice`  (proposed: `sales_invoice`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `customer_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -2727,21 +2817,21 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 17 | `update_billed_amount_in_sales_order` | Check | `smallint` | default=0 |  |
 | 18 | `po_no` | Data | `varchar(140)` |  |  |
 | 19 | `po_date` | Date | `date` |  |  |
-| 20 | `customer_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 20 | `customer_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 21 | `address_display` | Text Editor | `text` | ro |  |
-| 22 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 22 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 23 | `contact_display` | Small Text | `text` | ro |  |
 | 24 | `contact_mobile` | Small Text | `text` | ro, hidden |  |
 | 25 | `contact_email` | Data | `varchar(140)` | ro, hidden |  |
 | 26 | `territory` | Link | `varchar(140)` |  | → `Territory` |
-| 27 | `shipping_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 27 | `shipping_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 28 | `shipping_address` | Text Editor | `text` | ro |  |
-| 29 | `company_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 29 | `company_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 30 | `company_address_display` | Text Editor | `text` | ro |  |
-| 31 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe core)* |
+| 31 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe/Geo)* |
 | 32 | `conversion_rate` | Float | `numeric(21,9)` | NOT NULL |  |
 | 33 | `selling_price_list` | Link | `varchar(140)` | NOT NULL | → `Price List` |
-| 34 | `price_list_currency` | Link | `varchar(140)` | NOT NULL, ro | → `Currency` *(frappe core)* |
+| 34 | `price_list_currency` | Link | `varchar(140)` | NOT NULL, ro | → `Currency` *(frappe/Geo)* |
 | 35 | `plc_conversion_rate` | Float | `numeric(21,9)` | NOT NULL |  |
 | 36 | `ignore_pricing_rule` | Check | `smallint` | default=0 |  |
 | 37 | `set_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
@@ -2795,16 +2885,16 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 85 | `write_off_cost_center` | Link | `varchar(140)` |  | → `Cost Center` |
 | 86 | `tc_name` | Link | `varchar(140)` |  | → `Terms and Conditions` |
 | 87 | `terms` | Text Editor | `text` |  |  |
-| 88 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
+| 88 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
 | 89 | `group_same_items` | Check | `smallint` | default=0 |  |
-| 90 | `language` | Link | `varchar(140)` | ro, denorm←customer.language | → `Language` *(frappe core)* |
-| 91 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
+| 90 | `language` | Link | `varchar(140)` | ro, denorm←customer.language | → `Language` *(frappe/Core)* |
+| 91 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
 | 92 | `inter_company_invoice_reference` | Link | `varchar(140)` | INDEX, ro | → `Purchase Invoice` |
 | 93 | `customer_group` | Link | `varchar(140)` | hidden | → `Customer Group` |
 | 94 | `is_discounted` | Check | `smallint` | ro, default=0 |  |
 | 95 | `status` | Select | `varchar(140)` | ro, default=Draft | enum: Draft, Return, Credit Note Issued, Submitted, Paid, Partly Paid, Unpaid, Unpaid and Discounted … (+5) |
 | 96 | `debit_to` | Link | `varchar(140)` | NOT NULL, INDEX | → `Account` |
-| 97 | `party_account_currency` | Link | `varchar(140)` | ro, hidden | → `Currency` *(frappe core)* |
+| 97 | `party_account_currency` | Link | `varchar(140)` | ro, hidden | → `Currency` *(frappe/Geo)* |
 | 98 | `is_opening` | Select | `varchar(140)` | hidden, default=No | enum: No, Yes |
 | 99 | `remarks` | Small Text | `text` |  |  |
 | 100 | `sales_partner` | Link | `varchar(140)` |  | → `Sales Partner` |
@@ -2812,7 +2902,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 102 | `total_commission` | Currency | `numeric(21,9)` |  |  |
 | 103 | `from_date` | Date | `date` |  |  |
 | 104 | `to_date` | Date | `date` |  |  |
-| 105 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe core)* |
+| 105 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe/Automation)* |
 | 106 | `against_income_account` | Small Text | `text` | hidden |  |
 | 107 | `is_consolidated` | Check | `smallint` | ro, default=0 |  |
 | 108 | `is_internal_customer` | Check | `smallint` | ro, denorm←customer.is_internal_customer, default=0 |  |
@@ -2823,7 +2913,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 113 | `is_debit_note` | Check | `smallint` | default=0 |  |
 | 114 | `disable_rounded_total` | Check | `smallint` | default=0 |  |
 | 115 | `additional_discount_account` | Link | `varchar(140)` |  | → `Account` |
-| 116 | `dispatch_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 116 | `dispatch_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 117 | `dispatch_address` | Text Editor | `text` | ro |  |
 | 118 | `ignore_default_payment_terms_template` | Check | `smallint` | ro, hidden, default=0 |  |
 | 119 | `total_billing_hours` | Float | `numeric(21,9)` | ro |  |
@@ -2838,11 +2928,11 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 128 | `dont_create_loyalty_points` | Check | `smallint` | default=0 |  |
 | 129 | `coupon_code` | Link | `varchar(140)` |  | → `Coupon Code` |
 | 130 | `update_outstanding_for_self` | Check | `smallint` | default=1 |  |
-| 131 | `utm_medium` | Link | `varchar(140)` |  | → `UTM Medium` *(frappe core)* |
+| 131 | `utm_medium` | Link | `varchar(140)` |  | → `UTM Medium` *(frappe/Website)* |
 | 132 | `utm_content` | Data | `varchar(140)` |  |  |
-| 133 | `utm_campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe core)* |
-| 134 | `utm_source` | Link | `varchar(140)` |  | → `UTM Source` *(frappe core)* |
-| 135 | `company_contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 133 | `utm_campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe/Website)* |
+| 134 | `utm_source` | Link | `varchar(140)` |  | → `UTM Source` *(frappe/Website)* |
+| 135 | `company_contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 136 | `is_created_using_pos` | Check | `smallint` | hidden, default=0 |  |
 | 137 | `pos_closing_entry` | Link | `varchar(140)` | hidden | → `POS Closing Entry` |
 | 138 | `has_subcontracted` | Check | `smallint` | ro, hidden, default=0 |  |
@@ -2872,6 +2962,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabShare Transfer`  (proposed: `share_transfer`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Naming**: `ACC-SHT-.YYYY.-.#####`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -2901,13 +2992,14 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabUnreconcile Payment`  (proposed: `unreconcile_payment`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Accounts
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `amended_from` | Link | `varchar(140)` | ro | → `Unreconcile Payment` |
 | 2 | `company` | Link | `varchar(140)` |  | → `Company` |
-| 3 | `voucher_type` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 3 | `voucher_type` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 4 | `voucher_no` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `voucher_type` |
 
 **Child tables (1-N):**
@@ -2928,12 +3020,13 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabAccounting Dimension Detail`  (proposed: `accounting_dimension_detail`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Accounting Dimension`.`dimension_defaults`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `company` | Link | `varchar(140)` |  | → `Company` |
-| 2 | `reference_document` | Link | `varchar(140)` | ro, hidden | → `DocType` *(frappe core)* |
+| 2 | `reference_document` | Link | `varchar(140)` | ro, hidden | → `DocType` *(frappe/Core)* |
 | 3 | `default_dimension` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `reference_document` |
 | 4 | `mandatory_for_bs` | Check | `smallint` | default=0 |  |
 | 5 | `mandatory_for_pl` | Check | `smallint` | default=0 |  |
@@ -2948,6 +3041,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabAdvance Taxes and Charges`  (proposed: `advance_taxes_and_charges`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Payment Entry`.`taxes`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -2965,7 +3059,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 11 | `base_total` | Currency | `numeric(21,9)` | ro |  |
 | 12 | `add_deduct_tax` | Select | `varchar(140)` | NOT NULL | enum: Add, Deduct |
 | 13 | `included_in_paid_amount` | Check | `smallint` | default=0 |  |
-| 14 | `currency` | Link | `varchar(140)` | ro, denorm←account_head.account_currency | → `Currency` *(frappe core)* |
+| 14 | `currency` | Link | `varchar(140)` | ro, denorm←account_head.account_currency | → `Currency` *(frappe/Geo)* |
 | 15 | `net_amount` | Currency | `numeric(21,9)` | ro |  |
 | 16 | `base_net_amount` | Currency | `numeric(21,9)` | ro |  |
 | 17 | `set_by_item_tax_template` | Check | `smallint` | ro, hidden, default=0 |  |
@@ -2975,11 +3069,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabAllowed Dimension`  (proposed: `allowed_dimension`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Accounting Dimension Filter`.`dimensions`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `accounting_dimension` | Link | `varchar(140)` | ro | → `DocType` *(frappe core)* |
+| 1 | `accounting_dimension` | Link | `varchar(140)` | ro | → `DocType` *(frappe/Core)* |
 | 2 | `dimension_value` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `accounting_dimension` |
 
 **Polymorphic references:**
@@ -2990,6 +3085,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabAllowed To Transact With`  (proposed: `allowed_to_transact_with`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Supplier`.`companies`, `Customer`.`companies`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3000,6 +3096,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabApplicable On Account`  (proposed: `applicable_on_account`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Accounting Dimension Filter`.`accounts`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3011,11 +3108,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Clearance Detail`  (proposed: `bank_clearance_detail`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Bank Clearance`.`payment_entries`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `payment_document` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 1 | `payment_document` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 2 | `payment_entry` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `payment_document` |
 | 3 | `against_account` | Data | `varchar(140)` | ro |  |
 | 4 | `amount` | Data | `varchar(140)` | ro |  |
@@ -3032,6 +3130,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Statement Import Log Column Map`  (proposed: `bank_statement_import_log_column_map`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Bank Statement Import Log`.`column_mapping`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3045,6 +3144,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Transaction Mapping`  (proposed: `bank_transaction_mapping`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Bank`.`bank_transaction_mapping`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3056,11 +3156,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Transaction Payments`  (proposed: `bank_transaction_payments`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Bank Transaction`.`payment_entries`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `payment_document` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe core)* |
+| 1 | `payment_document` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe/Core)* |
 | 2 | `payment_entry` | Dynamic Link | `varchar(140)` | NOT NULL | → polymorphic, doctype in `payment_document` |
 | 3 | `allocated_amount` | Currency | `numeric(21,9)` | NOT NULL |  |
 | 4 | `clearance_date` | Date | `date` | ro |  |
@@ -3074,6 +3175,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Transaction Rule Accounts`  (proposed: `bank_transaction_rule_accounts`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Bank Transaction Rule`.`accounts`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3093,6 +3195,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBank Transaction Rule Description Conditions`  (proposed: `bank_transaction_rule_description_conditions`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Bank Transaction Rule`.`description_rules`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3104,6 +3207,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBudget Account`  (proposed: `budget_account`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -3114,6 +3218,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabBudget Distribution`  (proposed: `budget_distribution`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Budget`.`budget_distribution`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3127,16 +3232,18 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabCampaign Item`  (proposed: `campaign_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Promotional Scheme`.`campaign`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe core)* |
+| 1 | `campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe/Website)* |
 
 ## Cashier Closing Payments
 
 - **Table**: `tabCashier Closing Payments`  (proposed: `cashier_closing_payments`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Cashier Closing`.`payments`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3148,17 +3255,19 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabClosed Document`  (proposed: `closed_document`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Accounting Period`.`closed_documents`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `document_type` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe core)* |
+| 1 | `document_type` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe/Core)* |
 | 2 | `closed` | Check | `smallint` | default=0 |  |
 
 ## Cost Center Allocation Percentage
 
 - **Table**: `tabCost Center Allocation Percentage`  (proposed: `cost_center_allocation_percentage`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Cost Center Allocation`.`allocation_percentages`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3170,6 +3279,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabCurrency Exchange Settings Details`  (proposed: `currency_exchange_settings_details`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Currency Exchange Settings`.`req_params`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3181,6 +3291,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabCurrency Exchange Settings Result`  (proposed: `currency_exchange_settings_result`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Currency Exchange Settings`.`result_key`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3191,6 +3302,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabCustomer Group Item`  (proposed: `customer_group_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Promotional Scheme`.`customer_group`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3201,6 +3313,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabCustomer Item`  (proposed: `customer_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Promotional Scheme`.`customer`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3211,6 +3324,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabDiscounted Invoice`  (proposed: `discounted_invoice`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Invoice Discounting`.`invoices`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3225,11 +3339,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabDunning Letter Text`  (proposed: `dunning_letter_text`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Dunning Type`.`dunning_letter_text`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `language` | Link | `varchar(140)` |  | → `Language` *(frappe core)* |
+| 1 | `language` | Link | `varchar(140)` |  | → `Language` *(frappe/Core)* |
 | 2 | `is_default_language` | Check | `smallint` | default=0 |  |
 | 3 | `body_text` | Text Editor | `text` |  |  |
 | 4 | `closing_text` | Text Editor | `text` |  |  |
@@ -3238,14 +3353,15 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabExchange Rate Revaluation Account`  (proposed: `exchange_rate_revaluation_account`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Exchange Rate Revaluation`.`accounts`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `account` | Link | `varchar(140)` | NOT NULL | → `Account` |
-| 2 | `party_type` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 2 | `party_type` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 3 | `party` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `party_type` |
-| 4 | `account_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe core)* |
+| 4 | `account_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe/Geo)* |
 | 5 | `balance_in_account_currency` | Currency | `numeric(21,9)` | ro |  |
 | 6 | `current_exchange_rate` | Float | `numeric(21,9)` | ro |  |
 | 7 | `balance_in_base_currency` | Currency | `numeric(21,9)` | ro |  |
@@ -3263,6 +3379,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabFinancial Report Row`  (proposed: `financial_report_row`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Financial Report Template`.`rows`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3287,6 +3404,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabFiscal Year Company`  (proposed: `fiscal_year_company`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Fiscal Year`.`companies`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3297,6 +3415,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabItem Tax Template Detail`  (proposed: `item_tax_template_detail`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Item Tax Template`.`taxes`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3309,6 +3428,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabItem Wise Tax Detail`  (proposed: `item_wise_tax_detail`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Invoice`.`item_wise_tax_details`, `Purchase Invoice`.`item_wise_tax_details`, `Sales Invoice`.`item_wise_tax_details`, `Purchase Order`.`item_wise_tax_details`, `Supplier Quotation`.`item_wise_tax_details`, `Quotation`.`item_wise_tax_details`, `Sales Order`.`item_wise_tax_details`, `Delivery Note`.`item_wise_tax_details`, `Purchase Receipt`.`item_wise_tax_details`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3323,6 +3443,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabJournal Entry Account`  (proposed: `journal_entry_account`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Journal Entry`.`accounts`
 
@@ -3331,9 +3452,9 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 1 | `account` | Link | `varchar(140)` | NOT NULL, INDEX, denorm←bank_account.account | → `Account` |
 | 2 | `account_type` | Data | `varchar(140)` | hidden |  |
 | 3 | `cost_center` | Link | `varchar(140)` | default=:Company | → `Cost Center` |
-| 4 | `party_type` | Link | `varchar(140)` | INDEX | → `DocType` *(frappe core)* |
+| 4 | `party_type` | Link | `varchar(140)` | INDEX | → `DocType` *(frappe/Core)* |
 | 5 | `party` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `party_type` |
-| 6 | `account_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe core)* |
+| 6 | `account_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe/Geo)* |
 | 7 | `exchange_rate` | Float | `numeric(21,9)` |  |  |
 | 8 | `debit_in_account_currency` | Currency | `numeric(21,9)` |  |  |
 | 9 | `debit` | Currency | `numeric(21,9)` | ro |  |
@@ -3348,7 +3469,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 18 | `against_account` | Text | `text` | hidden |  |
 | 19 | `bank_account` | Link | `varchar(140)` |  | → `Bank Account` |
 | 20 | `reference_detail_no` | Data | `varchar(140)` | hidden |  |
-| 21 | `advance_voucher_type` | Link | `varchar(140)` | INDEX, ro | → `DocType` *(frappe core)* |
+| 21 | `advance_voucher_type` | Link | `varchar(140)` | INDEX, ro | → `DocType` *(frappe/Core)* |
 | 22 | `advance_voucher_no` | Dynamic Link | `varchar(140)` | INDEX, ro | → polymorphic, doctype in `advance_voucher_type` |
 | 23 | `is_tax_withholding_account` | Check | `smallint` | ro, default=0 |  |
 
@@ -3362,12 +3483,13 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabJournal Entry Template Account`  (proposed: `journal_entry_template_account`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Journal Entry Template`.`accounts`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `account` | Link | `varchar(140)` | NOT NULL | → `Account` |
-| 2 | `party_type` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 2 | `party_type` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 3 | `party` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `party_type` |
 | 4 | `cost_center` | Link | `varchar(140)` |  | → `Cost Center` |
 | 5 | `project` | Link | `varchar(140)` |  | → `Project` |
@@ -3380,6 +3502,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabLedger Health Monitor Company`  (proposed: `ledger_health_monitor_company`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Ledger Health Monitor`.`companies`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3390,6 +3513,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabLedger Merge Accounts`  (proposed: `ledger_merge_accounts`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Ledger Merge`.`merge_accounts`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3402,6 +3526,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabLoyalty Point Entry Redemption`  (proposed: `loyalty_point_entry_redemption`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -3413,6 +3538,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabLoyalty Program Collection`  (proposed: `loyalty_program_collection`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Loyalty Program`.`collection_rules`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3425,6 +3551,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabMode of Payment Account`  (proposed: `mode_of_payment_account`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Mode of Payment`.`accounts`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3436,6 +3563,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabMonthly Distribution Percentage`  (proposed: `monthly_distribution_percentage`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Naming**: `hash`
 - **Embedded in**: `Monthly Distribution`.`percentages`
 
@@ -3448,11 +3576,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabOpening Invoice Creation Tool Item`  (proposed: `opening_invoice_creation_tool_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Opening Invoice Creation Tool`.`invoices`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `party_type` | Link | `varchar(140)` | ro, hidden | → `DocType` *(frappe core)* |
+| 1 | `party_type` | Link | `varchar(140)` | ro, hidden | → `DocType` *(frappe/Core)* |
 | 2 | `party` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `party_type` |
 | 3 | `temporary_opening_account` | Link | `varchar(140)` |  | → `Account` |
 | 4 | `posting_date` | Date | `date` | default=Today |  |
@@ -3474,6 +3603,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabOverdue Payment`  (proposed: `overdue_payment`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Dunning`.`overdue_payments`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3497,6 +3627,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPOS Closing Entry Detail`  (proposed: `pos_closing_entry_detail`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Closing Entry`.`payment_reconciliation`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3511,6 +3642,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPOS Closing Entry Taxes`  (proposed: `pos_closing_entry_taxes`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Closing Entry`.`taxes`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3522,6 +3654,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPOS Customer Group`  (proposed: `pos_customer_group`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Profile`.`customer_groups`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3532,6 +3665,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPOS Field`  (proposed: `pos_field`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Settings`.`invoice_fields`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3548,6 +3682,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPOS Invoice Item`  (proposed: `pos_invoice_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `POS Invoice`.`items`
 
@@ -3629,6 +3764,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPOS Invoice Reference`  (proposed: `pos_invoice_reference`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Closing Entry`.`pos_invoices`, `POS Invoice Merge Log`.`pos_invoices`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3644,6 +3780,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPOS Item Group`  (proposed: `pos_item_group`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Profile`.`item_groups`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3654,6 +3791,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPOS Opening Entry Detail`  (proposed: `pos_opening_entry_detail`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Opening Entry`.`balance_details`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3665,6 +3803,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPOS Payment Method`  (proposed: `pos_payment_method`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Profile`.`payments`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3677,17 +3816,19 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPOS Profile User`  (proposed: `pos_profile_user`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Profile`.`applicable_for_users`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `default` | Check | `smallint` | default=0 |  |
-| 2 | `user` | Link | `varchar(140)` |  | → `User` *(frappe core)* |
+| 2 | `user` | Link | `varchar(140)` |  | → `User` *(frappe/Core)* |
 
 ## POS Search Fields
 
 - **Table**: `tabPOS Search Fields`  (proposed: `pos_search_fields`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Settings`.`pos_search_fields`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3699,6 +3840,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPSOA Cost Center`  (proposed: `psoa_cost_center`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Process Statement Of Accounts`.`cost_center`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3709,6 +3851,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPSOA Project`  (proposed: `psoa_project`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Process Statement Of Accounts`.`project`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3719,6 +3862,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabParty Account`  (proposed: `party_account`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Supplier`.`accounts`, `Customer`.`accounts`, `Customer Group`.`accounts`, `Supplier Group`.`accounts`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3731,6 +3875,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPayment Entry Deduction`  (proposed: `payment_entry_deduction`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Payment Entry`.`deductions`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3745,11 +3890,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPayment Entry Reference`  (proposed: `payment_entry_reference`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Payment Entry`.`references`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `reference_doctype` | Link | `varchar(140)` | NOT NULL, INDEX | → `DocType` *(frappe core)* |
+| 1 | `reference_doctype` | Link | `varchar(140)` | NOT NULL, INDEX | → `DocType` *(frappe/Core)* |
 | 2 | `reference_name` | Dynamic Link | `varchar(140)` | NOT NULL, INDEX | → polymorphic, doctype in `reference_doctype` |
 | 3 | `due_date` | Date | `date` | ro |  |
 | 4 | `bill_no` | Data | `varchar(140)` | ro |  |
@@ -3765,7 +3911,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 14 | `payment_request` | Link | `varchar(140)` |  | → `Payment Request` |
 | 15 | `payment_term_outstanding` | Float | `numeric(21,9)` | ro |  |
 | 16 | `reconcile_effect_on` | Date | `date` | ro |  |
-| 17 | `advance_voucher_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe core)* |
+| 17 | `advance_voucher_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe/Core)* |
 | 18 | `advance_voucher_no` | Dynamic Link | `varchar(140)` | ro | → polymorphic, doctype in `advance_voucher_type` |
 
 **Polymorphic references:**
@@ -3777,11 +3923,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPayment Order Reference`  (proposed: `payment_order_reference`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Payment Order`.`references`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `reference_doctype` | Link | `varchar(140)` | NOT NULL, ro | → `DocType` *(frappe core)* |
+| 1 | `reference_doctype` | Link | `varchar(140)` | NOT NULL, ro | → `DocType` *(frappe/Core)* |
 | 2 | `reference_name` | Dynamic Link | `varchar(140)` | NOT NULL, ro | → polymorphic, doctype in `reference_doctype` |
 | 3 | `amount` | Currency | `numeric(21,9)` | NOT NULL, ro |  |
 | 4 | `supplier` | Link | `varchar(140)` | ro | → `Supplier` |
@@ -3799,6 +3946,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPayment Reconciliation Allocation`  (proposed: `payment_reconciliation_allocation`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Payment Reconciliation`.`allocation`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3809,12 +3957,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 4 | `difference_amount` | Currency | `numeric(21,9)` | ro |  |
 | 5 | `reference_name` | Dynamic Link | `varchar(140)` | NOT NULL, ro | → polymorphic, doctype in `reference_type` |
 | 6 | `is_advance` | Data | `varchar(140)` | ro, hidden |  |
-| 7 | `reference_type` | Link | `varchar(140)` | NOT NULL, ro | → `DocType` *(frappe core)* |
-| 8 | `invoice_type` | Link | `varchar(140)` | NOT NULL, ro | → `DocType` *(frappe core)* |
+| 7 | `reference_type` | Link | `varchar(140)` | NOT NULL, ro | → `DocType` *(frappe/Core)* |
+| 8 | `invoice_type` | Link | `varchar(140)` | NOT NULL, ro | → `DocType` *(frappe/Core)* |
 | 9 | `unreconciled_amount` | Currency | `numeric(21,9)` | ro, hidden |  |
 | 10 | `amount` | Currency | `numeric(21,9)` | ro, hidden |  |
 | 11 | `reference_row` | Data | `varchar(140)` | ro, hidden |  |
-| 12 | `currency` | Link | `varchar(140)` | hidden | → `Currency` *(frappe core)* |
+| 12 | `currency` | Link | `varchar(140)` | hidden | → `Currency` *(frappe/Geo)* |
 | 13 | `exchange_rate` | Float | `numeric(21,9)` | ro |  |
 | 14 | `cost_center` | Link | `varchar(140)` |  | → `Cost Center` |
 | 15 | `gain_loss_posting_date` | Date | `date` |  |  |
@@ -3829,6 +3977,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPayment Reconciliation Invoice`  (proposed: `payment_reconciliation_invoice`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Payment Reconciliation`.`invoices`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3838,7 +3987,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 3 | `invoice_date` | Date | `date` | ro |  |
 | 4 | `amount` | Currency | `numeric(21,9)` | ro |  |
 | 5 | `outstanding_amount` | Currency | `numeric(21,9)` | ro |  |
-| 6 | `currency` | Link | `varchar(140)` | hidden | → `Currency` *(frappe core)* |
+| 6 | `currency` | Link | `varchar(140)` | hidden | → `Currency` *(frappe/Geo)* |
 | 7 | `exchange_rate` | Float | `numeric(21,9)` | hidden |  |
 
 **Polymorphic references:**
@@ -3849,17 +3998,18 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPayment Reconciliation Payment`  (proposed: `payment_reconciliation_payment`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Payment Reconciliation`.`payments`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `reference_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe core)* |
+| 1 | `reference_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe/Core)* |
 | 2 | `reference_name` | Dynamic Link | `varchar(140)` | ro | → polymorphic, doctype in `reference_type` |
 | 3 | `posting_date` | Date | `date` | ro |  |
 | 4 | `is_advance` | Data | `varchar(140)` | ro, hidden |  |
 | 5 | `reference_row` | Data | `varchar(140)` | ro, hidden |  |
 | 6 | `amount` | Currency | `numeric(21,9)` | ro |  |
-| 7 | `currency` | Link | `varchar(140)` | hidden | → `Currency` *(frappe core)* |
+| 7 | `currency` | Link | `varchar(140)` | hidden | → `Currency` *(frappe/Geo)* |
 | 8 | `difference_amount` | Currency | `numeric(21,9)` | ro |  |
 | 9 | `exchange_rate` | Float | `numeric(21,9)` | hidden |  |
 | 10 | `cost_center` | Link | `varchar(140)` |  | → `Cost Center` |
@@ -3873,6 +4023,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPayment Reference`  (proposed: `payment_reference`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Payment Request`.`payment_reference`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3881,13 +4032,14 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 2 | `description` | Small Text | `text` |  |  |
 | 3 | `due_date` | Date | `date` |  |  |
 | 4 | `amount` | Currency | `numeric(21,2)` |  |  |
-| 5 | `currency` | Link | `varchar(140)` | ro, hidden | → `Currency` *(frappe core)* |
+| 5 | `currency` | Link | `varchar(140)` | ro, hidden | → `Currency` *(frappe/Geo)* |
 | 6 | `payment_schedule` | Link | `varchar(140)` | ro | → `Payment Schedule` |
 
 ## Payment Schedule
 
 - **Table**: `tabPayment Schedule`  (proposed: `payment_schedule`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Invoice`.`payment_schedule`, `Purchase Invoice`.`payment_schedule`, `Sales Invoice`.`payment_schedule`, `Purchase Order`.`payment_schedule`, `Quotation`.`payment_schedule`, `Sales Order`.`payment_schedule`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3917,6 +4069,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPayment Terms Template Detail`  (proposed: `payment_terms_template_detail`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Payment Terms Template`.`terms`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3937,18 +4090,20 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPegged Currency Details`  (proposed: `pegged_currency_details`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Pegged Currencies`.`pegged_currency_item`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `source_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe core)* |
+| 1 | `source_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe/Geo)* |
 | 2 | `pegged_exchange_rate` | Data | `varchar(140)` |  |  |
-| 3 | `pegged_against` | Link | `varchar(140)` |  | → `Currency` *(frappe core)* |
+| 3 | `pegged_against` | Link | `varchar(140)` |  | → `Currency` *(frappe/Geo)* |
 
 ## Pricing Rule Brand
 
 - **Table**: `tabPricing Rule Brand`  (proposed: `pricing_rule_brand`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Pricing Rule`.`brands`, `Promotional Scheme`.`brands`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3960,6 +4115,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPricing Rule Detail`  (proposed: `pricing_rule_detail`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Invoice`.`pricing_rules`, `Purchase Invoice`.`pricing_rules`, `Sales Invoice`.`pricing_rules`, `Purchase Order`.`pricing_rules`, `Supplier Quotation`.`pricing_rules`, `Quotation`.`pricing_rules`, `Sales Order`.`pricing_rules`, `Delivery Note`.`pricing_rules`, `Purchase Receipt`.`pricing_rules`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3975,6 +4131,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPricing Rule Item Code`  (proposed: `pricing_rule_item_code`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Pricing Rule`.`items`, `Promotional Scheme`.`items`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3986,6 +4143,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPricing Rule Item Group`  (proposed: `pricing_rule_item_group`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Pricing Rule`.`item_groups`, `Promotional Scheme`.`item_groups`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -3997,14 +4155,15 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabProcess Payment Reconciliation Log Allocations`  (proposed: `process_payment_reconciliation_log_allocations`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Process Payment Reconciliation Log`.`allocations`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `reference_type` | Link | `varchar(140)` | NOT NULL, ro | → `DocType` *(frappe core)* |
+| 1 | `reference_type` | Link | `varchar(140)` | NOT NULL, ro | → `DocType` *(frappe/Core)* |
 | 2 | `reference_name` | Dynamic Link | `varchar(140)` | NOT NULL, ro | → polymorphic, doctype in `reference_type` |
 | 3 | `reference_row` | Data | `varchar(140)` | ro, hidden |  |
-| 4 | `invoice_type` | Link | `varchar(140)` | NOT NULL, ro | → `DocType` *(frappe core)* |
+| 4 | `invoice_type` | Link | `varchar(140)` | NOT NULL, ro | → `DocType` *(frappe/Core)* |
 | 5 | `invoice_number` | Dynamic Link | `varchar(140)` | NOT NULL, ro | → polymorphic, doctype in `invoice_type` |
 | 6 | `allocated_amount` | Currency | `numeric(21,9)` | NOT NULL |  |
 | 7 | `unreconciled_amount` | Currency | `numeric(21,9)` | ro, hidden |  |
@@ -4013,7 +4172,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 10 | `difference_amount` | Currency | `numeric(21,9)` | ro |  |
 | 11 | `difference_account` | Link | `varchar(140)` | ro | → `Account` |
 | 12 | `exchange_rate` | Float | `numeric(21,9)` | ro |  |
-| 13 | `currency` | Link | `varchar(140)` | hidden | → `Currency` *(frappe core)* |
+| 13 | `currency` | Link | `varchar(140)` | hidden | → `Currency` *(frappe/Geo)* |
 | 14 | `reconciled` | Check | `smallint` | default=0 |  |
 | 15 | `gain_loss_posting_date` | Date | `date` |  |  |
 
@@ -4026,6 +4185,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabProcess Period Closing Voucher Detail`  (proposed: `process_period_closing_voucher_detail`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Process Period Closing Voucher`.`normal_balances`, `Process Period Closing Voucher`.`z_opening_balances`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4039,16 +4199,18 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabProcess Statement Of Accounts CC`  (proposed: `process_statement_of_accounts_cc`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Process Statement Of Accounts`.`cc_to`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `cc` | Link | `varchar(140)` |  | → `User` *(frappe core)* |
+| 1 | `cc` | Link | `varchar(140)` |  | → `User` *(frappe/Core)* |
 
 ## Process Statement Of Accounts Customer
 
 - **Table**: `tabProcess Statement Of Accounts Customer`  (proposed: `process_statement_of_accounts_customer`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Process Statement Of Accounts`.`customers`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4062,6 +4224,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPromotional Scheme Price Discount`  (proposed: `promotional_scheme_price_discount`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Promotional Scheme`.`price_discount_slabs`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4088,6 +4251,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPromotional Scheme Product Discount`  (proposed: `promotional_scheme_product_discount`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Promotional Scheme`.`product_discount_slabs`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4116,11 +4280,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPurchase Invoice Advance`  (proposed: `purchase_invoice_advance`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Purchase Invoice`.`advances`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `reference_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe core)* |
+| 1 | `reference_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe/Core)* |
 | 2 | `reference_name` | Dynamic Link | `varchar(140)` | ro | → polymorphic, doctype in `reference_type` |
 | 3 | `remarks` | Text | `text` | ro |  |
 | 4 | `reference_row` | Data | `varchar(140)` | ro, hidden |  |
@@ -4138,6 +4303,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPurchase Invoice Item`  (proposed: `purchase_invoice_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Purchase Invoice`.`items`
 
@@ -4230,6 +4396,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabPurchase Taxes and Charges`  (proposed: `purchase_taxes_and_charges`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Purchase Invoice`.`taxes`, `Purchase Taxes and Charges Template`.`taxes`, `Purchase Order`.`taxes`, `Supplier Quotation`.`taxes`, `Purchase Receipt`.`taxes`
 
@@ -4253,7 +4420,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 16 | `base_tax_amount_after_discount_amount` | Currency | `numeric(21,9)` | ro |  |
 | 17 | `project` | Link | `varchar(140)` |  | → `Project` |
 | 18 | `included_in_paid_amount` | Check | `smallint` | default=0 |  |
-| 19 | `account_currency` | Link | `varchar(140)` | ro, denorm←account_head.account_currency | → `Currency` *(frappe core)* |
+| 19 | `account_currency` | Link | `varchar(140)` | ro, denorm←account_head.account_currency | → `Currency` *(frappe/Geo)* |
 | 20 | `is_tax_withholding_account` | Check | `smallint` | ro, default=0 |  |
 | 21 | `net_amount` | Currency | `numeric(21,9)` | ro |  |
 | 22 | `base_net_amount` | Currency | `numeric(21,9)` | ro |  |
@@ -4264,11 +4431,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabRepost Accounting Ledger Items`  (proposed: `repost_accounting_ledger_items`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Repost Accounting Ledger`.`vouchers`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `voucher_type` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe core)* |
+| 1 | `voucher_type` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe/Core)* |
 | 2 | `voucher_no` | Dynamic Link | `varchar(140)` | NOT NULL | → polymorphic, doctype in `voucher_type` |
 | 3 | `status` | Select | `varchar(140)` | ro, default=Pending | enum: Pending, Reposted, Skipped, Failed |
 | 4 | `traceback` | Code | `text` | ro |  |
@@ -4281,21 +4449,23 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabRepost Allowed Types`  (proposed: `repost_allowed_types`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Accounts Settings`.`repost_allowed_types`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `document_type` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 1 | `document_type` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 
 ## Repost Payment Ledger Items
 
 - **Table**: `tabRepost Payment Ledger Items`  (proposed: `repost_payment_ledger_items`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Repost Payment Ledger`.`repost_vouchers`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `voucher_type` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 1 | `voucher_type` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 2 | `voucher_no` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `voucher_type` |
 
 **Polymorphic references:**
@@ -4306,11 +4476,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSales Invoice Advance`  (proposed: `sales_invoice_advance`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Invoice`.`advances`, `Sales Invoice`.`advances`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `reference_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe core)* |
+| 1 | `reference_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe/Core)* |
 | 2 | `reference_name` | Dynamic Link | `varchar(140)` | ro | → polymorphic, doctype in `reference_type` |
 | 3 | `remarks` | Text | `text` | ro |  |
 | 4 | `reference_row` | Data | `varchar(140)` | ro, hidden |  |
@@ -4328,6 +4499,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSales Invoice Item`  (proposed: `sales_invoice_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Sales Invoice`.`items`
 
@@ -4422,6 +4594,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSales Invoice Payment`  (proposed: `sales_invoice_payment`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Invoice`.`payments`, `Sales Invoice`.`payments`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4439,6 +4612,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSales Invoice Reference`  (proposed: `sales_invoice_reference`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Closing Entry`.`sales_invoices`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4454,6 +4628,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSales Invoice Timesheet`  (proposed: `sales_invoice_timesheet`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Invoice`.`timesheets`, `Sales Invoice`.`timesheets`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4472,6 +4647,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSales Partner Item`  (proposed: `sales_partner_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Promotional Scheme`.`sales_partner`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4482,6 +4658,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSales Taxes and Charges`  (proposed: `sales_taxes_and_charges`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `POS Invoice`.`taxes`, `Sales Invoice`.`taxes`, `Sales Taxes and Charges Template`.`taxes`, `Quotation`.`taxes`, `Sales Order`.`taxes`, `Delivery Note`.`taxes`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4502,7 +4679,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 14 | `project` | Link | `varchar(140)` |  | → `Project` |
 | 15 | `included_in_paid_amount` | Check | `smallint` | default=0 |  |
 | 16 | `dont_recompute_tax` | Check | `smallint` | ro, hidden, default=0 |  |
-| 17 | `account_currency` | Link | `varchar(140)` | ro, denorm←account_head.account_currency | → `Currency` *(frappe core)* |
+| 17 | `account_currency` | Link | `varchar(140)` | ro, denorm←account_head.account_currency | → `Currency` *(frappe/Geo)* |
 | 18 | `net_amount` | Currency | `numeric(21,9)` | ro |  |
 | 19 | `base_net_amount` | Currency | `numeric(21,9)` | ro |  |
 | 20 | `set_by_item_tax_template` | Check | `smallint` | ro, hidden, default=0 |  |
@@ -4512,6 +4689,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabShare Balance`  (proposed: `share_balance`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Shareholder`.`share_balance`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4529,6 +4707,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabShipping Rule Condition`  (proposed: `shipping_rule_condition`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Description**: A condition for a Shipping Rule
 - **Embedded in**: `Shipping Rule`.`conditions`
 
@@ -4542,16 +4721,18 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabShipping Rule Country`  (proposed: `shipping_rule_country`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Shipping Rule`.`countries`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `country` | Link | `varchar(140)` | NOT NULL | → `Country` *(frappe core)* |
+| 1 | `country` | Link | `varchar(140)` | NOT NULL | → `Country` *(frappe/Geo)* |
 
 ## South Africa VAT Account
 
 - **Table**: `tabSouth Africa VAT Account`  (proposed: `south_africa_vat_account`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Naming**: `account`
 - **Embedded in**: `South Africa VAT Settings`.`vat_accounts`
 
@@ -4563,10 +4744,11 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSubscription Invoice`  (proposed: `subscription_invoice`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `document_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe core)* |
+| 1 | `document_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe/Core)* |
 | 2 | `invoice` | Dynamic Link | `varchar(140)` | ro | → polymorphic, doctype in `document_type` |
 
 **Polymorphic references:**
@@ -4577,6 +4759,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSubscription Plan Detail`  (proposed: `subscription_plan_detail`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Payment Request`.`subscription_plans`, `Subscription`.`plans`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4588,6 +4771,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSupplier Group Item`  (proposed: `supplier_group_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Promotional Scheme`.`supplier_group`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4598,6 +4782,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabSupplier Item`  (proposed: `supplier_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Promotional Scheme`.`supplier`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4608,6 +4793,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabTax Withholding Account`  (proposed: `tax_withholding_account`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Tax Withholding Category`.`accounts`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4619,11 +4805,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabTax Withholding Entry`  (proposed: `tax_withholding_entry`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Journal Entry`.`tax_withholding_entries`, `Payment Entry`.`tax_withholding_entries`, `Purchase Invoice`.`tax_withholding_entries`, `Sales Invoice`.`tax_withholding_entries`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `party_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe core)* |
+| 1 | `party_type` | Link | `varchar(140)` | ro | → `DocType` *(frappe/Core)* |
 | 2 | `party` | Dynamic Link | `varchar(140)` | ro | → polymorphic, doctype in `party_type` |
 | 3 | `tax_id` | Data | `varchar(140)` | ro |  |
 | 4 | `tax_withholding_category` | Link | `varchar(140)` | ro | → `Tax Withholding Category` |
@@ -4631,11 +4818,11 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 6 | `taxable_amount` | Currency | `numeric(21,9)` |  |  |
 | 7 | `lower_deduction_certificate` | Link | `varchar(140)` | ro | → `Lower Deduction Certificate` |
 | 8 | `status` | Select | `varchar(140)` | ro | enum: Settled, Under Withheld, Over Withheld, Duplicate, Cancelled |
-| 9 | `currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe core)* |
+| 9 | `currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe/Geo)* |
 | 10 | `conversion_rate` | Float | `numeric(21,9)` | ro |  |
-| 11 | `withholding_doctype` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 11 | `withholding_doctype` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 12 | `withholding_name` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `withholding_doctype` |
-| 13 | `taxable_doctype` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 13 | `taxable_doctype` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 14 | `taxable_name` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `taxable_doctype` |
 | 15 | `taxable_date` | Date | `date` | ro |  |
 | 16 | `withholding_date` | Date | `date` | ro |  |
@@ -4655,6 +4842,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabTax Withholding Rate`  (proposed: `tax_withholding_rate`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Tax Withholding Category`.`rates`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4670,6 +4858,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabTerritory Item`  (proposed: `territory_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Promotional Scheme`.`territory`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4680,11 +4869,12 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabTransaction Deletion Record Details`  (proposed: `transaction_deletion_record_details`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Transaction Deletion Record`.`doctypes`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `doctype_name` | Link | `varchar(140)` | NOT NULL, ro | → `DocType` *(frappe core)* |
+| 1 | `doctype_name` | Link | `varchar(140)` | NOT NULL, ro | → `DocType` *(frappe/Core)* |
 | 2 | `docfield_name` | Data | `varchar(140)` | ro |  |
 | 3 | `no_of_docs` | Int | `integer` | ro |  |
 | 4 | `done` | Check | `smallint` | ro, default=0 |  |
@@ -4693,6 +4883,7 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 
 - **Table**: `tabUnreconcile Payment Entries`  (proposed: `unreconcile_payment_entries`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Accounts
 - **Embedded in**: `Unreconcile Payment`.`allocations`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -4700,11 +4891,11 @@ append-only in practice (cancellations post reversing rows and flip `is_cancelle
 | 1 | `reference_name` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `reference_doctype` |
 | 2 | `allocated_amount` | Currency | `numeric(21,9)` |  |  |
 | 3 | `unlinked` | Check | `smallint` | ro, default=0 |  |
-| 4 | `reference_doctype` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 4 | `reference_doctype` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 5 | `account` | Data | `varchar(140)` |  |  |
 | 6 | `party_type` | Data | `varchar(140)` |  |  |
 | 7 | `party` | Data | `varchar(140)` |  |  |
-| 8 | `account_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe core)* |
+| 8 | `account_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe/Geo)* |
 
 **Polymorphic references:**
 

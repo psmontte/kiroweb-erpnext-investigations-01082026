@@ -29,6 +29,7 @@ designed without them.
 
 - **Table**: `tabAuthorization Control`  (proposed: `authorization_control`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Setup
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -37,13 +38,14 @@ designed without them.
 
 - **Table**: `tabGlobal Defaults`  (proposed: `global_defaults`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Setup
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `default_company` | Link | `varchar(140)` |  | → `Company` |
-| 2 | `country` | Link | `varchar(140)` |  | → `Country` *(frappe core)* |
+| 2 | `country` | Link | `varchar(140)` |  | → `Country` *(frappe/Geo)* |
 | 3 | `default_distance_unit` | Link | `varchar(140)` |  | → `UOM` |
-| 4 | `default_currency` | Link | `varchar(140)` | NOT NULL, default=INR | → `Currency` *(frappe core)* |
+| 4 | `default_currency` | Link | `varchar(140)` | NOT NULL, default=INR | → `Currency` *(frappe/Geo)* |
 | 5 | `hide_currency_symbol` | Check | `smallint` | default=0 |  |
 | 6 | `disable_rounded_total` | Check | `smallint` | default=0 |  |
 | 7 | `disable_in_words` | Check | `smallint` | default=0 |  |
@@ -58,6 +60,7 @@ designed without them.
 
 - **Table**: `tabAuthorization Rule`  (proposed: `authorization_rule`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `HR-ARU-.#####`  (Expression (old style))
 - **Search fields**: `transaction,based_on,system_user,system_role,approving_user,approving_role`
 
@@ -69,12 +72,12 @@ designed without them.
 | 4 | `master_name` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `customer_or_item` |
 | 5 | `company` | Link | `varchar(140)` |  | → `Company` |
 | 6 | `value` | Float | `numeric(21,9)` |  |  |
-| 7 | `system_role` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
+| 7 | `system_role` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
 | 8 | `to_emp` | Link | `varchar(140)` |  | → `Employee` |
-| 9 | `system_user` | Link | `varchar(140)` |  | → `User` *(frappe core)* |
+| 9 | `system_user` | Link | `varchar(140)` |  | → `User` *(frappe/Core)* |
 | 10 | `to_designation` | Link | `varchar(140)` |  | → `Designation` |
-| 11 | `approving_role` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
-| 12 | `approving_user` | Link | `varchar(140)` |  | → `User` *(frappe core)* |
+| 11 | `approving_role` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
+| 12 | `approving_user` | Link | `varchar(140)` |  | → `User` *(frappe/Core)* |
 
 **Polymorphic references:**
 
@@ -84,18 +87,20 @@ designed without them.
 
 - **Table**: `tabBranch`  (proposed: `branch`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:branch`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `branch` | Data | `varchar(140)` | NOT NULL, UNIQUE |  |
 
-**Referenced by (3):** `SMS Center`.`branch`, `Employee`.`branch`, `Employee Internal Work History`.`branch`
+**Referenced by (13):** `SMS Center`.`branch`, `Employee`.`branch`, `Employee Internal Work History`.`branch`, `Appraisal Cycle`.`branch`, `Appraisee`.`branch`, `Employee Attendance Tool`.`branch`, `Job Opening`.`location`, `Job Opening Template`.`location`, `Leave Control Panel`.`branch`, `Shift Assignment Tool`.`branch`, `Bulk Salary Structure Assignment`.`branch`, `Payroll Entry`.`branch`, `Salary Slip`.`branch`
 
 ## Brand
 
 - **Table**: `tabBrand`  (proposed: `brand`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:brand`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -108,19 +113,20 @@ designed without them.
 
 - `brand_defaults` → `Item Default` (line items)
 
-**Referenced by (17):** `Pricing Rule`.`other_brand`, `Pricing Rule Brand`.`brand`, `Promotional Scheme`.`other_brand`, `Purchase Invoice Item`.`brand`, `Purchase Order Item`.`brand`, `Request for Quotation Item`.`brand`, `Supplier Quotation Item`.`brand`, `Opportunity Item`.`brand`, `Quotation Item`.`brand`, `Sales Order Item`.`brand`, `Delivery Note Item`.`brand`, `Item`.`brand`, `Item Price`.`brand`, `Material Request Item`.`brand`, `Purchase Receipt Item`.`brand` … (+2 more)
+**Referenced by (18):** `Pricing Rule`.`other_brand`, `Pricing Rule Brand`.`brand`, `Promotional Scheme`.`other_brand`, `Purchase Invoice Item`.`brand`, `Purchase Order Item`.`brand`, `Request for Quotation Item`.`brand`, `Supplier Quotation Item`.`brand`, `Opportunity Item`.`brand`, `Quotation Item`.`brand`, `Sales Order Item`.`brand`, `Delivery Note Item`.`brand`, `Item`.`brand`, `Item Price`.`brand`, `Material Request Item`.`brand`, `Purchase Receipt Item`.`brand` … (+3 more)
 
 ## Currency Exchange
 
 - **Table**: `tabCurrency Exchange`  (proposed: `currency_exchange`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Description**: Specify Exchange Rate to convert one currency into another
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `date` | Date | `date` | NOT NULL |  |
-| 2 | `from_currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe core)* |
-| 3 | `to_currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe core)* |
+| 2 | `from_currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe/Geo)* |
+| 3 | `to_currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe/Geo)* |
 | 4 | `exchange_rate` | Float | `numeric(21,9)` | NOT NULL |  |
 | 5 | `for_buying` | Check | `smallint` | default=1 |  |
 | 6 | `for_selling` | Check | `smallint` | default=1 |  |
@@ -129,6 +135,7 @@ designed without them.
 
 - **Table**: `tabDesignation`  (proposed: `designation`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:designation_name`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -136,12 +143,13 @@ designed without them.
 | 1 | `designation_name` | Data | `varchar(140)` | NOT NULL, UNIQUE |  |
 | 2 | `description` | Text | `text` |  |  |
 
-**Referenced by (3):** `Authorization Rule`.`to_designation`, `Employee`.`designation`, `Employee Internal Work History`.`designation`
+**Referenced by (31):** `Authorization Rule`.`to_designation`, `Employee`.`designation`, `Employee Internal Work History`.`designation`, `Appraisal`.`designation`, `Appraisal Cycle`.`designation`, `Employee Attendance Tool`.`designation`, `Employee Grievance`.`designation`, `Employee Onboarding`.`designation`, `Employee Onboarding Template`.`designation`, `Employee Performance Feedback`.`reviewer_designation`, `Employee Performance Feedback`.`designation`, `Employee Referral`.`for_designation`, `Employee Separation`.`designation`, `Employee Separation Template`.`designation`, `Exit Interview`.`designation` … (+16 more)
 
 ## Driver
 
 - **Table**: `tabDriver`  (proposed: `driver`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `full_name`
 - **Search fields**: `full_name`
@@ -157,8 +165,8 @@ designed without them.
 | 7 | `license_number` | Data | `varchar(140)` |  |  |
 | 8 | `issuing_date` | Date | `date` |  |  |
 | 9 | `expiry_date` | Date | `date` |  |  |
-| 10 | `address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
-| 11 | `user` | Link | `varchar(140)` |  | → `User` *(frappe core)* |
+| 10 | `address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
+| 11 | `user` | Link | `varchar(140)` |  | → `User` *(frappe/Core)* |
 
 **Child tables (1-N):**
 
@@ -170,6 +178,7 @@ designed without them.
 
 - **Table**: `tabEmail Digest`  (proposed: `email_digest`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `Prompt`
 - **Description**: Send regular summary reports via Email.
 
@@ -213,6 +222,7 @@ designed without them.
 
 - **Table**: `tabEmployee Group`  (proposed: `employee_group`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:employee_group_name`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -229,6 +239,7 @@ designed without them.
 
 - **Table**: `tabHoliday List`  (proposed: `holiday_list`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:holiday_list_name`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -247,12 +258,13 @@ designed without them.
 
 - `holidays` → `Holiday` (line items)
 
-**Referenced by (6):** `Appointment Booking Settings`.`holiday_list`, `Workstation`.`holiday_list`, `Project`.`holiday_list`, `Company`.`default_holiday_list`, `Employee`.`holiday_list`, `Service Level Agreement`.`holiday_list`
+**Referenced by (12):** `Appointment Booking Settings`.`holiday_list`, `Workstation`.`holiday_list`, `Project`.`holiday_list`, `Company`.`default_holiday_list`, `Employee`.`holiday_list`, `Service Level Agreement`.`holiday_list`, `Daily Work Summary Group`.`holiday_list`, `Employee Onboarding`.`holiday_list`, `Holiday List Assignment`.`holiday_list`, `Leave Ledger Entry`.`holiday_list`, `Leave Period`.`optional_holiday_list`, `Shift Type`.`holiday_list`
 
 ## Incoterm
 
 - **Table**: `tabIncoterm`  (proposed: `incoterm`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:code`  (By fieldname)
 - **Title field**: `title`
 
@@ -268,11 +280,12 @@ designed without them.
 
 - **Table**: `tabParty Type`  (proposed: `party_type`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:party_type`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `party_type` | Link | `varchar(140)` | NOT NULL, UNIQUE | → `DocType` *(frappe core)* |
+| 1 | `party_type` | Link | `varchar(140)` | NOT NULL, UNIQUE | → `DocType` *(frappe/Core)* |
 | 2 | `account_type` | Select | `varchar(140)` | NOT NULL | enum: Payable, Receivable |
 
 **Referenced by (1):** `Bank Transaction Rule Accounts`.`party_type`
@@ -281,6 +294,7 @@ designed without them.
 
 - **Table**: `tabQuotation Lost Reason`  (proposed: `quotation_lost_reason`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:order_lost_reason`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -293,6 +307,7 @@ designed without them.
 
 - **Table**: `tabSales Partner`  (proposed: `sales_partner`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:partner_name`
 - **Description**: A third party distributor / dealer / commission agent / affiliate / reseller who sells the companies products for a commission.
 
@@ -320,6 +335,7 @@ designed without them.
 
 - **Table**: `tabTerms and Conditions`  (proposed: `terms_and_conditions`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:title`  (By fieldname)
 - **Description**: Standard Terms and Conditions that can be added to Sales and Purchases. Examples: Validity of the offer, Payment Terms, Safety and Usage, etc.
 
@@ -332,12 +348,13 @@ designed without them.
 | 5 | `buying` | Check | `smallint` | default=1 |  |
 | 6 | `copy_attachments_to_transaction` | Check | `smallint` | default=0 |  |
 
-**Referenced by (16):** `POS Invoice`.`tc_name`, `POS Profile`.`tc_name`, `Process Statement Of Accounts`.`terms_and_conditions`, `Purchase Invoice`.`tc_name`, `Sales Invoice`.`tc_name`, `Purchase Order`.`tc_name`, `Request for Quotation`.`tc_name`, `Supplier Quotation`.`tc_name`, `Blanket Order`.`tc_name`, `Quotation`.`tc_name`, `Sales Order`.`tc_name`, `Company`.`default_selling_terms`, `Company`.`default_buying_terms`, `Delivery Note`.`tc_name`, `Material Request`.`tc_name` … (+1 more)
+**Referenced by (17):** `POS Invoice`.`tc_name`, `POS Profile`.`tc_name`, `Process Statement Of Accounts`.`terms_and_conditions`, `Purchase Invoice`.`tc_name`, `Sales Invoice`.`tc_name`, `Purchase Order`.`tc_name`, `Request for Quotation`.`tc_name`, `Supplier Quotation`.`tc_name`, `Blanket Order`.`tc_name`, `Quotation`.`tc_name`, `Sales Order`.`tc_name`, `Company`.`default_selling_terms`, `Company`.`default_buying_terms`, `Delivery Note`.`tc_name`, `Material Request`.`tc_name` … (+2 more)
 
 ## UOM
 
 - **Table**: `tabUOM`  (proposed: `uom`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:uom_name`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -350,12 +367,13 @@ designed without them.
 | 6 | `description` | Small Text | `text` |  |  |
 | 7 | `category` | Link | `varchar(140)` |  | → `UOM Category` |
 
-**Referenced by (110):** `POS Invoice Item`.`stock_uom`, `POS Invoice Item`.`uom`, `POS Invoice Item`.`weight_uom`, `Pricing Rule`.`free_item_uom`, `Pricing Rule Brand`.`uom`, `Pricing Rule Item Code`.`uom`, `Pricing Rule Item Group`.`uom`, `Promotional Scheme Product Discount`.`free_item_uom`, `Purchase Invoice Item`.`stock_uom`, `Purchase Invoice Item`.`uom`, `Purchase Invoice Item`.`weight_uom`, `Sales Invoice Item`.`stock_uom`, `Sales Invoice Item`.`uom`, `Sales Invoice Item`.`weight_uom`, `Asset Capitalization Service Item`.`uom` … (+95 more)
+**Referenced by (111):** `POS Invoice Item`.`stock_uom`, `POS Invoice Item`.`uom`, `POS Invoice Item`.`weight_uom`, `Pricing Rule`.`free_item_uom`, `Pricing Rule Brand`.`uom`, `Pricing Rule Item Code`.`uom`, `Pricing Rule Item Group`.`uom`, `Promotional Scheme Product Discount`.`free_item_uom`, `Purchase Invoice Item`.`stock_uom`, `Purchase Invoice Item`.`uom`, `Purchase Invoice Item`.`weight_uom`, `Sales Invoice Item`.`stock_uom`, `Sales Invoice Item`.`uom`, `Sales Invoice Item`.`weight_uom`, `Asset Capitalization Service Item`.`uom` … (+96 more)
 
 ## UOM Conversion Factor
 
 - **Table**: `tabUOM Conversion Factor`  (proposed: `uom_conversion_factor`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `MAT-UOM-CNV-.#####`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -369,6 +387,7 @@ designed without them.
 
 - **Table**: `tabVehicle`  (proposed: `vehicle`)
 - **Kind**: Master
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:license_plate`  (By fieldname)
 - **Search fields**: `license_plate,location,model`
 
@@ -396,7 +415,7 @@ designed without them.
 | 20 | `amended_from` | Link | `varchar(140)` | ro | → `Vehicle` |
 | 21 | `company` | Link | `varchar(140)` |  | → `Company` |
 
-**Referenced by (2):** `Vehicle`.`amended_from`, `Delivery Trip`.`vehicle`
+**Referenced by (3):** `Vehicle`.`amended_from`, `Delivery Trip`.`vehicle`, `Vehicle Log`.`license_plate`
 
 ---
 
@@ -406,6 +425,7 @@ designed without them.
 
 - **Table**: `tabCompany`  (proposed: `company`)
 - **Kind**: Tree master (hierarchy)
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:company_name`  (By fieldname)
 - **Tree**: yes — nested set (`lft`, `rgt`, `old_parent`)
 - **Description**: Legal Entity / Subsidiary with a separate Chart of Accounts belonging to the Organization.
@@ -424,11 +444,11 @@ designed without them.
 | 10 | `transactions_annual_history` | Code | `text` | ro, hidden |  |
 | 11 | `monthly_sales_target` | Currency | `numeric(21,9)` |  |  |
 | 12 | `total_monthly_sales` | Currency | `numeric(21,9)` | ro |  |
-| 13 | `default_currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe core)* |
-| 14 | `default_letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
+| 13 | `default_currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe/Geo)* |
+| 14 | `default_letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
 | 15 | `default_holiday_list` | Link | `varchar(140)` |  | → `Holiday List` |
 | 16 | `default_warehouse_for_sales_return` | Link | `varchar(140)` |  | → `Warehouse` |
-| 17 | `country` | Link | `varchar(140)` | NOT NULL | → `Country` *(frappe core)* |
+| 17 | `country` | Link | `varchar(140)` | NOT NULL | → `Country` *(frappe/Geo)* |
 | 18 | `create_chart_of_accounts_based_on` | Select | `varchar(140)` |  | enum: Standard Template, Existing Company |
 | 19 | `chart_of_accounts` | Select | `varchar(140)` |  |  |
 | 20 | `existing_company` | Link | `varchar(140)` |  | → `Company` |
@@ -464,7 +484,7 @@ designed without them.
 | 50 | `depreciation_cost_center` | Link | `varchar(140)` |  | → `Cost Center` |
 | 51 | `capital_work_in_progress_account` | Link | `varchar(140)` |  | → `Account` |
 | 52 | `asset_received_but_not_billed` | Link | `varchar(140)` |  | → `Account` |
-| 53 | `exception_budget_approver_role` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
+| 53 | `exception_budget_approver_role` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
 | 54 | `date_of_incorporation` | Date | `date` |  |  |
 | 55 | `date_of_commencement` | Date | `date` |  |  |
 | 56 | `phone_no` | Data | `varchar(140)` |  |  |
@@ -494,7 +514,7 @@ designed without them.
 | 80 | `default_operating_cost_account` | Link | `varchar(140)` |  | → `Account` |
 | 81 | `round_off_for_opening` | Link | `varchar(140)` |  | → `Account` |
 | 82 | `reconciliation_takes_effect_on` | Select | `varchar(140)` | default=Oldest Of Invoice Or Adv | enum: Advance Payment Date, Oldest Of Invoice Or Advance, Reconciliation Date |
-| 83 | `reporting_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe core)* |
+| 83 | `reporting_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe/Geo)* |
 | 84 | `purchase_expense_account` | Link | `varchar(140)` |  | → `Account` |
 | 85 | `purchase_expense_contra_account` | Link | `varchar(140)` |  | → `Account` |
 | 86 | `service_expense_account` | Link | `varchar(140)` |  | → `Account` |
@@ -505,20 +525,21 @@ designed without them.
 | 91 | `default_wip_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
 | 92 | `default_fg_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
 | 93 | `default_scrap_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
-| 94 | `default_sales_contact` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 94 | `default_sales_contact` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 95 | `accounts_frozen_till_date` | Date | `date` |  |  |
-| 96 | `role_allowed_for_frozen_entries` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
-| 97 | `default_letter_head_report` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
+| 96 | `role_allowed_for_frozen_entries` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
+| 97 | `default_letter_head_report` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
 | 98 | `disable_sdbnb_in_sr` | Check | `smallint` | default=0 |  |
 | 99 | `stock_delivered_but_not_billed` | Link | `varchar(140)` |  | → `Account` |
 | 100 | `enable_stock_delivered_but_not_billed` | Check | `smallint` | default=0 |  |
 
-**Referenced by (156):** `Account`.`company`, `Account Closing Balance`.`company`, `Accounting Dimension Detail`.`company`, `Accounting Dimension Filter`.`company`, `Accounting Period`.`company`, `Advance Payment Ledger Entry`.`company`, `Allowed To Transact With`.`company`, `Bank Account`.`company`, `Bank Account Balance`.`company`, `Bank Reconciliation Tool`.`company`, `Bank Statement Import`.`company`, `Bank Transaction`.`company`, `Bank Transaction Rule`.`company`, `Bisect Accounting Statements`.`company`, `Budget`.`company` … (+141 more)
+**Referenced by (218):** `Account`.`company`, `Account Closing Balance`.`company`, `Accounting Dimension Detail`.`company`, `Accounting Dimension Filter`.`company`, `Accounting Period`.`company`, `Advance Payment Ledger Entry`.`company`, `Allowed To Transact With`.`company`, `Bank Account`.`company`, `Bank Account Balance`.`company`, `Bank Reconciliation Tool`.`company`, `Bank Statement Import`.`company`, `Bank Transaction`.`company`, `Bank Transaction Rule`.`company`, `Bisect Accounting Statements`.`company`, `Budget`.`company` … (+203 more)
 
 ## Customer Group
 
 - **Table**: `tabCustomer Group`  (proposed: `customer_group`)
 - **Kind**: Tree master (hierarchy)
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:customer_group_name`  (By fieldname)
 - **Tree**: yes — nested set (`lft`, `rgt`, `old_parent`)
 - **Search fields**: `parent_customer_group`
@@ -539,12 +560,13 @@ designed without them.
 - `accounts` → `Party Account` (line items)
 - `credit_limits` → `Customer Credit Limit` (line items)
 
-**Referenced by (22):** `Customer Group Item`.`customer_group`, `Loyalty Program`.`customer_group`, `POS Customer Group`.`customer_group`, `POS Invoice`.`customer_group`, `POS Invoice Merge Log`.`customer_group`, `Pricing Rule`.`customer_group`, `Sales Invoice`.`customer_group`, `Tax Rule`.`customer_group`, `Opportunity`.`customer_group`, `Prospect`.`customer_group`, `Maintenance Schedule`.`customer_group`, `Maintenance Visit`.`customer_group`, `Customer`.`customer_group`, `Installation Note`.`customer_group`, `Quotation`.`customer_group` … (+7 more)
+**Referenced by (23):** `Customer Group Item`.`customer_group`, `Loyalty Program`.`customer_group`, `POS Customer Group`.`customer_group`, `POS Invoice`.`customer_group`, `POS Invoice Merge Log`.`customer_group`, `Pricing Rule`.`customer_group`, `Sales Invoice`.`customer_group`, `Tax Rule`.`customer_group`, `Opportunity`.`customer_group`, `Prospect`.`customer_group`, `Maintenance Schedule`.`customer_group`, `Maintenance Visit`.`customer_group`, `Customer`.`customer_group`, `Installation Note`.`customer_group`, `Quotation`.`customer_group` … (+8 more)
 
 ## Department
 
 - **Table**: `tabDepartment`  (proposed: `department`)
 - **Kind**: Tree master (hierarchy)
+- **Owned by**: erpnext / Setup
 - **Tree**: yes — nested set (`lft`, `rgt`, `old_parent`)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -558,12 +580,13 @@ designed without them.
 | 7 | `rgt` | Int | `integer` | ro, hidden |  |
 | 8 | `old_parent` | Data | `varchar(140)` | hidden |  |
 
-**Referenced by (10):** `Asset`.`department`, `Activity Cost`.`department`, `Project`.`department`, `Task`.`department`, `Timesheet`.`department`, `SMS Center`.`department`, `Department`.`parent_department`, `Employee`.`department`, `Employee Internal Work History`.`department`, `Sales Person`.`department`
+**Referenced by (58):** `Asset`.`department`, `Activity Cost`.`department`, `Project`.`department`, `Task`.`department`, `Timesheet`.`department`, `SMS Center`.`department`, `Department`.`parent_department`, `Employee`.`department`, `Employee Internal Work History`.`department`, `Sales Person`.`department`, `Appraisal`.`department`, `Appraisal Cycle`.`department`, `Appraisee`.`department`, `Attendance`.`department`, `Attendance Request`.`department` … (+43 more)
 
 ## Employee
 
 - **Table**: `tabEmployee`  (proposed: `employee`)
 - **Kind**: Tree master (hierarchy)
+- **Owned by**: erpnext / Setup
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `employee_name`
 - **Tree**: yes — nested set (`lft`, `rgt`, `old_parent`)
@@ -573,7 +596,7 @@ designed without them.
 |--:|---|---|---|---|---|
 | 1 | `employee` | Data | `varchar(140)` | hidden |  |
 | 2 | `naming_series` | Select | `varchar(140)` |  | enum: HR-EMP- |
-| 3 | `salutation` | Link | `varchar(140)` |  | → `Salutation` *(frappe core)* |
+| 3 | `salutation` | Link | `varchar(140)` |  | → `Salutation` *(frappe/Contacts)* |
 | 4 | `first_name` | Data | `varchar(140)` | NOT NULL |  |
 | 5 | `middle_name` | Data | `varchar(140)` |  |  |
 | 6 | `last_name` | Data | `varchar(140)` |  |  |
@@ -582,13 +605,13 @@ designed without them.
 | 9 | `company` | Link | `varchar(140)` | NOT NULL | → `Company` |
 | 10 | `status` | Select | `varchar(140)` | NOT NULL, INDEX, default=Active | enum: Active, Inactive, Suspended, Left |
 | 11 | `employee_number` | Data | `varchar(140)` |  |  |
-| 12 | `gender` | Link | `varchar(140)` | NOT NULL | → `Gender` *(frappe core)* |
+| 12 | `gender` | Link | `varchar(140)` | NOT NULL | → `Gender` *(frappe/Contacts)* |
 | 13 | `date_of_birth` | Date | `date` | NOT NULL |  |
 | 14 | `date_of_joining` | Date | `date` | NOT NULL |  |
 | 15 | `emergency_phone_number` | Data | `varchar(140)` |  |  |
 | 16 | `person_to_be_contacted` | Data | `varchar(140)` |  |  |
 | 17 | `relation` | Data | `varchar(140)` |  |  |
-| 18 | `user_id` | Link | `varchar(140)` |  | → `User` *(frappe core)* |
+| 18 | `user_id` | Link | `varchar(140)` |  | → `User` *(frappe/Core)* |
 | 19 | `create_user_permission` | Check | `smallint` | default=1 |  |
 | 20 | `create_user_automatically` | Check | `smallint` | default=0 |  |
 | 21 | `scheduled_confirmation_date` | Date | `date` |  |  |
@@ -635,7 +658,7 @@ designed without them.
 | 62 | `rgt` | Int | `integer` | ro, hidden |  |
 | 63 | `old_parent` | Data | `varchar(140)` | hidden |  |
 | 64 | `attendance_device_id` | Data | `varchar(140)` | UNIQUE |  |
-| 65 | `salary_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe core)* |
+| 65 | `salary_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe/Geo)* |
 | 66 | `ctc` | Currency | `numeric(21,9)` |  |  |
 | 67 | `iban` | Data | `varchar(140)` |  |  |
 
@@ -645,12 +668,13 @@ designed without them.
 - `external_work_history` → `Employee External Work History` (line items)
 - `internal_work_history` → `Employee Internal Work History` (line items)
 
-**Referenced by (19):** `Asset`.`custodian`, `Asset Movement Item`.`from_employee`, `Asset Movement Item`.`to_employee`, `Supplier Scorecard`.`employee`, `Supplier Scorecard Scoring Standing`.`employee_link`, `Supplier Scorecard Standing`.`employee_link`, `Downtime Entry`.`operator`, `Job Card Time Log`.`employee`, `Activity Cost`.`employee`, `Timesheet`.`employee`, `Authorization Rule`.`to_emp`, `Driver`.`employee`, `Employee`.`reports_to`, `Employee Group Table`.`employee`, `Sales Person`.`employee` … (+4 more)
+**Referenced by (76):** `Asset`.`custodian`, `Asset Movement Item`.`from_employee`, `Asset Movement Item`.`to_employee`, `Supplier Scorecard`.`employee`, `Supplier Scorecard Scoring Standing`.`employee_link`, `Supplier Scorecard Standing`.`employee_link`, `Downtime Entry`.`operator`, `Job Card Time Log`.`employee`, `Activity Cost`.`employee`, `Timesheet`.`employee`, `Authorization Rule`.`to_emp`, `Driver`.`employee`, `Employee`.`reports_to`, `Employee Group Table`.`employee`, `Sales Person`.`employee` … (+61 more)
 
 ## Item Group
 
 - **Table**: `tabItem Group`  (proposed: `item_group`)
 - **Kind**: Tree master (hierarchy)
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:item_group_name`  (By fieldname)
 - **Tree**: yes — nested set (`lft`, `rgt`, `old_parent`)
 - **Description**: An Item Group is a way to classify items based on types.
@@ -671,12 +695,13 @@ designed without them.
 - `item_group_defaults` → `Item Default` (line items)
 - `taxes` → `Item Tax` (line items)
 
-**Referenced by (30):** `POS Invoice Item`.`item_group`, `POS Item Group`.`item_group`, `Pricing Rule`.`other_item_group`, `Pricing Rule Item Group`.`item_group`, `Promotional Scheme`.`other_item_group`, `Purchase Invoice Item`.`item_group`, `Sales Invoice Item`.`item_group`, `Tax Rule`.`item_group`, `Purchase Order Item`.`item_group`, `Request for Quotation Item`.`item_group`, `Supplier Quotation Item`.`item_group`, `Opportunity Item`.`item_group`, `BOM Creator`.`item_group`, `BOM Creator Item`.`item_group`, `Job Card Item`.`item_group` … (+15 more)
+**Referenced by (32):** `POS Invoice Item`.`item_group`, `POS Item Group`.`item_group`, `Pricing Rule`.`other_item_group`, `Pricing Rule Item Group`.`item_group`, `Promotional Scheme`.`other_item_group`, `Purchase Invoice Item`.`item_group`, `Sales Invoice Item`.`item_group`, `Tax Rule`.`item_group`, `Purchase Order Item`.`item_group`, `Request for Quotation Item`.`item_group`, `Supplier Quotation Item`.`item_group`, `Opportunity Item`.`item_group`, `BOM Creator`.`item_group`, `BOM Creator Item`.`item_group`, `Job Card Item`.`item_group` … (+17 more)
 
 ## Sales Person
 
 - **Table**: `tabSales Person`  (proposed: `sales_person`)
 - **Kind**: Tree master (hierarchy)
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:sales_person_name`  (By fieldname)
 - **Tree**: yes — nested set (`lft`, `rgt`, `old_parent`)
 - **Description**: All Sales Transactions can be tagged against multiple Sales Persons so that you can set and monitor targets.
@@ -705,6 +730,7 @@ designed without them.
 
 - **Table**: `tabSupplier Group`  (proposed: `supplier_group`)
 - **Kind**: Tree master (hierarchy)
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:supplier_group_name`  (By fieldname)
 - **Tree**: yes — nested set (`lft`, `rgt`, `old_parent`)
 
@@ -728,6 +754,7 @@ designed without them.
 
 - **Table**: `tabTerritory`  (proposed: `territory`)
 - **Kind**: Tree master (hierarchy)
+- **Owned by**: erpnext / Setup
 - **Naming**: `field:territory_name`  (By fieldname)
 - **Tree**: yes — nested set (`lft`, `rgt`, `old_parent`)
 - **Description**: Classification of Customers by region
@@ -757,6 +784,7 @@ designed without them.
 
 - **Table**: `tabTransaction Deletion Record`  (proposed: `transaction_deletion_record`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Setup
 - **Naming**: `TDL.####`  (Expression (old style))
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -790,6 +818,7 @@ designed without them.
 
 - **Table**: `tabDriving License Category`  (proposed: `driving_license_category`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Setup
 - **Embedded in**: `Driver`.`driving_license_category`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -803,16 +832,18 @@ designed without them.
 
 - **Table**: `tabEmail Digest Recipient`  (proposed: `email_digest_recipient`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Setup
 - **Embedded in**: `Email Digest`.`recipients`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `recipient` | Link | `varchar(140)` | NOT NULL | → `User` *(frappe core)* |
+| 1 | `recipient` | Link | `varchar(140)` | NOT NULL | → `User` *(frappe/Core)* |
 
 ## Employee Education
 
 - **Table**: `tabEmployee Education`  (proposed: `employee_education`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Setup
 - **Embedded in**: `Employee`.`education`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -828,6 +859,7 @@ designed without them.
 
 - **Table**: `tabEmployee External Work History`  (proposed: `employee_external_work_history`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Setup
 - **Embedded in**: `Employee`.`external_work_history`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -843,6 +875,7 @@ designed without them.
 
 - **Table**: `tabEmployee Group Table`  (proposed: `employee_group_table`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Setup
 - **Embedded in**: `Employee Group`.`employee_list`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -855,6 +888,7 @@ designed without them.
 
 - **Table**: `tabEmployee Internal Work History`  (proposed: `employee_internal_work_history`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Setup
 - **Embedded in**: `Employee`.`internal_work_history`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -869,6 +903,7 @@ designed without them.
 
 - **Table**: `tabHoliday`  (proposed: `holiday`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Setup
 - **Embedded in**: `Holiday List`.`holidays`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -882,6 +917,7 @@ designed without them.
 
 - **Table**: `tabQuotation Lost Reason Detail`  (proposed: `quotation_lost_reason_detail`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Setup
 - **Embedded in**: `Quotation`.`lost_reasons`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -892,6 +928,7 @@ designed without them.
 
 - **Table**: `tabTarget Detail`  (proposed: `target_detail`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Setup
 - **Embedded in**: `Sales Partner`.`targets`, `Sales Person`.`targets`, `Territory`.`targets`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -906,21 +943,23 @@ designed without them.
 
 - **Table**: `tabTransaction Deletion Record Item`  (proposed: `transaction_deletion_record_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Setup
 - **Embedded in**: `Transaction Deletion Record`.`doctypes_to_be_ignored`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `doctype_name` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe core)* |
+| 1 | `doctype_name` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe/Core)* |
 
 ## Transaction Deletion Record To Delete
 
 - **Table**: `tabTransaction Deletion Record To Delete`  (proposed: `transaction_deletion_record_to_delete`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Setup
 - **Embedded in**: `Transaction Deletion Record`.`doctypes_to_delete`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `doctype_name` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 1 | `doctype_name` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 2 | `company_field` | Data | `varchar(140)` |  |  |
 | 3 | `document_count` | Int | `integer` | ro |  |
 | 4 | `child_doctypes` | Small Text | `text` | ro |  |
@@ -930,7 +969,9 @@ designed without them.
 
 - **Table**: `tabWebsite Item Group`  (proposed: `website_item_group`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Setup
 - **Description**: Cross Listing of Item in multiple groups
+- **Embedded in**: `Website Item`.`website_item_groups`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|

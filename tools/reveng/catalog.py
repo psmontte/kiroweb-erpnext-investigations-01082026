@@ -17,6 +17,7 @@ from frappe_schema import (
 def doctype_to_dict(d: DocType, reg: Registry) -> dict:
     return {
         "name": d.name,
+        "app": d.app,
         "module": d.module,
         "kind": d.kind,
         "frappe_table": d.table_name,
@@ -65,7 +66,8 @@ def doctype_to_dict(d: DocType, reg: Registry) -> dict:
             for fn, ch, ft in d.child_tables
         ],
         "links": [
-            {"fieldname": fn, "target": t, "internal": reg.is_internal(t)} for fn, t in d.links
+            {"fieldname": fn, "target": t, "internal": reg.is_internal(t), "target_origin": reg.origin(t)}
+            for fn, t in d.links
         ],
         "dynamic_links": [
             {"fieldname": fn, "doctype_selector": sel} for fn, sel in d.dynamic_links
@@ -79,16 +81,31 @@ def doctype_to_dict(d: DocType, reg: Registry) -> dict:
 
 def write_json(reg: Registry, out_dir: str) -> str:
     payload = {
-        "source_app": "erpnext",
+        "source_apps": reg.apps(),
         "standard_columns": {
             "all_tables": list(DEFAULT_COLUMNS),
             "child_tables_extra": list(CHILD_COLUMNS),
         },
         "doctype_count": len(reg.doctypes),
+        "physical_table_count": sum(
+            1 for d in reg.doctypes if not d.issingle and not d.is_virtual
+        ),
+        "counts_by_app": {
+            a: {
+                "doctypes": sum(1 for d in reg.doctypes if d.app == a),
+                "physical_tables": sum(
+                    1 for d in reg.doctypes if d.app == a and not d.issingle and not d.is_virtual
+                ),
+                "child_tables": sum(1 for d in reg.doctypes if d.app == a and d.istable),
+                "singles": sum(1 for d in reg.doctypes if d.app == a and d.issingle),
+                "virtual": sum(1 for d in reg.doctypes if d.app == a and d.is_virtual),
+            }
+            for a in reg.apps()
+        },
         "modules": {m: sum(1 for d in reg.doctypes if d.module == m) for m in reg.modules()},
         "doctypes": [doctype_to_dict(d, reg) for d in reg.doctypes],
     }
-    path = os.path.join(out_dir, "erpnext_doctypes.json")
+    path = os.path.join(out_dir, "bench_doctypes.json")
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(payload, fh, indent=1)
     return path
@@ -102,6 +119,7 @@ def write_csvs(reg: Registry, out_dir: str) -> list[str]:
         w = csv.writer(fh)
         w.writerow(
             [
+                "app",
                 "module",
                 "doctype",
                 "kind",
@@ -120,6 +138,7 @@ def write_csvs(reg: Registry, out_dir: str) -> list[str]:
         for d in reg.doctypes:
             w.writerow(
                 [
+                    d.app,
                     d.module,
                     d.name,
                     d.kind,
@@ -142,6 +161,7 @@ def write_csvs(reg: Registry, out_dir: str) -> list[str]:
         w = csv.writer(fh)
         w.writerow(
             [
+                "app",
                 "module",
                 "doctype",
                 "fieldname",
@@ -161,6 +181,7 @@ def write_csvs(reg: Registry, out_dir: str) -> list[str]:
             for f in d.columns:
                 w.writerow(
                     [
+                        d.app,
                         d.module,
                         d.name,
                         f.fieldname,
@@ -181,22 +202,25 @@ def write_csvs(reg: Registry, out_dir: str) -> list[str]:
     p = os.path.join(out_dir, "catalog_relations.csv")
     with open(p, "w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
-        w.writerow(["module", "from_doctype", "fieldname", "relation", "to_doctype", "target_in_app"])
+        w.writerow(
+            ["app", "module", "from_doctype", "fieldname", "relation", "to_doctype", "to_origin"]
+        )
         for d in reg.doctypes:
             for fn, t in d.links:
-                w.writerow([d.module, d.name, fn, "link", t, int(reg.is_internal(t))])
+                w.writerow([d.app, d.module, d.name, fn, "link", t, reg.origin(t)])
             for fn, ch, ft in d.child_tables:
                 w.writerow(
                     [
+                        d.app,
                         d.module,
                         d.name,
                         fn,
                         "child_table" if ft == "Table" else "multiselect",
                         ch,
-                        int(reg.is_internal(ch)),
+                        reg.origin(ch),
                     ]
                 )
             for fn, sel in d.dynamic_links:
-                w.writerow([d.module, d.name, fn, "dynamic_link", f"<{sel}>", 0])
+                w.writerow([d.app, d.module, d.name, fn, "dynamic_link", f"<{sel}>", "polymorphic"])
     paths.append(p)
     return paths

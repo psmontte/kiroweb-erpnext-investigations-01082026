@@ -3,7 +3,9 @@
 ### Accounts: entity dependency graph
 
 Child tables are collapsed into their parent document. Rounded nodes are external
-masters owned by other modules. `[[ ]]` = submittable transaction.
+masters owned by other ERPNext modules. `[[ ]]` = submittable transaction. Links to
+framework masters (`User`, `File`, `Currency`, `Address`, ...) are omitted here - see
+the module reference for the full column list.
 
 ```mermaid
 flowchart LR
@@ -33,10 +35,10 @@ flowchart LR
     POS_OPENING_ENTRY[["POS Opening Entry"]]
     POS_PROFILE["POS Profile"]
     PAYMENT_ENTRY[["Payment Entry"]]
+    PAYMENT_GATEWAY_ACCOUNT["Payment Gateway Account"]
     PAYMENT_LEDGER_ENTRY[["Payment Ledger Entry"]]
     PAYMENT_ORDER[["Payment Order"]]
     PAYMENT_REQUEST[["Payment Request"]]
-    PAYMENT_TERM["Payment Term"]
     PAYMENT_TERMS_TEMPLATE["Payment Terms Template"]
     PERIOD_CLOSING_VOUCHER[["Period Closing Voucher"]]
     PRICING_RULE["Pricing Rule"]
@@ -77,7 +79,7 @@ flowchart LR
   LOWER_DEDUCTION_CERTIFICATE("Lower Deduction Certificate<br/><i>Regional</i>")
   MANUFACTURER("Manufacturer<br/><i>Stock</i>")
   MATERIAL_REQUEST("Material Request<br/><i>Stock</i>")
-  PAYMENT_GATEWAY_ACCOUNT("Payment Gateway Account<br/><i>Accounts</i>")
+  PAYMENT_TERM("Payment Term<br/><i>Accounts</i>")
   PICK_LIST("Pick List<br/><i>Stock</i>")
   PRICE_LIST("Price List<br/><i>Stock</i>")
   PROCESS_DEFERRED_ACCOUNTING("Process Deferred Accounting<br/><i>Accounts</i>")
@@ -260,6 +262,8 @@ flowchart LR
   PAYMENT_ENTRY --> SALES_TAXES_AND_CHARGES_TEMPLATE
   PAYMENT_ENTRY --> TAX_WITHHOLDING_CATEGORY
   PAYMENT_ENTRY --> TAX_WITHHOLDING_GROUP
+  PAYMENT_GATEWAY_ACCOUNT --> ACCOUNT
+  PAYMENT_GATEWAY_ACCOUNT --> COMPANY
   PAYMENT_LEDGER_ENTRY --> ACCOUNT
   PAYMENT_LEDGER_ENTRY --> COMPANY
   PAYMENT_LEDGER_ENTRY --> COST_CENTER
@@ -282,7 +286,6 @@ flowchart LR
   PAYMENT_REQUEST --> PAYMENT_TERM
   PAYMENT_REQUEST --> PROJECT
   PAYMENT_REQUEST --> SUBSCRIPTION_PLAN
-  PAYMENT_TERM --> MODE_OF_PAYMENT
   PAYMENT_TERMS_TEMPLATE --> MODE_OF_PAYMENT
   PAYMENT_TERMS_TEMPLATE --> PAYMENT_TERM
   PERIOD_CLOSING_VOUCHER --> ACCOUNT

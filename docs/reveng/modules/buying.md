@@ -24,6 +24,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabBuying Settings`  (proposed: `buying_settings`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Buying
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -37,7 +38,7 @@ hint that our own design should share one abstraction for both trade directions.
 | 8 | `backflush_raw_materials_of_subcontract_based_on` | Select | `varchar(140)` | default=BOM | enum: BOM, Material Transferred for Subcontract |
 | 9 | `over_transfer_allowance` | Float | `numeric(21,9)` |  |  |
 | 10 | `maintain_same_rate_action` | Select | `varchar(140)` | default=Stop | enum: Stop, Warn |
-| 11 | `role_to_override_stop_action` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
+| 11 | `role_to_override_stop_action` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
 | 12 | `bill_for_rejected_quantity_in_purchase_invoice` | Check | `smallint` | default=1 |  |
 | 13 | `disable_last_purchase_rate` | Check | `smallint` | default=0 |  |
 | 14 | `show_pay_button` | Check | `smallint` | default=1 |  |
@@ -51,7 +52,7 @@ hint that our own design should share one abstraction for both trade directions.
 | 22 | `allow_zero_qty_in_request_for_quotation` | Check | `smallint` | default=0 |  |
 | 23 | `allow_zero_qty_in_supplier_quotation` | Check | `smallint` | default=0 |  |
 | 24 | `set_valuation_rate_for_rejected_materials` | Check | `smallint` | default=0 |  |
-| 25 | `fixed_email` | Link | `varchar(140)` |  | → `Email Account` *(frappe core)* |
+| 25 | `fixed_email` | Link | `varchar(140)` |  | → `Email Account` *(frappe/Email)* |
 | 26 | `validate_consumed_qty` | Check | `smallint` | default=0 |  |
 | 27 | `allow_negative_rates_for_items` | Check | `smallint` | default=0 |  |
 | 28 | `over_order_allowance` | Float | `numeric(21,9)` |  |  |
@@ -64,6 +65,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabSupplier`  (proposed: `supplier`)
 - **Kind**: Master
+- **Owned by**: erpnext / Buying
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `supplier_name`
 - **Description**: Supplier of Goods or Services.
@@ -73,7 +75,7 @@ hint that our own design should share one abstraction for both trade directions.
 |--:|---|---|---|---|---|
 | 1 | `naming_series` | Select | `varchar(140)` |  | enum: SUP-.YYYY.- |
 | 2 | `supplier_name` | Data | `varchar(140)` | NOT NULL |  |
-| 3 | `country` | Link | `varchar(140)` |  | → `Country` *(frappe core)* |
+| 3 | `country` | Link | `varchar(140)` |  | → `Country` *(frappe/Geo)* |
 | 4 | `default_bank_account` | Link | `varchar(140)` |  | → `Bank Account` |
 | 5 | `tax_id` | Data | `varchar(140)` |  |  |
 | 6 | `tax_category` | Link | `varchar(140)` |  | → `Tax Category` |
@@ -84,13 +86,13 @@ hint that our own design should share one abstraction for both trade directions.
 | 11 | `image` | Attach Image | `text` | hidden |  |
 | 12 | `supplier_group` | Link | `varchar(140)` |  | → `Supplier Group` |
 | 13 | `supplier_type` | Select | `varchar(140)` | NOT NULL, default=Company | enum: Company, Individual, Partnership |
-| 14 | `language` | Link | `varchar(140)` |  | → `Language` *(frappe core)* |
+| 14 | `language` | Link | `varchar(140)` |  | → `Language` *(frappe/Core)* |
 | 15 | `disabled` | Check | `smallint` | default=0 |  |
 | 16 | `warn_rfqs` | Check | `smallint` | ro, hidden, default=0 |  |
 | 17 | `warn_pos` | Check | `smallint` | ro, hidden, default=0 |  |
 | 18 | `prevent_rfqs` | Check | `smallint` | ro, hidden, default=0 |  |
 | 19 | `prevent_pos` | Check | `smallint` | ro, hidden, default=0 |  |
-| 20 | `default_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe core)* |
+| 20 | `default_currency` | Link | `varchar(140)` |  | → `Currency` *(frappe/Geo)* |
 | 21 | `default_price_list` | Link | `varchar(140)` |  | → `Price List` |
 | 22 | `payment_terms` | Link | `varchar(140)` |  | → `Payment Terms Template` |
 | 23 | `on_hold` | Check | `smallint` | default=0 |  |
@@ -101,14 +103,14 @@ hint that our own design should share one abstraction for both trade directions.
 | 28 | `is_frozen` | Check | `smallint` | default=0 |  |
 | 29 | `allow_purchase_invoice_creation_without_purchase_order` | Check | `smallint` | default=0 |  |
 | 30 | `allow_purchase_invoice_creation_without_purchase_receipt` | Check | `smallint` | default=0 |  |
-| 31 | `supplier_primary_contact` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 31 | `supplier_primary_contact` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 32 | `mobile_no` | Read Only | `varchar(140)` | denorm←supplier_primary_contact.mobile_no |  |
 | 33 | `email_id` | Read Only | `varchar(140)` | denorm←supplier_primary_contact.email_id |  |
 | 34 | `primary_address` | Text Editor | `text` | ro |  |
-| 35 | `supplier_primary_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 35 | `supplier_primary_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 36 | `restrict_to_companies` | Check | `smallint` | default=0 |  |
 | 37 | `tax_withholding_group` | Link | `varchar(140)` |  | → `Tax Withholding Group` |
-| 38 | `gender` | Link | `varchar(140)` |  | → `Gender` *(frappe core)* |
+| 38 | `gender` | Link | `varchar(140)` |  | → `Gender` *(frappe/Contacts)* |
 | 39 | `alias` | Data | `varchar(140)` | UNIQUE |  |
 
 **Child tables (1-N):**
@@ -119,12 +121,13 @@ hint that our own design should share one abstraction for both trade directions.
 - `portal_users` → `Portal User` (line items)
 - `customer_numbers` → `Customer Number At Supplier` (line items)
 
-**Referenced by (33):** `Bank Guarantee`.`supplier`, `Payment Order`.`party`, `Payment Order Reference`.`supplier`, `Pricing Rule`.`supplier`, `Purchase Invoice`.`supplier`, `Supplier Item`.`supplier`, `Tax Rule`.`supplier`, `Asset`.`supplier`, `Purchase Order`.`supplier`, `Request for Quotation`.`vendor`, `Request for Quotation Supplier`.`supplier`, `Supplier Quotation`.`supplier`, `Supplier Scorecard`.`supplier`, `Supplier Scorecard Period`.`supplier`, `Communication Medium`.`provider` … (+18 more)
+**Referenced by (36):** `Bank Guarantee`.`supplier`, `Payment Order`.`party`, `Payment Order Reference`.`supplier`, `Pricing Rule`.`supplier`, `Purchase Invoice`.`supplier`, `Supplier Item`.`supplier`, `Tax Rule`.`supplier`, `Asset`.`supplier`, `Purchase Order`.`supplier`, `Request for Quotation`.`vendor`, `Request for Quotation Supplier`.`supplier`, `Supplier Quotation`.`supplier`, `Supplier Scorecard`.`supplier`, `Supplier Scorecard Period`.`supplier`, `Communication Medium`.`provider` … (+21 more)
 
 ## Supplier Scorecard
 
 - **Table**: `tabSupplier Scorecard`  (proposed: `supplier_scorecard`)
 - **Kind**: Master
+- **Owned by**: erpnext / Buying
 - **Naming**: `field:supplier`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -154,6 +157,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabSupplier Scorecard Criteria`  (proposed: `supplier_scorecard_criteria`)
 - **Kind**: Master
+- **Owned by**: erpnext / Buying
 - **Naming**: `field:criteria_name`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -169,6 +173,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabSupplier Scorecard Standing`  (proposed: `supplier_scorecard_standing`)
 - **Kind**: Master
+- **Owned by**: erpnext / Buying
 - **Naming**: `field:standing_name`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -191,6 +196,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabSupplier Scorecard Variable`  (proposed: `supplier_scorecard_variable`)
 - **Kind**: Master
+- **Owned by**: erpnext / Buying
 - **Naming**: `field:variable_label`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -211,6 +217,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabPurchase Order`  (proposed: `purchase_order`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Buying
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `supplier_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -230,22 +237,22 @@ hint that our own design should share one abstraction for both trade directions.
 | 10 | `amended_from` | Link | `varchar(140)` | ro | → `Purchase Order` |
 | 11 | `customer` | Link | `varchar(140)` | ro | → `Customer` |
 | 12 | `customer_name` | Data | `varchar(140)` | ro |  |
-| 13 | `customer_contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 13 | `customer_contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 14 | `customer_contact_display` | Small Text | `text` |  |  |
 | 15 | `customer_contact_mobile` | Small Text | `text` | hidden |  |
 | 16 | `customer_contact_email` | Code | `text` | hidden |  |
-| 17 | `supplier_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
-| 18 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 17 | `supplier_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
+| 18 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 19 | `address_display` | Text Editor | `text` | ro |  |
 | 20 | `contact_display` | Small Text | `text` | ro |  |
 | 21 | `contact_mobile` | Small Text | `text` | ro |  |
 | 22 | `contact_email` | Small Text | `text` | ro |  |
-| 23 | `shipping_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 23 | `shipping_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 24 | `shipping_address_display` | Text Editor | `text` | ro |  |
-| 25 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe core)* |
+| 25 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe/Geo)* |
 | 26 | `conversion_rate` | Float | `numeric(21,9)` | NOT NULL |  |
 | 27 | `buying_price_list` | Link | `varchar(140)` |  | → `Price List` |
-| 28 | `price_list_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe core)* |
+| 28 | `price_list_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe/Geo)* |
 | 29 | `plc_conversion_rate` | Float | `numeric(21,9)` |  |  |
 | 30 | `ignore_pricing_rule` | Check | `smallint` | default=0 |  |
 | 31 | `set_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
@@ -286,20 +293,20 @@ hint that our own design should share one abstraction for both trade directions.
 | 66 | `terms` | Text Editor | `text` |  |  |
 | 67 | `status` | Select | `varchar(140)` | NOT NULL, INDEX, ro, default=Draft | enum: Draft, On Hold, To Receive and Bill, To Bill, To Receive, Completed, Cancelled, Closed … (+1) |
 | 68 | `ref_sq` | Link | `varchar(140)` | ro | → `Supplier Quotation` |
-| 69 | `party_account_currency` | Link | `varchar(140)` | ro, hidden | → `Currency` *(frappe core)* |
+| 69 | `party_account_currency` | Link | `varchar(140)` | ro, hidden | → `Currency` *(frappe/Geo)* |
 | 70 | `inter_company_order_reference` | Link | `varchar(140)` | ro | → `Sales Order` |
 | 71 | `per_received` | Percent | `numeric(21,9)` | ro |  |
 | 72 | `per_billed` | Percent | `numeric(21,9)` | ro |  |
-| 73 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
-| 74 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
+| 73 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
+| 74 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
 | 75 | `group_same_items` | Check | `smallint` | default=0 |  |
 | 76 | `language` | Data | `varchar(140)` |  |  |
 | 77 | `from_date` | Date | `date` |  |  |
 | 78 | `to_date` | Date | `date` |  |  |
-| 79 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe core)* |
+| 79 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe/Automation)* |
 | 80 | `tax_category` | Link | `varchar(140)` |  | → `Tax Category` |
 | 81 | `set_reserve_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
-| 82 | `billing_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 82 | `billing_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 83 | `billing_address_display` | Text Editor | `text` | ro |  |
 | 84 | `is_internal_supplier` | Check | `smallint` | ro, denorm←supplier.is_internal_supplier, default=0 |  |
 | 85 | `represents_company` | Link | `varchar(140)` | ro, denorm←supplier.represents_company | → `Company` |
@@ -310,7 +317,7 @@ hint that our own design should share one abstraction for both trade directions.
 | 90 | `named_place` | Data | `varchar(140)` |  |  |
 | 91 | `advance_payment_status` | Select | `varchar(140)` | hidden | enum: Not Initiated, Initiated, Partially Paid, Fully Paid |
 | 92 | `has_unit_price_items` | Check | `smallint` | hidden, default=0 |  |
-| 93 | `dispatch_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 93 | `dispatch_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 94 | `dispatch_address_display` | Text Editor | `text` | ro |  |
 | 95 | `supplier_group` | Link | `varchar(140)` | hidden | → `Supplier Group` |
 | 96 | `mps` | Link | `varchar(140)` | ro | → `Master Production Schedule` |
@@ -330,6 +337,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabRequest for Quotation`  (proposed: `request_for_quotation`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Buying
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `company`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -341,12 +349,12 @@ hint that our own design should share one abstraction for both trade directions.
 | 2 | `company` | Link | `varchar(140)` | NOT NULL, INDEX | → `Company` |
 | 3 | `vendor` | Link | `varchar(140)` | ro, hidden | → `Supplier` |
 | 4 | `transaction_date` | Date | `date` | NOT NULL, INDEX, default=Today |  |
-| 5 | `email_template` | Link | `varchar(140)` |  | → `Email Template` *(frappe core)* |
+| 5 | `email_template` | Link | `varchar(140)` |  | → `Email Template` *(frappe/Email)* |
 | 6 | `message_for_supplier` | Text Editor | `text` | default=Please supply the specif |  |
 | 7 | `tc_name` | Link | `varchar(140)` |  | → `Terms and Conditions` |
 | 8 | `terms` | Text Editor | `text` |  |  |
-| 9 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
-| 10 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
+| 9 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
+| 10 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
 | 11 | `opportunity` | Link | `varchar(140)` | ro | → `Opportunity` |
 | 12 | `status` | Select | `varchar(140)` | NOT NULL, INDEX, ro | enum: Draft, Submitted, Cancelled |
 | 13 | `amended_from` | Link | `varchar(140)` | ro | → `Request for Quotation` |
@@ -355,13 +363,13 @@ hint that our own design should share one abstraction for both trade directions.
 | 16 | `named_place` | Data | `varchar(140)` |  |  |
 | 17 | `send_attached_files` | Check | `smallint` | default=1 |  |
 | 18 | `send_document_print` | Check | `smallint` | default=0 |  |
-| 19 | `billing_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 19 | `billing_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 20 | `billing_address_display` | Text Editor | `text` | ro |  |
 | 21 | `has_unit_price_items` | Check | `smallint` | hidden, default=0 |  |
 | 22 | `subject` | Data | `varchar(140)` | NOT NULL, default=Request for Quotation |  |
 | 23 | `mfs_html` | Code | `text` |  |  |
 | 24 | `use_html` | Check | `smallint` | hidden, default=0 |  |
-| 25 | `shipping_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 25 | `shipping_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 26 | `shipping_address_display` | Text Editor | `text` | ro |  |
 | 27 | `title` | Data | `varchar(140)` |  |  |
 
@@ -376,6 +384,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabSupplier Quotation`  (proposed: `supplier_quotation`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Buying
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `supplier_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -390,16 +399,16 @@ hint that our own design should share one abstraction for both trade directions.
 | 5 | `transaction_date` | Date | `date` | NOT NULL, INDEX, default=Today |  |
 | 6 | `amended_from` | Link | `varchar(140)` | ro, hidden | → `Supplier Quotation` |
 | 7 | `company` | Link | `varchar(140)` | NOT NULL, INDEX | → `Company` |
-| 8 | `supplier_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
-| 9 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 8 | `supplier_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
+| 9 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 10 | `address_display` | Text Editor | `text` | ro |  |
 | 11 | `contact_display` | Small Text | `text` | ro |  |
 | 12 | `contact_mobile` | Small Text | `text` | ro |  |
 | 13 | `contact_email` | Data | `varchar(140)` | ro |  |
-| 14 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe core)* |
+| 14 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe/Geo)* |
 | 15 | `conversion_rate` | Float | `numeric(21,9)` | NOT NULL |  |
 | 16 | `buying_price_list` | Link | `varchar(140)` |  | → `Price List` |
-| 17 | `price_list_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe core)* |
+| 17 | `price_list_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe/Geo)* |
 | 18 | `plc_conversion_rate` | Float | `numeric(21,9)` |  |  |
 | 19 | `ignore_pricing_rule` | Check | `smallint` | default=0 |  |
 | 20 | `total_qty` | Float | `numeric(21,9)` | ro |  |
@@ -433,11 +442,11 @@ hint that our own design should share one abstraction for both trade directions.
 | 48 | `disable_rounded_total` | Check | `smallint` | default=0 |  |
 | 49 | `tc_name` | Link | `varchar(140)` |  | → `Terms and Conditions` |
 | 50 | `terms` | Text Editor | `text` |  |  |
-| 51 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
+| 51 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
 | 52 | `group_same_items` | Check | `smallint` | default=0 |  |
-| 53 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
+| 53 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
 | 54 | `language` | Data | `varchar(140)` | ro |  |
-| 55 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe core)* |
+| 55 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe/Automation)* |
 | 56 | `status` | Select | `varchar(140)` | NOT NULL, INDEX, ro | enum: Draft, Submitted, Stopped, Cancelled, Expired |
 | 57 | `is_subcontracted` | Check | `smallint` | default=0 |  |
 | 58 | `opportunity` | Link | `varchar(140)` | ro | → `Opportunity` |
@@ -445,9 +454,9 @@ hint that our own design should share one abstraction for both trade directions.
 | 60 | `quotation_number` | Data | `varchar(140)` |  |  |
 | 61 | `incoterm` | Link | `varchar(140)` |  | → `Incoterm` |
 | 62 | `named_place` | Data | `varchar(140)` |  |  |
-| 63 | `shipping_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 63 | `shipping_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 64 | `shipping_address_display` | Text Editor | `text` | ro |  |
-| 65 | `billing_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 65 | `billing_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 66 | `billing_address_display` | Text Editor | `text` | ro |  |
 | 67 | `cost_center` | Link | `varchar(140)` |  | → `Cost Center` |
 | 68 | `project` | Link | `varchar(140)` |  | → `Project` |
@@ -466,6 +475,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabSupplier Scorecard Period`  (proposed: `supplier_scorecard_period`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Buying
 - **Naming**: `naming_series:`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -494,6 +504,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabCustomer Number At Supplier`  (proposed: `customer_number_at_supplier`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Buying
 - **Embedded in**: `Supplier`.`customer_numbers`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -505,6 +516,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabPurchase Order Item`  (proposed: `purchase_order_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Buying
 - **Naming**: `hash`  (Random)
 - **Search fields**: `item_name`
 - **Embedded in**: `Purchase Order`.`items`
@@ -591,6 +603,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabPurchase Receipt Item Supplied`  (proposed: `purchase_receipt_item_supplied`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Buying
 - **Embedded in**: `Purchase Invoice`.`supplied_items`, `Purchase Receipt`.`supplied_items`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -616,6 +629,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabRequest for Quotation Item`  (proposed: `request_for_quotation_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Buying
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Request for Quotation`.`items`
 
@@ -645,6 +659,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabRequest for Quotation Supplier`  (proposed: `request_for_quotation_supplier`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Buying
 - **Embedded in**: `Request for Quotation`.`suppliers`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -652,7 +667,7 @@ hint that our own design should share one abstraction for both trade directions.
 | 1 | `send_email` | Check | `smallint` | default=1 |  |
 | 2 | `email_sent` | Check | `smallint` | ro, default=0 |  |
 | 3 | `supplier` | Link | `varchar(140)` | NOT NULL | → `Supplier` |
-| 4 | `contact` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 4 | `contact` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 5 | `quote_status` | Select | `varchar(140)` | ro | enum: Pending, Received |
 | 6 | `supplier_name` | Read Only | `varchar(140)` | denorm←supplier.supplier_name |  |
 | 7 | `email_id` | Data | `varchar(140)` | denorm←contact.email_id |  |
@@ -661,6 +676,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabSupplier Quotation Item`  (proposed: `supplier_quotation_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Buying
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Supplier Quotation`.`items`
 
@@ -720,6 +736,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabSupplier Scorecard Scoring Criteria`  (proposed: `supplier_scorecard_scoring_criteria`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Buying
 - **Embedded in**: `Supplier Scorecard`.`criteria`, `Supplier Scorecard Period`.`criteria`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -734,6 +751,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabSupplier Scorecard Scoring Standing`  (proposed: `supplier_scorecard_scoring_standing`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Buying
 - **Embedded in**: `Supplier Scorecard`.`standings`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -754,6 +772,7 @@ hint that our own design should share one abstraction for both trade directions.
 
 - **Table**: `tabSupplier Scorecard Scoring Variable`  (proposed: `supplier_scorecard_scoring_variable`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Buying
 - **Embedded in**: `Supplier Scorecard Period`.`variables`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |

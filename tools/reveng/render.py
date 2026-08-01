@@ -47,7 +47,8 @@ def _flags(f) -> str:
 
 def _target(f, reg: Registry) -> str:
     if f.is_link:
-        mark = "" if reg.is_internal(f.options) else " *(frappe core)*"
+        origin = reg.origin(f.options)
+        mark = "" if origin.startswith("erpnext/") else f" *({origin})*"
         return f"→ `{f.options}`{mark}"
     if f.is_dynamic_link:
         return f"→ polymorphic, doctype in `{f.options}`"
@@ -104,11 +105,14 @@ def overview(reg: Registry) -> str:
     ]
 
     # module table
-    L += ["## Modules", "", "| Module | DocTypes | Masters | Trees | Transactions | Child tables | Singles | Columns |", "|---|--:|--:|--:|--:|--:|--:|--:|"]
-    for m in reg.modules():
-        ds = [d for d in reg.doctypes if d.module == m]
+    L += ["| Module | DocTypes | Masters | Trees | Transactions | Child tables | Singles | Columns |", "|---|--:|--:|--:|--:|--:|--:|--:|"]
+    L += ["| App | Module | DocTypes | Masters | Trees | Transactions | Child tables | Singles | Columns |",
+          "|---|---|--:|--:|--:|--:|--:|--:|--:|"]
+    for a, m in sorted({(d.app, d.module) for d in reg.doctypes}):
+        ds = [d for d in reg.doctypes if d.module == m and d.app == a]
         L.append(
-            "| {} | {} | {} | {} | {} | {} | {} | {} |".format(
+            "| {} | {} | {} | {} | {} | {} | {} | {} | {} |".format(
+                a,
                 m,
                 len(ds),
                 sum(1 for d in ds if d.kind == "master"),
@@ -120,7 +124,7 @@ def overview(reg: Registry) -> str:
             )
         )
     L += [
-        "| **TOTAL** | **{}** | | | | | | **{}** |".format(
+        "| | **TOTAL** | **{}** | | | | | | **{}** |".format(
             len(reg.doctypes), sum(len(d.columns) for d in reg.doctypes)
         ),
         "",
@@ -149,11 +153,11 @@ def overview(reg: Registry) -> str:
     L += [
         "## Most referenced entities (inbound Link count) — the true core of the model",
         "",
-        "| Target DocType | Inbound links | In ERPNext app |",
+        "| Target DocType | Inbound links | Owned by (app/module) |",
         "|---|--:|---|",
     ]
     for t, n in inbound.most_common(40):
-        L.append(f"| `{t}` | {n} | {'yes' if reg.is_internal(t) else 'no (frappe core)'} |")
+        L.append(f"| `{t}` | {n} | {reg.origin(t)} |")
     L.append("")
 
     # biggest tables
@@ -180,9 +184,9 @@ def full_catalog(reg: Registry) -> str:
         + ", ".join(f"**{k}** = {KIND_LABEL[k]}" for k in KIND_ORDER),
         "",
     ]
-    for m in reg.modules():
-        ds = [d for d in reg.doctypes if d.module == m]
-        L += [f"## {m} ({len(ds)})", "", "| DocType | Physical table | Kind | Cols | Links | Child tables | Naming |", "|---|---|---|--:|--:|--:|---|"]
+    for a, m in sorted({(d.app, d.module) for d in reg.doctypes}):
+        ds = [d for d in reg.doctypes if d.module == m and d.app == a]
+        L += [f"## {a} / {m} ({len(ds)})", "", "| DocType | Physical table | Kind | Cols | Links | Child tables | Naming |", "|---|---|---|--:|--:|--:|---|"]
         for d in sorted(ds, key=lambda x: (KIND_ORDER.index(x.kind), x.name)):
             naming = d.autoname or d.naming_rule or "-"
             L.append(
@@ -198,7 +202,7 @@ def full_catalog(reg: Registry) -> str:
 # --------------------------------------------------------------------------- #
 def module_deep_dive(reg: Registry, module: str, notes: dict[str, str] | None = None) -> str:
     notes = notes or {}
-    ds = [d for d in reg.doctypes if d.module == module]
+    ds = [d for d in reg.doctypes if d.module == module and d.app == "erpnext"]
     L = [f"# Module deep dive: {module}", ""]
     if module in notes:
         L += [notes[module], ""]
@@ -229,6 +233,7 @@ def _doctype_section(d: DocType, reg: Registry) -> list[str]:
     meta = [
         f"- **Table**: `{d.table_name}`  (proposed: `{d.sql_table}`)",
         f"- **Kind**: {KIND_LABEL[d.kind]}",
+        f"- **Owned by**: {d.app} / {d.module}",
     ]
     if d.autoname:
         meta.append(f"- **Naming**: `{d.autoname}`" + (f"  ({d.naming_rule})" if d.naming_rule else ""))

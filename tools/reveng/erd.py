@@ -127,6 +127,8 @@ def module_relationship_graph(reg: Registry, module: str, max_nodes: int = 45, h
         for _fn, t in d.links:
             if t == source_name or not reg.is_internal(t):
                 continue
+            if reg.app_of(t) != "erpnext":
+                continue  # framework masters (User, File, Currency, ...) would swamp the graph
             tgt = reg.get(t)
             if tgt.istable:
                 continue
@@ -148,7 +150,9 @@ def module_relationship_graph(reg: Registry, module: str, max_nodes: int = 45, h
         f"### {module}: entity dependency graph",
         "",
         "Child tables are collapsed into their parent document. Rounded nodes are external",
-        "masters owned by other modules. `[[ ]]` = submittable transaction.",
+        "masters owned by other ERPNext modules. `[[ ]]` = submittable transaction. Links to",
+        "framework masters (`User`, `File`, `Currency`, `Address`, ...) are omitted here - see",
+        "the module reference for the full column list.",
         "",
         "```mermaid",
         "flowchart LR",

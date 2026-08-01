@@ -1,49 +1,72 @@
 # erp — our own ERP (backend / database)
 
-Stage 1: reverse engineer ERPNext's data model, then design our own.
+Stage 1: reverse engineer the Frappe/ERPNext data model, then design our own.
+
+Parsed the full standard app set — `frappe`, `erpnext`, `payments`, `hrms`, `webshop`:
+**997 DocTypes → 908 physical tables → 10,995 columns.** The accounting and trade/inventory
+modules of `erpnext` are documented at column level.
 
 ```
 docs/reveng/     study output — start at docs/reveng/README.md
 schema/          machine-readable catalog (JSON + CSV) and generated DDL
-schema/ddl/      *_asis.sql  = ERPNext layout as PostgreSQL (verified: 338 tables, 0 errors)
-                 clean_*.sql = normalised reference schema (verified: 388 tables, 1590 FKs)
+schema/ddl/      *_asis.sql  = ERPNext physical layout as PostgreSQL
+                 clean_*.sql = normalised reference schema
 tools/reveng/    the parser toolkit — re-runnable against any Frappe app
+tools/verify_ddl.sh  loads the generated DDL into a throwaway PostgreSQL and reports errors
 ```
 
 ## Regenerate everything
 
 ```bash
-python3 tools/reveng/run.py --app /path/to/erpnext/erpnext --out .
+python3 tools/reveng/run.py --out . \
+  --app erpnext=/path/to/erpnext/erpnext \
+  --app frappe=/path/to/frappe/frappe \
+  --app payments=/path/to/payments/payments \
+  --app hrms=/path/to/hrms/hrms \
+  --app webshop=/path/to/webshop/webshop
 ```
 
-No third-party dependencies — standard library only.
+Only `--app erpnext=...` is strictly required; adding the others makes every `Link` column
+resolve to a known owner instead of "unknown". No third-party dependencies — standard
+library only.
 
 ## Verify the DDL actually loads
 
 ```bash
-initdb -D pgdata && postgres -D pgdata -k pgdata -p 5433 &
-createdb -h pgdata -p 5433 clean
-psql -h pgdata -p 5433 -d clean -f schema/ddl/clean_01_tables.sql
-psql -h pgdata -p 5433 -d clean -f schema/ddl/clean_02_constraints.sql
+./tools/verify_ddl.sh
+```
+
+The script installs PostgreSQL if it is missing (the sandbox is reset periodically),
+initialises its own data directory, loads both schemas and reports per-file errors.
+
+Last run:
+
+```
+as-is DDL   accounts / buying / selling / setup / stock / subcontracting   all OK
+clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all OK
+  asis:  338 tables, 0 FKs, 815 indexes      (faithful ERPNext layout — it has no FKs)
+  clean: 429 tables, 2051 FKs, 1193 indexes
+  dangling FK targets: 0
 ```
 
 ## Toolkit layout
 
 | File | Responsibility |
 |---|---|
-| `frappe_schema.py` | DocType/Field model, fieldtype → SQL type maps (transcribed from frappe core), registry + relationship queries |
+| `frappe_schema.py` | DocType/Field model, fieldtype → SQL type maps (transcribed from frappe core), multi-app registry + relationship queries |
 | `catalog.py` | JSON + CSV catalog of every table, column and relation |
 | `render.py` | overview, full table catalog, per-module column-level reference |
 | `erd.py` | Mermaid ER and dependency diagrams |
 | `flows.py` | auto-derives the document chain from real Link columns |
 | `patterns.py` | cross-cutting patterns: shared child tables, polymorphism, denormalisation, naming, trees |
-| `ddl.py` | PostgreSQL DDL emitters (as-is and normalised) |
+| `counts.py` | reconciles the "532 or 1,000 tables?" question per app |
+| `ddl.py` | PostgreSQL DDL emitters (as-is and normalised, with out-of-scope stubs) |
 | `run.py` | entry point |
 
 ## Status
 
-- [x] ERPNext cloned and parsed (532 DocTypes, 6,983 columns)
-- [x] Full catalog of all modules
+- [x] Bench cloned and parsed — 997 DocTypes, 100% coverage verified
+- [x] Full catalog of all apps and modules
 - [x] Deep dive: Accounts, Selling, Buying, Stock, Subcontracting, Setup
 - [x] Ledger anatomy documented (GL, AR/AP, stock ledger, bin, batch/serial)
 - [x] Reference DDL generated and executed against PostgreSQL 15

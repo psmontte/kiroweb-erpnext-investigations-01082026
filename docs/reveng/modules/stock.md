@@ -27,11 +27,12 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabDelivery Settings`  (proposed: `delivery_settings`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Stock
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `dispatch_template` | Link | `varchar(140)` |  | → `Email Template` *(frappe core)* |
-| 2 | `dispatch_attachment` | Link | `varchar(140)` |  | → `Print Format` *(frappe core)* |
+| 1 | `dispatch_template` | Link | `varchar(140)` |  | → `Email Template` *(frappe/Email)* |
+| 2 | `dispatch_attachment` | Link | `varchar(140)` |  | → `Print Format` *(frappe/Printing)* |
 | 3 | `send_with_attachment` | Check | `smallint` | default=0 |  |
 | 4 | `stop_delay` | Int | `integer` |  |  |
 
@@ -39,6 +40,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Variant Settings`  (proposed: `item_variant_settings`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Stock
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -54,6 +56,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabQuick Stock Balance`  (proposed: `quick_stock_balance`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Stock
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -70,6 +73,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabStock Reposting Settings`  (proposed: `stock_reposting_settings`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Stock
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -78,7 +82,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 3 | `limits_dont_apply_on` | Select | `varchar(140)` |  | enum: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday |
 | 4 | `limit_reposting_timeslot` | Check | `smallint` | default=0 |  |
 | 5 | `item_based_reposting` | Check | `smallint` | default=1 |  |
-| 6 | `notify_reposting_error_to_role` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
+| 6 | `notify_reposting_error_to_role` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
 | 7 | `enable_parallel_reposting` | Check | `smallint` | default=0 |  |
 | 8 | `no_of_parallel_reposting` | Int | `integer` | default=4 |  |
 | 9 | `enable_separate_reposting_for_gl` | Check | `smallint` | default=0 |  |
@@ -89,6 +93,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabStock Settings`  (proposed: `stock_settings`)
 - **Kind**: Single (settings)
+- **Owned by**: erpnext / Stock
 - **Description**: Default settings for your stock-related transactions
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -107,12 +112,12 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 12 | `reorder_email_notify` | Check | `smallint` | default=0 |  |
 | 13 | `stock_frozen_upto` | Date | `date` |  |  |
 | 14 | `stock_frozen_upto_days` | Int | `integer` |  |  |
-| 15 | `stock_auth_role` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
+| 15 | `stock_auth_role` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
 | 16 | `use_naming_series` | Check | `smallint` | default=0 |  |
 | 17 | `naming_series_prefix` | Data | `varchar(140)` | default=BATCH- |  |
-| 18 | `role_allowed_to_create_edit_back_dated_transactions` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
+| 18 | `role_allowed_to_create_edit_back_dated_transactions` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
 | 19 | `disable_serial_no_and_batch_selector` | Check | `smallint` | default=0 |  |
-| 20 | `role_allowed_to_over_deliver_receive` | Link | `varchar(140)` |  | → `Role` *(frappe core)* |
+| 20 | `role_allowed_to_over_deliver_receive` | Link | `varchar(140)` |  | → `Role` *(frappe/Core)* |
 | 21 | `action_if_quality_inspection_is_rejected` | Select | `varchar(140)` | default=Stop | enum: Stop, Warn |
 | 22 | `mr_qty_allowance` | Float | `numeric(21,9)` |  |  |
 | 23 | `update_existing_price_list_rate` | Check | `smallint` | default=0 |  |
@@ -149,6 +154,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabBatch`  (proposed: `batch`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `field:batch_id`  (By fieldname)
 - **Title field**: `batch_id`
 
@@ -162,7 +168,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 6 | `manufacturing_date` | Date | `date` | default=Today |  |
 | 7 | `expiry_date` | Date | `date` |  |  |
 | 8 | `supplier` | Link | `varchar(140)` | ro | → `Supplier` |
-| 9 | `reference_doctype` | Link | `varchar(140)` | ro | → `DocType` *(frappe core)* |
+| 9 | `reference_doctype` | Link | `varchar(140)` | ro | → `DocType` *(frappe/Core)* |
 | 10 | `reference_name` | Dynamic Link | `varchar(140)` | ro | → polymorphic, doctype in `reference_doctype` |
 | 11 | `description` | Small Text | `text` |  |  |
 | 12 | `item_name` | Data | `varchar(140)` | ro, denorm←item.item_name |  |
@@ -183,6 +189,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabBin`  (proposed: `bin`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `hash`  (Random)
 - **Title field**: `item_code`
 - **Search fields**: `item_code,warehouse`
@@ -210,6 +217,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabCustoms Tariff Number`  (proposed: `customs_tariff_number`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `field:tariff_number`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -223,13 +231,14 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabInventory Dimension`  (proposed: `inventory_dimension`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `field:dimension_name`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `reference_document` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe core)* |
+| 1 | `reference_document` | Link | `varchar(140)` | NOT NULL | → `DocType` *(frappe/Core)* |
 | 2 | `dimension_name` | Data | `varchar(140)` | NOT NULL, UNIQUE |  |
-| 3 | `document_type` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 3 | `document_type` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 4 | `istable` | Check | `smallint` | ro, hidden, denorm←document_type.istable, default=0 |  |
 | 5 | `condition` | Code | `text` |  |  |
 | 6 | `apply_to_all_doctypes` | Check | `smallint` | default=1 |  |
@@ -245,6 +254,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem`  (proposed: `item`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `field:item_code`  (By fieldname)
 - **Title field**: `item_name`
 - **Description**: A Product or a Service that is bought, sold or kept in stock.
@@ -296,7 +306,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 42 | `last_purchase_rate` | Float | `numeric(21,9)` | ro |  |
 | 43 | `is_customer_provided_item` | Check | `smallint` | default=0 |  |
 | 44 | `delivered_by_supplier` | Check | `smallint` | default=0 |  |
-| 45 | `country_of_origin` | Link | `varchar(140)` |  | → `Country` *(frappe core)* |
+| 45 | `country_of_origin` | Link | `varchar(140)` |  | → `Country` *(frappe/Geo)* |
 | 46 | `customs_tariff_number` | Link | `varchar(140)` |  | → `Customs Tariff Number` |
 | 47 | `sales_uom` | Link | `varchar(140)` |  | → `UOM` |
 | 48 | `is_sales_item` | Check | `smallint` | default=1 |  |
@@ -337,12 +347,13 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 - `taxes` → `Item Tax` (line items)
 - `allowed_companies` → `Company Restriction` (multi-select)
 
-**Referenced by (114):** `POS Invoice Item`.`item_code`, `Pricing Rule`.`other_item_code`, `Pricing Rule`.`free_item`, `Pricing Rule Item Code`.`item_code`, `Promotional Scheme`.`other_item_code`, `Promotional Scheme Product Discount`.`free_item`, `Purchase Invoice Item`.`item_code`, `Sales Invoice Item`.`item_code`, `Subscription Plan`.`item`, `Tax Rule`.`item`, `Asset`.`item_code`, `Asset Capitalization`.`target_item_code`, `Asset Capitalization Asset Item`.`item_code`, `Asset Capitalization Service Item`.`item_code`, `Asset Capitalization Stock Item`.`item_code` … (+99 more)
+**Referenced by (118):** `POS Invoice Item`.`item_code`, `Pricing Rule`.`other_item_code`, `Pricing Rule`.`free_item`, `Pricing Rule Item Code`.`item_code`, `Promotional Scheme`.`other_item_code`, `Promotional Scheme Product Discount`.`free_item`, `Purchase Invoice Item`.`item_code`, `Sales Invoice Item`.`item_code`, `Subscription Plan`.`item`, `Tax Rule`.`item`, `Asset`.`item_code`, `Asset Capitalization`.`target_item_code`, `Asset Capitalization Asset Item`.`item_code`, `Asset Capitalization Service Item`.`item_code`, `Asset Capitalization Stock Item`.`item_code` … (+103 more)
 
 ## Item Alternative
 
 - **Table**: `tabItem Alternative`  (proposed: `item_alternative`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Title field**: `item_code`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -357,6 +368,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Attribute`  (proposed: `item_attribute`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `field:attribute_name`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -378,6 +390,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Lead Time`  (proposed: `item_lead_time`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `field:item_code`  (By fieldname)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -400,6 +413,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Manufacturer`  (proposed: `item_manufacturer`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Title field**: `item_code`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -415,6 +429,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Price`  (proposed: `item_price`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `hash`  (Random)
 - **Title field**: `item_name`
 - **Description**: Log the selling and buying rate of an Item
@@ -432,7 +447,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 9 | `supplier` | Link | `varchar(140)` |  | → `Supplier` |
 | 10 | `buying` | Check | `smallint` | ro, default=0 |  |
 | 11 | `selling` | Check | `smallint` | ro, default=0 |  |
-| 12 | `currency` | Link | `varchar(140)` | ro, denorm←price_list.currency | → `Currency` *(frappe core)* |
+| 12 | `currency` | Link | `varchar(140)` | ro, denorm←price_list.currency | → `Currency` *(frappe/Geo)* |
 | 13 | `price_list_rate` | Currency | `numeric(21,9)` | NOT NULL |  |
 | 14 | `valid_from` | Date | `date` | default=Today |  |
 | 15 | `lead_time_days` | Int | `integer` | default=0 |  |
@@ -445,6 +460,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabManufacturer`  (proposed: `manufacturer`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `field:short_name`
 - **Title field**: `short_name`
 - **Description**: Manufacturers used in Items
@@ -455,7 +471,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 1 | `short_name` | Data | `varchar(140)` | NOT NULL, UNIQUE |  |
 | 2 | `full_name` | Data | `varchar(140)` |  |  |
 | 3 | `website` | Data | `varchar(140)` |  |  |
-| 4 | `country` | Link | `varchar(140)` |  | → `Country` *(frappe core)* |
+| 4 | `country` | Link | `varchar(140)` |  | → `Country` *(frappe/Geo)* |
 | 5 | `logo` | Attach Image | `text` |  |  |
 | 6 | `notes` | Small Text | `text` |  |  |
 
@@ -465,6 +481,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabPrice List`  (proposed: `price_list`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `field:price_list_name`  (By fieldname)
 - **Description**: A Price List is a collection of Item Prices either Selling, Buying, or both
 - **Search fields**: `currency`
@@ -473,7 +490,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 |--:|---|---|---|---|---|
 | 1 | `enabled` | Check | `smallint` | default=1 |  |
 | 2 | `price_list_name` | Data | `varchar(140)` | NOT NULL, UNIQUE |  |
-| 3 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe core)* |
+| 3 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe/Geo)* |
 | 4 | `buying` | Check | `smallint` | default=0 |  |
 | 5 | `selling` | Check | `smallint` | default=0 |  |
 | 6 | `price_not_uom_dependent` | Check | `smallint` | default=0 |  |
@@ -482,12 +499,13 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - `countries` → `Price List Country` (line items)
 
-**Referenced by (24):** `POS Invoice`.`selling_price_list`, `POS Profile`.`selling_price_list`, `Pricing Rule`.`for_price_list`, `Promotional Scheme Price Discount`.`for_price_list`, `Purchase Invoice`.`buying_price_list`, `Sales Invoice`.`selling_price_list`, `Subscription Plan`.`price_list`, `Buying Settings`.`buying_price_list`, `Purchase Order`.`buying_price_list`, `Supplier`.`default_price_list`, `Supplier Quotation`.`buying_price_list`, `BOM`.`buying_price_list`, `BOM Creator`.`buying_price_list`, `Import Supplier Invoice`.`default_buying_price_list`, `Customer`.`default_price_list` … (+9 more)
+**Referenced by (25):** `POS Invoice`.`selling_price_list`, `POS Profile`.`selling_price_list`, `Pricing Rule`.`for_price_list`, `Promotional Scheme Price Discount`.`for_price_list`, `Purchase Invoice`.`buying_price_list`, `Sales Invoice`.`selling_price_list`, `Subscription Plan`.`price_list`, `Buying Settings`.`buying_price_list`, `Purchase Order`.`buying_price_list`, `Supplier`.`default_price_list`, `Supplier Quotation`.`buying_price_list`, `BOM`.`buying_price_list`, `BOM Creator`.`buying_price_list`, `Import Supplier Invoice`.`default_buying_price_list`, `Customer`.`default_price_list` … (+10 more)
 
 ## Putaway Rule
 
 - **Table**: `tabPutaway Rule`  (proposed: `putaway_rule`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `PUT-.####`  (Expression (old style))
 - **Title field**: `item_code`
 
@@ -511,6 +529,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabQuality Inspection Parameter`  (proposed: `quality_inspection_parameter`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `field:parameter`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -525,6 +544,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabQuality Inspection Parameter Group`  (proposed: `quality_inspection_parameter_group`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `field:group_name`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -537,6 +557,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabQuality Inspection Template`  (proposed: `quality_inspection_template`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `field:quality_inspection_template_name`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -553,6 +574,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabSerial No`  (proposed: `serial_no`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `field:serial_no`  (By fieldname)
 - **Description**: Distinct unit of an Item
 - **Search fields**: `item_code`
@@ -580,7 +602,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 19 | `purchase_rate` | Float | `numeric(21,9)` | ro |  |
 | 20 | `status` | Select | `varchar(140)` | ro | enum: Active, Inactive, Consumed, Delivered, Expired |
 | 21 | `customer` | Link | `varchar(140)` | ro | → `Customer` |
-| 22 | `reference_doctype` | Link | `varchar(140)` | ro | → `DocType` *(frappe core)* |
+| 22 | `reference_doctype` | Link | `varchar(140)` | ro | → `DocType` *(frappe/Core)* |
 | 23 | `reference_name` | Dynamic Link | `varchar(140)` | ro | → polymorphic, doctype in `reference_doctype` |
 | 24 | `posting_date` | Date | `date` | ro |  |
 
@@ -594,6 +616,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabShipment Parcel Template`  (proposed: `shipment_parcel_template`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `field:parcel_template_name`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -610,6 +633,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabStock Closing Balance`  (proposed: `stock_closing_balance`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -635,6 +659,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabStock Entry Type`  (proposed: `stock_entry_type`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `Prompt`  (Set by user)
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -649,6 +674,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabUOM Category`  (proposed: `uom_category`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `field:category_name`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -661,6 +687,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabWarehouse Type`  (proposed: `warehouse_type`)
 - **Kind**: Master
+- **Owned by**: erpnext / Stock
 - **Naming**: `Prompt`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -677,6 +704,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabWarehouse`  (proposed: `warehouse`)
 - **Kind**: Tree master (hierarchy)
+- **Owned by**: erpnext / Stock
 - **Tree**: yes — nested set (`lft`, `rgt`, `old_parent`)
 - **Description**: A logical Warehouse against which stock entries are made.
 
@@ -704,7 +732,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 20 | `is_rejected_warehouse` | Check | `smallint` | default=0 |  |
 | 21 | `customer` | Link | `varchar(140)` |  | → `Customer` |
 
-**Referenced by (131):** `POS Invoice`.`set_warehouse`, `POS Invoice Item`.`warehouse`, `POS Invoice Item`.`target_warehouse`, `POS Profile`.`warehouse`, `Pricing Rule`.`warehouse`, `Promotional Scheme Price Discount`.`warehouse`, `Promotional Scheme Product Discount`.`warehouse`, `Purchase Invoice`.`set_warehouse`, `Purchase Invoice`.`rejected_warehouse`, `Purchase Invoice`.`set_from_warehouse`, `Purchase Invoice`.`supplier_warehouse`, `Purchase Invoice Item`.`warehouse`, `Purchase Invoice Item`.`rejected_warehouse`, `Purchase Invoice Item`.`from_warehouse`, `Sales Invoice`.`set_warehouse` … (+116 more)
+**Referenced by (133):** `POS Invoice`.`set_warehouse`, `POS Invoice Item`.`warehouse`, `POS Invoice Item`.`target_warehouse`, `POS Profile`.`warehouse`, `Pricing Rule`.`warehouse`, `Promotional Scheme Price Discount`.`warehouse`, `Promotional Scheme Product Discount`.`warehouse`, `Purchase Invoice`.`set_warehouse`, `Purchase Invoice`.`rejected_warehouse`, `Purchase Invoice`.`set_from_warehouse`, `Purchase Invoice`.`supplier_warehouse`, `Purchase Invoice Item`.`warehouse`, `Purchase Invoice Item`.`rejected_warehouse`, `Purchase Invoice Item`.`from_warehouse`, `Sales Invoice`.`set_warehouse` … (+118 more)
 
 ---
 
@@ -714,6 +742,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabDelivery Note`  (proposed: `delivery_note`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `customer_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -734,21 +763,21 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 11 | `return_against` | Link | `varchar(140)` | INDEX, ro | → `Delivery Note` |
 | 12 | `po_no` | Small Text | `text` |  |  |
 | 13 | `po_date` | Date | `date` |  |  |
-| 14 | `shipping_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 14 | `shipping_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 15 | `shipping_address` | Text Editor | `text` | ro |  |
-| 16 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 16 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 17 | `contact_display` | Small Text | `text` | ro |  |
 | 18 | `contact_mobile` | Small Text | `text` | ro, hidden |  |
 | 19 | `contact_email` | Data | `varchar(140)` | ro, hidden |  |
-| 20 | `customer_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 20 | `customer_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 21 | `tax_id` | Data | `varchar(140)` | ro |  |
 | 22 | `address_display` | Text Editor | `text` | ro |  |
-| 23 | `company_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 23 | `company_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 24 | `company_address_display` | Text Editor | `text` | ro |  |
-| 25 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe core)* |
+| 25 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe/Geo)* |
 | 26 | `conversion_rate` | Float | `numeric(21,9)` | NOT NULL |  |
 | 27 | `selling_price_list` | Link | `varchar(140)` | NOT NULL | → `Price List` |
-| 28 | `price_list_currency` | Link | `varchar(140)` | NOT NULL, ro | → `Currency` *(frappe core)* |
+| 28 | `price_list_currency` | Link | `varchar(140)` | NOT NULL, ro | → `Currency` *(frappe/Geo)* |
 | 29 | `plc_conversion_rate` | Float | `numeric(21,9)` | NOT NULL |  |
 | 30 | `ignore_pricing_rule` | Check | `smallint` | default=0 |  |
 | 31 | `set_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
@@ -790,9 +819,9 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 67 | `per_billed` | Percent | `numeric(21,9)` | ro |  |
 | 68 | `customer_group` | Link | `varchar(140)` | hidden | → `Customer Group` |
 | 69 | `territory` | Link | `varchar(140)` |  | → `Territory` |
-| 70 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
-| 71 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
-| 72 | `language` | Link | `varchar(140)` | ro, denorm←customer.language | → `Language` *(frappe core)* |
+| 70 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
+| 71 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
+| 72 | `language` | Link | `varchar(140)` | ro, denorm←customer.language | → `Language` *(frappe/Core)* |
 | 73 | `print_without_amount` | Check | `smallint` | default=0 |  |
 | 74 | `group_same_items` | Check | `smallint` | default=0 |  |
 | 75 | `status` | Select | `varchar(140)` | NOT NULL, INDEX, ro, default=Draft | enum: Draft, To Bill, Partially Billed, Completed, Return, Return Issued, Cancelled, Closed |
@@ -800,7 +829,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 77 | `installation_status` | Select | `varchar(140)` | hidden |  |
 | 78 | `excise_page` | Data | `varchar(140)` | hidden |  |
 | 79 | `instructions` | Text | `text` |  |  |
-| 80 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe core)* |
+| 80 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe/Automation)* |
 | 81 | `sales_partner` | Link | `varchar(140)` |  | → `Sales Partner` |
 | 82 | `commission_rate` | Float | `numeric(21,9)` | denorm←sales_partner.commission_rate |  |
 | 83 | `total_commission` | Currency | `numeric(21,9)` |  |  |
@@ -810,18 +839,18 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 87 | `set_target_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
 | 88 | `represents_company` | Link | `varchar(140)` | ro, denorm←customer.represents_company | → `Company` |
 | 89 | `disable_rounded_total` | Check | `smallint` | default=0 |  |
-| 90 | `dispatch_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 90 | `dispatch_address_name` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 91 | `dispatch_address` | Text Editor | `text` | ro |  |
 | 92 | `amount_eligible_for_commission` | Currency | `numeric(21,9)` | ro |  |
 | 93 | `cost_center` | Link | `varchar(140)` |  | → `Cost Center` |
 | 94 | `incoterm` | Link | `varchar(140)` |  | → `Incoterm` |
 | 95 | `named_place` | Data | `varchar(140)` |  |  |
 | 96 | `delivery_trip` | Link | `varchar(140)` |  | → `Delivery Trip` |
-| 97 | `utm_medium` | Link | `varchar(140)` |  | → `UTM Medium` *(frappe core)* |
+| 97 | `utm_medium` | Link | `varchar(140)` |  | → `UTM Medium` *(frappe/Website)* |
 | 98 | `utm_content` | Data | `varchar(140)` |  |  |
-| 99 | `utm_source` | Link | `varchar(140)` |  | → `UTM Source` *(frappe core)* |
-| 100 | `utm_campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe core)* |
-| 101 | `company_contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 99 | `utm_source` | Link | `varchar(140)` |  | → `UTM Source` *(frappe/Website)* |
+| 100 | `utm_campaign` | Link | `varchar(140)` |  | → `UTM Campaign` *(frappe/Website)* |
+| 101 | `company_contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 102 | `title` | Data | `varchar(140)` |  |  |
 
 **Child tables (1-N):**
@@ -839,6 +868,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabDelivery Trip`  (proposed: `delivery_trip`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `driver_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -856,7 +886,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 9 | `departure_time` | Datetime | `timestamp` | NOT NULL |  |
 | 10 | `status` | Select | `varchar(140)` | ro | enum: Draft, Scheduled, In Transit, Completed, Cancelled |
 | 11 | `amended_from` | Link | `varchar(140)` | ro | → `Delivery Trip` |
-| 12 | `driver_address` | Link | `varchar(140)` | denorm←driver.address | → `Address` *(frappe core)* |
+| 12 | `driver_address` | Link | `varchar(140)` | denorm←driver.address | → `Address` *(frappe/Contacts)* |
 | 13 | `driver_email` | Data | `varchar(140)` | ro |  |
 | 14 | `employee` | Link | `varchar(140)` | ro, denorm←driver.employee | → `Employee` |
 
@@ -864,12 +894,13 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - `delivery_stops` → `Delivery Stop` (line items)
 
-**Referenced by (2):** `Delivery Note`.`delivery_trip`, `Delivery Trip`.`amended_from`
+**Referenced by (3):** `Delivery Note`.`delivery_trip`, `Delivery Trip`.`amended_from`, `Expense Claim`.`delivery_trip`
 
 ## Item Standard Cost
 
 - **Table**: `tabItem Standard Cost`  (proposed: `item_standard_cost`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -889,6 +920,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabLanded Cost Voucher`  (proposed: `landed_cost_voucher`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -915,6 +947,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabMaterial Request`  (proposed: `material_request`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `title`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -934,8 +967,8 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 10 | `status` | Select | `varchar(140)` | INDEX, ro | enum: Draft, Submitted, Stopped, Cancelled, Pending, Partially Ordered, Partially Received, Ordered … (+3) |
 | 11 | `per_ordered` | Percent | `numeric(21,9)` | ro |  |
 | 12 | `per_received` | Percent | `numeric(21,9)` | ro |  |
-| 13 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
-| 14 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
+| 13 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
+| 14 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
 | 15 | `tc_name` | Link | `varchar(140)` |  | → `Terms and Conditions` |
 | 16 | `terms` | Text Editor | `text` |  |  |
 | 17 | `job_card` | Link | `varchar(140)` | ro | → `Job Card` |
@@ -956,6 +989,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabPacking Slip`  (proposed: `packing_slip`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `MAT-PAC-.YYYY.-.#####`  (Expression (old style))
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 - **Description**: Generate packing slips for packages to be delivered. Used to notify package number, package contents and its weight.
@@ -971,7 +1005,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 6 | `net_weight_uom` | Link | `varchar(140)` | ro | → `UOM` |
 | 7 | `gross_weight_pkg` | Float | `numeric(21,9)` |  |  |
 | 8 | `gross_weight_uom` | Link | `varchar(140)` |  | → `UOM` |
-| 9 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
+| 9 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
 | 10 | `amended_from` | Link | `varchar(140)` | ro | → `Packing Slip` |
 
 **Child tables (1-N):**
@@ -984,6 +1018,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabPick List`  (proposed: `pick_list`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -1020,6 +1055,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabPurchase Receipt`  (proposed: `purchase_receipt`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `supplier_name`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -1038,18 +1074,18 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 9 | `company` | Link | `varchar(140)` | NOT NULL | → `Company` |
 | 10 | `is_return` | Check | `smallint` | ro, default=0 |  |
 | 11 | `return_against` | Link | `varchar(140)` | INDEX, ro | → `Purchase Receipt` |
-| 12 | `supplier_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
-| 13 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 12 | `supplier_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
+| 13 | `contact_person` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 14 | `address_display` | Text Editor | `text` | ro |  |
 | 15 | `contact_display` | Small Text | `text` | ro |  |
 | 16 | `contact_mobile` | Small Text | `text` | ro |  |
 | 17 | `contact_email` | Small Text | `text` | ro |  |
-| 18 | `shipping_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 18 | `shipping_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 19 | `shipping_address_display` | Text Editor | `text` | ro |  |
-| 20 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe core)* |
+| 20 | `currency` | Link | `varchar(140)` | NOT NULL | → `Currency` *(frappe/Geo)* |
 | 21 | `conversion_rate` | Float | `numeric(21,9)` | NOT NULL |  |
 | 22 | `buying_price_list` | Link | `varchar(140)` |  | → `Price List` |
-| 23 | `price_list_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe core)* |
+| 23 | `price_list_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe/Geo)* |
 | 24 | `plc_conversion_rate` | Float | `numeric(21,9)` |  |  |
 | 25 | `ignore_pricing_rule` | Check | `smallint` | default=0 |  |
 | 26 | `set_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
@@ -1092,9 +1128,9 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 63 | `range` | Data | `varchar(140)` | hidden |  |
 | 64 | `project` | Link | `varchar(140)` |  | → `Project` |
 | 65 | `per_billed` | Percent | `numeric(21,9)` | ro |  |
-| 66 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe core)* |
-| 67 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
-| 68 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
+| 66 | `auto_repeat` | Link | `varchar(140)` | ro | → `Auto Repeat` *(frappe/Automation)* |
+| 67 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
+| 68 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
 | 69 | `language` | Data | `varchar(140)` | ro |  |
 | 70 | `group_same_items` | Check | `smallint` | default=0 |  |
 | 71 | `instructions` | Small Text | `text` |  |  |
@@ -1105,7 +1141,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 76 | `is_internal_supplier` | Check | `smallint` | ro, denorm←supplier.is_internal_supplier, default=0 |  |
 | 77 | `inter_company_reference` | Link | `varchar(140)` | INDEX, ro | → `Delivery Note` |
 | 78 | `scan_barcode` | Data | `varchar(140)` |  |  |
-| 79 | `billing_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 79 | `billing_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 80 | `billing_address_display` | Text Editor | `text` | ro |  |
 | 81 | `apply_putaway_rule` | Check | `smallint` | default=0 |  |
 | 82 | `per_returned` | Percent | `numeric(21,9)` | ro |  |
@@ -1115,7 +1151,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 86 | `incoterm` | Link | `varchar(140)` |  | → `Incoterm` |
 | 87 | `named_place` | Data | `varchar(140)` |  |  |
 | 88 | `subcontracting_receipt` | Link | `varchar(140)` | INDEX, ro | → `Subcontracting Receipt` |
-| 89 | `dispatch_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 89 | `dispatch_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 90 | `dispatch_address_display` | Text Editor | `text` | ro |  |
 
 **Child tables (1-N):**
@@ -1132,6 +1168,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabQuality Inspection`  (proposed: `quality_inspection`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 - **Search fields**: `item_code, report_date, reference_name`
@@ -1149,7 +1186,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 9 | `sample_size` | Float | `numeric(21,9)` | NOT NULL |  |
 | 10 | `item_name` | Data | `varchar(140)` | ro, denorm←item_code.item_name |  |
 | 11 | `description` | Small Text | `text` | denorm←item_code.description |  |
-| 12 | `inspected_by` | Link | `varchar(140)` | NOT NULL, default=user | → `User` *(frappe core)* |
+| 12 | `inspected_by` | Link | `varchar(140)` | NOT NULL, default=user | → `User` *(frappe/Core)* |
 | 13 | `verified_by` | Data | `varchar(140)` |  |  |
 | 14 | `bom_no` | Link | `varchar(140)` | ro | → `BOM` |
 | 15 | `remarks` | Text | `text` |  |  |
@@ -1159,7 +1196,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 19 | `manual_inspection` | Check | `smallint` | default=0 |  |
 | 20 | `child_row_reference` | Data | `varchar(140)` | ro, hidden |  |
 | 21 | `company` | Link | `varchar(140)` |  | → `Company` |
-| 22 | `letter_head` | Link | `varchar(140)` | denorm←company.default_letter_head | → `Letter Head` *(frappe core)* |
+| 22 | `letter_head` | Link | `varchar(140)` | denorm←company.default_letter_head | → `Letter Head` *(frappe/Printing)* |
 
 **Child tables (1-N):**
 
@@ -1175,6 +1212,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabRepost Item Valuation`  (proposed: `repost_item_valuation`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `hash`  (Random)
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -1188,7 +1226,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 6 | `amended_from` | Link | `varchar(140)` | ro | → `Repost Item Valuation` |
 | 7 | `error_log` | Long Text | `text` | ro |  |
 | 8 | `company` | Link | `varchar(140)` | denorm←warehouse.company | → `Company` |
-| 9 | `voucher_type` | Link | `varchar(140)` |  | → `DocType` *(frappe core)* |
+| 9 | `voucher_type` | Link | `varchar(140)` |  | → `DocType` *(frappe/Core)* |
 | 10 | `voucher_no` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `voucher_type` |
 | 11 | `based_on` | Select | `varchar(140)` | NOT NULL, default=Transaction | enum: Transaction, Item and Warehouse |
 | 12 | `allow_negative_stock` | Check | `smallint` | default=1 |  |
@@ -1216,6 +1254,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabSerial and Batch Bundle`  (proposed: `serial_and_batch_bundle`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `hash`  (Random)
 - **Title field**: `item_code`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -1228,7 +1267,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 4 | `item_code` | Link | `varchar(140)` | NOT NULL | → `Item` |
 | 5 | `item_name` | Data | `varchar(140)` | ro, denorm←item_code.item_name |  |
 | 6 | `has_batch_no` | Check | `smallint` | ro, denorm←item_code.has_batch_no, default=0 |  |
-| 7 | `voucher_type` | Link | `varchar(140)` | NOT NULL, INDEX | → `DocType` *(frappe core)* |
+| 7 | `voucher_type` | Link | `varchar(140)` | NOT NULL, INDEX | → `DocType` *(frappe/Core)* |
 | 8 | `voucher_no` | Dynamic Link | `varchar(140)` |  | → polymorphic, doctype in `voucher_type` |
 | 9 | `is_cancelled` | Check | `smallint` | ro, default=0 |  |
 | 10 | `amended_from` | Link | `varchar(140)` | ro | → `Serial and Batch Bundle` |
@@ -1258,6 +1297,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabShipment`  (proposed: `shipment`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `SHIPMENT-.#####`  (Expression)
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -1268,9 +1308,9 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 3 | `pickup_customer` | Link | `varchar(140)` |  | → `Customer` |
 | 4 | `pickup_supplier` | Link | `varchar(140)` |  | → `Supplier` |
 | 5 | `pickup` | Data | `varchar(140)` | ro, hidden |  |
-| 6 | `pickup_address_name` | Link | `varchar(140)` | NOT NULL | → `Address` *(frappe core)* |
+| 6 | `pickup_address_name` | Link | `varchar(140)` | NOT NULL | → `Address` *(frappe/Contacts)* |
 | 7 | `pickup_address` | Text Editor | `text` | ro |  |
-| 8 | `pickup_contact_name` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 8 | `pickup_contact_name` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 9 | `pickup_contact_email` | Data | `varchar(140)` | ro, hidden |  |
 | 10 | `pickup_contact` | Text Editor | `text` | ro |  |
 | 11 | `delivery_to_type` | Select | `varchar(140)` | default=Customer | enum: Company, Customer, Supplier |
@@ -1278,9 +1318,9 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 13 | `delivery_customer` | Link | `varchar(140)` |  | → `Customer` |
 | 14 | `delivery_supplier` | Link | `varchar(140)` |  | → `Supplier` |
 | 15 | `delivery_to` | Data | `varchar(140)` | ro, hidden |  |
-| 16 | `delivery_address_name` | Link | `varchar(140)` | NOT NULL | → `Address` *(frappe core)* |
+| 16 | `delivery_address_name` | Link | `varchar(140)` | NOT NULL | → `Address` *(frappe/Contacts)* |
 | 17 | `delivery_address` | Text Editor | `text` | ro |  |
-| 18 | `delivery_contact_name` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 18 | `delivery_contact_name` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 19 | `delivery_contact_email` | Data | `varchar(140)` | ro, hidden |  |
 | 20 | `delivery_contact` | Text Editor | `text` | ro |  |
 | 21 | `parcel_template` | Link | `varchar(140)` |  | → `Shipment Parcel Template` |
@@ -1304,7 +1344,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 39 | `tracking_status_info` | Data | `varchar(140)` | ro |  |
 | 40 | `amended_from` | Link | `varchar(140)` | ro, hidden | → `Shipment` |
 | 41 | `incoterm` | Link | `varchar(140)` |  | → `Incoterm` |
-| 42 | `pickup_contact_person` | Link | `varchar(140)` |  | → `User` *(frappe core)* |
+| 42 | `pickup_contact_person` | Link | `varchar(140)` |  | → `User` *(frappe/Core)* |
 | 43 | `total_weight` | Float | `numeric(21,9)` | ro |  |
 
 **Child tables (1-N):**
@@ -1318,6 +1358,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabStock Closing Entry`  (proposed: `stock_closing_entry`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -1336,6 +1377,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabStock Entry`  (proposed: `stock_entry`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Title field**: `stock_entry_type`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -1364,10 +1406,10 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 19 | `fg_completed_qty` | Float | `numeric(21,9)` |  |  |
 | 20 | `use_multi_level_bom` | Check | `smallint` | default=1 |  |
 | 21 | `from_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
-| 22 | `source_warehouse_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 22 | `source_warehouse_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 23 | `source_address_display` | Text Editor | `text` | ro |  |
 | 24 | `to_warehouse` | Link | `varchar(140)` |  | → `Warehouse` |
-| 25 | `target_warehouse_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 25 | `target_warehouse_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 26 | `target_address_display` | Text Editor | `text` | ro |  |
 | 27 | `scan_barcode` | Data | `varchar(140)` |  |  |
 | 28 | `total_incoming_value` | Currency | `numeric(21,9)` | ro |  |
@@ -1376,10 +1418,10 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 31 | `total_additional_costs` | Currency | `numeric(21,9)` | ro |  |
 | 32 | `supplier` | Link | `varchar(140)` |  | → `Supplier` |
 | 33 | `supplier_name` | Data | `varchar(140)` | ro |  |
-| 34 | `supplier_address` | Link | `varchar(140)` |  | → `Address` *(frappe core)* |
+| 34 | `supplier_address` | Link | `varchar(140)` |  | → `Address` *(frappe/Contacts)* |
 | 35 | `address_display` | Text Editor | `text` |  |  |
-| 36 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe core)* |
-| 37 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe core)* |
+| 36 | `select_print_heading` | Link | `varchar(140)` |  | → `Print Heading` *(frappe/Printing)* |
+| 37 | `letter_head` | Link | `varchar(140)` |  | → `Letter Head` *(frappe/Printing)* |
 | 38 | `is_opening` | Select | `varchar(140)` |  | enum: No, Yes |
 | 39 | `project` | Link | `varchar(140)` |  | → `Project` |
 | 40 | `remarks` | Text | `text` |  |  |
@@ -1410,6 +1452,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabStock Ledger Entry`  (proposed: `stock_ledger_entry`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `MAT-SLE-.YYYY.-.#####`  (Expression)
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 
@@ -1421,7 +1464,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 4 | `warehouse` | Link | `varchar(140)` | ro | → `Warehouse` |
 | 5 | `posting_date` | Date | `date` | ro |  |
 | 6 | `posting_time` | Time | `time(6)` | ro |  |
-| 7 | `voucher_type` | Link | `varchar(140)` | INDEX, ro | → `DocType` *(frappe core)* |
+| 7 | `voucher_type` | Link | `varchar(140)` | INDEX, ro | → `DocType` *(frappe/Core)* |
 | 8 | `voucher_no` | Dynamic Link | `varchar(140)` | ro | → polymorphic, doctype in `voucher_type` |
 | 9 | `voucher_detail_no` | Data | `varchar(140)` | INDEX, ro |  |
 | 10 | `actual_qty` | Float | `numeric(21,9)` | ro |  |
@@ -1455,6 +1498,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabStock Reconciliation`  (proposed: `stock_reconciliation`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `naming_series:`  (By "Naming Series" field)
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
 - **Description**: This tool helps you to update or fix the quantity and valuation of stock in the system. It is typically used to synchronise the system values and what actually exists in your warehouses.
@@ -1486,6 +1530,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabStock Reservation Entry`  (proposed: `stock_reservation_entry`)
 - **Kind**: Transaction (submittable)
+- **Owned by**: erpnext / Stock
 - **Naming**: `MAT-SRE-.YYYY.-.#####`  (Expression)
 - **Title field**: `voucher_no`
 - **Submittable**: yes — draft/submitted/cancelled lifecycle, immutable after submit
@@ -1534,6 +1579,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabCompany Restriction`  (proposed: `company_restriction`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Supplier`.`allowed_companies`, `Customer`.`allowed_companies`, `Item`.`allowed_companies`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1544,6 +1590,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabDelivery Note Item`  (proposed: `delivery_note_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Delivery Note`.`items`
 
@@ -1628,18 +1675,19 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabDelivery Stop`  (proposed: `delivery_stop`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Delivery Trip`.`delivery_stops`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
 | 1 | `customer` | Link | `varchar(140)` |  | → `Customer` |
-| 2 | `address` | Link | `varchar(140)` | NOT NULL | → `Address` *(frappe core)* |
+| 2 | `address` | Link | `varchar(140)` | NOT NULL | → `Address` *(frappe/Contacts)* |
 | 3 | `locked` | Check | `smallint` | default=0 |  |
 | 4 | `customer_address` | Small Text | `text` | ro |  |
 | 5 | `visited` | Check | `smallint` | default=0 |  |
 | 6 | `delivery_note` | Link | `varchar(140)` | ro | → `Delivery Note` |
 | 7 | `grand_total` | Currency | `numeric(21,9)` | ro |  |
-| 8 | `contact` | Link | `varchar(140)` |  | → `Contact` *(frappe core)* |
+| 8 | `contact` | Link | `varchar(140)` |  | → `Contact` *(frappe/Contacts)* |
 | 9 | `email_sent_to` | Data | `varchar(140)` | ro |  |
 | 10 | `customer_contact` | Small Text | `text` | ro |  |
 | 11 | `distance` | Float | `numeric(21,2)` | ro |  |
@@ -1653,6 +1701,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Attribute Value`  (proposed: `item_attribute_value`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Item Attribute`.`item_attribute_values`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1664,6 +1713,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Barcode`  (proposed: `item_barcode`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Item`.`barcodes`
 
@@ -1677,6 +1727,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Customer Detail`  (proposed: `item_customer_detail`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Naming**: `hash`
 - **Description**: For the convenience of customers, these codes can be used in print formats like Invoices and Delivery Notes
 - **Embedded in**: `Item`.`customer_items`
@@ -1691,6 +1742,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Default`  (proposed: `item_default`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Brand`.`brand_defaults`, `Item Group`.`item_group_defaults`, `Item`.`item_defaults`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1700,7 +1752,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 3 | `default_price_list` | Link | `varchar(140)` |  | → `Price List` |
 | 4 | `default_discount_account` | Link | `varchar(140)` |  | → `Account` |
 | 5 | `default_inventory_account` | Link | `varchar(140)` |  | → `Account` |
-| 6 | `inventory_account_currency` | Link | `varchar(140)` | ro, denorm←default_inventory_account.account_currency | → `Currency` *(frappe core)* |
+| 6 | `inventory_account_currency` | Link | `varchar(140)` | ro, denorm←default_inventory_account.account_currency | → `Currency` *(frappe/Geo)* |
 | 7 | `buying_cost_center` | Link | `varchar(140)` |  | → `Cost Center` |
 | 8 | `default_supplier` | Link | `varchar(140)` |  | → `Supplier` |
 | 9 | `expense_account` | Link | `varchar(140)` |  | → `Account` |
@@ -1721,6 +1773,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Quality Inspection Parameter`  (proposed: `item_quality_inspection_parameter`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Naming**: `hash`
 - **Embedded in**: `Quality Inspection Template`.`item_quality_inspection_parameter`
 
@@ -1739,6 +1792,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Reorder`  (proposed: `item_reorder`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Item`.`reorder_levels`
 
@@ -1754,6 +1808,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Supplier`  (proposed: `item_supplier`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Item`.`supplier_items`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1765,6 +1820,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Tax`  (proposed: `item_tax`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Item Group`.`taxes`, `Item`.`taxes`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1779,6 +1835,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Variant`  (proposed: `item_variant`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -1789,6 +1846,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Variant Attribute`  (proposed: `item_variant_attribute`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Item`.`attributes`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1806,7 +1864,9 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabItem Website Specification`  (proposed: `item_website_specification`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Description**: Table for Item that will be shown in Web Site
+- **Embedded in**: `Website Item`.`website_specifications`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
@@ -1817,6 +1877,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabLanded Cost Item`  (proposed: `landed_cost_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Landed Cost Voucher`.`items`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1842,6 +1903,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabLanded Cost Purchase Receipt`  (proposed: `landed_cost_purchase_receipt`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Landed Cost Voucher`.`purchase_receipts`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1860,6 +1922,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabLanded Cost Taxes and Charges`  (proposed: `landed_cost_taxes_and_charges`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Landed Cost Voucher`.`taxes`, `Stock Entry`.`additional_costs`, `Subcontracting Order`.`additional_costs`, `Subcontracting Receipt`.`additional_costs`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1867,7 +1930,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 | 1 | `description` | Small Text | `text` | NOT NULL |  |
 | 2 | `amount` | Currency | `numeric(21,9)` | NOT NULL |  |
 | 3 | `expense_account` | Link | `varchar(140)` |  | → `Account` |
-| 4 | `account_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe core)* |
+| 4 | `account_currency` | Link | `varchar(140)` | ro | → `Currency` *(frappe/Geo)* |
 | 5 | `exchange_rate` | Float | `numeric(21,9)` |  |  |
 | 6 | `base_amount` | Currency | `numeric(21,9)` | ro |  |
 | 7 | `has_corrective_cost` | Check | `smallint` | ro, default=0 |  |
@@ -1880,6 +1943,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabLanded Cost Vendor Invoice`  (proposed: `landed_cost_vendor_invoice`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Landed Cost Voucher`.`vendor_invoices`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1891,6 +1955,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabMaterial Request Item`  (proposed: `material_request_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Material Request`.`items`
 
@@ -1942,6 +2007,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabPacked Item`  (proposed: `packed_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `POS Invoice`.`packed_items`, `Sales Invoice`.`packed_items`, `Quotation`.`packed_items`, `Sales Order`.`packed_items`, `Delivery Note`.`packed_items`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -1979,6 +2045,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabPacking Slip Item`  (proposed: `packing_slip_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Packing Slip`.`items`
 
@@ -2000,6 +2067,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabPick List Item`  (proposed: `pick_list_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Pick List`.`locations`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -2034,16 +2102,18 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabPrice List Country`  (proposed: `price_list_country`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Price List`.`countries`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
 |--:|---|---|---|---|---|
-| 1 | `country` | Link | `varchar(140)` | NOT NULL | → `Country` *(frappe core)* |
+| 1 | `country` | Link | `varchar(140)` | NOT NULL | → `Country` *(frappe/Geo)* |
 
 ## Purchase Receipt Item
 
 - **Table**: `tabPurchase Receipt Item`  (proposed: `purchase_receipt_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Purchase Receipt`.`items`
 
@@ -2143,6 +2213,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabQuality Inspection Reading`  (proposed: `quality_inspection_reading`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Naming**: `hash`
 - **Embedded in**: `Quality Inspection`.`readings`
 
@@ -2174,6 +2245,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabSerial and Batch Entry`  (proposed: `serial_and_batch_entry`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Serial and Batch Bundle`.`entries`, `Stock Reservation Entry`.`sb_entries`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -2201,6 +2273,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabShipment Delivery Note`  (proposed: `shipment_delivery_note`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Shipment`.`shipment_delivery_note`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -2212,6 +2285,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabShipment Parcel`  (proposed: `shipment_parcel`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Shipment`.`shipment_parcel`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -2226,6 +2300,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabStock Entry Detail`  (proposed: `stock_entry_detail`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Naming**: `hash`  (Random)
 - **Embedded in**: `Stock Entry`.`items`
 
@@ -2291,6 +2366,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabStock Reconciliation Item`  (proposed: `stock_reconciliation_item`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Stock Reconciliation`.`items`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |
@@ -2323,6 +2399,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabUOM Conversion Detail`  (proposed: `uom_conversion_detail`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Naming**: `hash`
 - **Embedded in**: `Item`.`uoms`
 
@@ -2335,6 +2412,7 @@ stock (`Stock Entry`, `Delivery Note`, `Purchase Receipt`, `Stock Reconciliation
 
 - **Table**: `tabVariant Field`  (proposed: `variant_field`)
 - **Kind**: Child / line-item table
+- **Owned by**: erpnext / Stock
 - **Embedded in**: `Item Variant Settings`.`fields`
 
 | # | Column | Type | Postgres | Constraints / notes | Reference |

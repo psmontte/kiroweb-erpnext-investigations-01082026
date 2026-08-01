@@ -239,6 +239,7 @@ class DocType:
     name: str
     module: str
     path: str
+    app: str = ""
     istable: bool = False
     issingle: bool = False
     is_submittable: bool = False
@@ -318,11 +319,12 @@ class DocType:
         return "master"
 
     @classmethod
-    def from_json(cls, path: str, raw: dict) -> "DocType":
+    def from_json(cls, path: str, raw: dict, app: str = "") -> "DocType":
         return cls(
             name=raw.get("name") or "",
             module=raw.get("module") or "",
             path=path,
+            app=app,
             istable=bool(raw.get("istable")),
             issingle=bool(raw.get("issingle")),
             is_submittable=bool(raw.get("is_submittable")),
@@ -352,12 +354,24 @@ class Registry:
     """All DocTypes discovered in an app, indexed by name."""
 
     def __init__(self, doctypes: list[DocType]):
-        self.doctypes = sorted(doctypes, key=lambda d: (d.module, d.name))
+        self.doctypes = sorted(doctypes, key=lambda d: (d.app, d.module, d.name))
         self.by_name = {d.name: d for d in self.doctypes}
 
     # -- discovery -------------------------------------------------------------
     @classmethod
-    def from_app(cls, app_root: str) -> "Registry":
+    def from_apps(cls, apps: dict[str, str]) -> "Registry":
+        """apps = {app_name: path_to_python_package_root}"""
+        found: list[DocType] = []
+        for app_name, root in apps.items():
+            found.extend(cls._scan(root, app_name))
+        return cls(found)
+
+    @classmethod
+    def from_app(cls, app_root: str, app_name: str = "") -> "Registry":
+        return cls(cls._scan(app_root, app_name or os.path.basename(app_root)))
+
+    @staticmethod
+    def _scan(app_root: str, app_name: str) -> list[DocType]:
         found: list[DocType] = []
         for dirpath, _dirnames, filenames in os.walk(app_root):
             if os.path.basename(os.path.dirname(dirpath)) != "doctype":
@@ -373,10 +387,26 @@ class Registry:
                 continue
             if not isinstance(raw, dict) or raw.get("doctype") != "DocType":
                 continue
-            found.append(DocType.from_json(os.path.relpath(candidate, app_root), raw))
-        return cls(found)
+            found.append(
+                DocType.from_json(
+                    os.path.join(app_name, os.path.relpath(candidate, app_root)), raw, app_name
+                )
+            )
+        return found
 
     # -- queries ---------------------------------------------------------------
+    def apps(self) -> list[str]:
+        return sorted({d.app for d in self.doctypes})
+
+    def app_of(self, name: str) -> str:
+        d = self.by_name.get(name)
+        return d.app if d else ""
+
+    def origin(self, name: str) -> str:
+        """Human label for where a doctype comes from, e.g. 'erpnext/Stock'."""
+        d = self.by_name.get(name)
+        return f"{d.app}/{d.module}" if d else "unknown"
+
     def modules(self) -> list[str]:
         return sorted({d.module for d in self.doctypes})
 
