@@ -112,15 +112,17 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       submittable and configuration alike; see [`docs/COVERAGE.md`](docs/COVERAGE.md) (generated)
       and the closure statement in
       [`docs/logic/32`](docs/logic/32-stock-configuration-and-remaining-masters.md) §5.
-      **4,444 citations verified, 0 problems.**
+      **4,536 citations verified, 0 problems.**
 - [x] **Tranche B manufacturing complete** (`docs/logic/33`–`37`, scenario `S07`) — BOM costing and
       explosion, operations/routing/capacity, Work Orders/Job Cards, Production Plan/MPS/netting, and
       manufacturing Stock Entry/WIP/GL. **Manufacturing: 18/18 parent controllers cited, 0 gaps.**
 - [x] **Tranche B subcontracting complete** (`docs/logic/38`, scenarios `S08` and `S10`) — all
       four Subcontracting parents and both ownership directions are documented. **Subcontracting:
       4/4 parent controllers cited, 0 gaps.**
-- [ ] **Tranche B next: quality** — operational quality gates and Quality Management in doc 39/S09,
-      then closure/spec doc 40
+- [x] **Tranche B quality controller coverage complete** (`docs/logic/39`) — all eight Quality
+      Management parents and all four Stock-owned operational inspection parents are documented with
+      **0 coverage gaps**.
+- [ ] **Tranche B quality scenario/closure next** — S09, then closure/spec doc 40
 - [ ] Tranche C — assets + depreciation engine (**deferred by decision; revisit after Tranche B and
       before implementation**)
 - [x] ~~Tranche D~~ — CRM, projects, support: **out of scope** by decision

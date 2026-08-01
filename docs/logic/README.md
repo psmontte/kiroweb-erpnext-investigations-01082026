@@ -61,6 +61,7 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 | 36 | [36-production-planning-mps-and-material-netting.md](36-production-planning-mps-and-material-netting.md) | Production Plan and child lifecycle; SO/MR demand; BOM/subassembly explosion; projected-stock, safety, MOQ/UOM and transfer netting; WO/MR/subcontract PO release; reservation/Bin projections; Sales Forecast; MPS demand, delivery schedules, lead time, unfinished submit path, MRP report and races |
 | 37 | [37-manufacturing-stock-consumption-scrap-wip-and-gl.md](37-manufacturing-stock-consumption-scrap-wip-and-gl.md) | manufacturing Stock Entry execution and accounting: transfer/consumption/manufacture/repack/disassembly; WIP, backflush, process loss, secondary outputs, serial/batch, valuation/additional costs, Standard Cost variance, GL, projections and races |
 | 38 | [38-subcontracting-orders-transfer-consumption-receipt-and-gl.md](38-subcontracting-orders-transfer-consumption-receipt-and-gl.md) | all four Subcontracting parents and both ownership directions: BOM/service conversion, PO/SO origin, supplier/customer material custody, reservation, transfer/return, receipt/Work Order consumption, secondary outputs, serial/batch, SLE/GL, projections and races |
+| 39 | [39-quality-inspection-templates-readings-and-gates.md](39-quality-inspection-templates-readings-and-gates.md) | all eight Quality Management parents and four Stock operational-QI parents: schemas/lifecycle, template construction and fallback, locale-formatted readings 1–10, formula evaluation, Accepted/Rejected decisions, reference writeback, transaction and Job Card gates, scheduler reviews, evidence/projections, defects and races |
 
 ### Tranche A — deep dives (accounts + trade/inventory remainder)
 
@@ -93,10 +94,11 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 
 Confirmed order: **manufacturing → subcontracting → quality**. Manufacturing is complete in docs
 **33–37** plus **S07**: all 18 parent controllers are cited with zero coverage gaps. Subcontracting is
-complete in **doc 38**, **S08** and **S10**: all four parent controllers are cited with zero gaps. The
-active scope is operational quality (doc 39 and S09), then doc 40 closes coverage and consolidates the
-target production specification. Assets/depreciation are deferred until after this tranche and before
-implementation.
+complete in **doc 38**, **S08** and **S10**: all four parent controllers are cited with zero gaps.
+**Quality is active** in **doc 39**; **S09** remains planned. Doc 39 covers all eight Quality
+Management parents and all four Stock operational-QI parents. Planned doc 40 then closes coverage and
+consolidates the target production specification. Assets/depreciation are deferred until after this
+tranche and before implementation.
 
 Consolidated target schema: **[../design/FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md)** —
 finalised tables, data flow, business rules, lifecycle state machine, fulfilment views,
@@ -134,7 +136,7 @@ Last run against the anchor commits:
 
 | Directory | Citations | Confirmed by symbol name | Problems |
 |---|---|---|---|
-| `docs/logic` | 3841 | 1574 | 0 |
+| `docs/logic` | 3933 | 1574 | 0 |
 | `docs/scenarios` | 603 | 164 | 0 |
 
 Name notes under `--strict-names` are advisory: the doc line may legitimately name a symbol defined

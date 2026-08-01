@@ -49,7 +49,7 @@ Consolidated target design: **`docs/design/FINAL-SCHEMA.md`** (finalised tables,
 business rules, lifecycle state machine, fulfilment views, settlement model, invariant register).
 
 Citation verification across `docs/logic/`: superseded — see the current coverage matrix
-(**4,444 citations, 0 problems** across logic and scenarios, shorthand included).
+(**4,536 citations, 0 problems** across logic and scenarios, shorthand included).
 
 ~~**Still named but not chased**~~: putaway rules (doc 27 §3), warehouse capacity (doc 27 §3, doc 16
 §4), stock closing entry (doc 27, S05 §6), loyalty program internals (doc 31 §4), payment-gateway
@@ -76,7 +76,7 @@ invoice → payment → FX revaluation — plus everything needed to call the th
 
 **Coverage: `Accounts`, `Stock`, `Selling`, `Buying`, `Manufacturing` and `Subcontracting` are at
 zero uncited DocTypes** — submittable and configuration alike (`docs/COVERAGE.md`, generated).
-Citations: **4,444 verified, 0 problems**, including the shorthand form.
+Citations: **4,536 verified, 0 problems**, including the shorthand form.
 
 Three findings from this closure changed how confident we are in earlier decisions:
 
@@ -117,7 +117,7 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 | ~~**B**~~ | ~~**Subcontracting deep dive** — order/receipt lifecycle, supplied-item consumption, RM transfer, `Subcontracting BOM`, customer-owned inward flow~~ | 13 total / 4 parents (3 submittable) | **DONE** — doc 38 + S08 + S10; 4/4 parent controllers cited, 0 gaps |
 | **C** | **Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement | 26 (8 submittable) | **DEFERRED by decision** — revisit after Tranche B and before implementation |
 | ~~**D**~~ | ~~**Projects, Support, Maintenance, CRM**~~ — project costing, timesheet → billing, Support (11), Maintenance (5), CRM lead/opportunity/prospect (28) | ~75 | **OUT OF SCOPE** — dropped by decision. Not investigated, not built. |
-| **B** | **Quality Management + operational quality** — Quality Management records plus Stock-owned inspection templates/readings and gates on receipts, deliveries, Stock Entry and Job Card | 16 total / 8 module parents, plus 4 Stock parents | **IN PROGRESS — next**; the gate interacts with receipt and work-order posting |
+| **B** | **Quality Management + operational quality** — Quality Management records plus Stock-owned inspection templates/readings and gates on receipts, deliveries, Stock Entry and Job Card | 16 total / 8 module parents, plus 4 Stock parents | **CONTROLLER COVERAGE DONE** — doc 39; all 12 parents cited, 0 gaps. S09 scenario next |
 | ~~**E**~~ | ~~**Platform mechanics we must replace, not copy**~~ — permission model, naming series, `hooks.py` extensibility, `@allow_regional` overlay, background jobs + scheduler, patch/migration system, query-report framework, custom fields & Customize Form, virtual doctypes | — | **DONE** — `docs/logic/18`–`25`, with a build/buy/drop decision per capability in `25-our-platform-spec.md` |
 
 ### Tranche B deliverables

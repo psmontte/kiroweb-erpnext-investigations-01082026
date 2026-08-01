@@ -26,13 +26,13 @@ The table is generated, so it cannot drift from reality. `--check` belongs in CI
 | Module | DocTypes | Controller cited | Uncited (submittable) | Uncited (config) | Excluded |
 |---|---:|---:|---:|---:|---:|
 | Accounts | 92 | 78 | 0 | 0 | 14 |
-| Stock | 45 | 38 | 0 | 0 | 7 |
+| Stock | 45 | 42 | 0 | 0 | 3 |
 | Selling | 12 | 9 | 0 | 0 | 3 |
 | Buying | 10 | 5 | 0 | 0 | 5 |
 | Subcontracting | 4 | 4 | 0 | 0 | 0 |
 | Manufacturing | 18 | 18 | 0 | 0 | 0 |
-| Quality Management | 8 | 0 | 0 | 8 | 0 |
-| **Total** | **189** | **152** | **0** | **8** | **29** |
+| Quality Management | 8 | 8 | 0 | 0 | 0 |
+| **Total** | **189** | **164** | **0** | **0** | **25** |
 <!-- END COVERAGE TABLE -->
 
 Counts are **parent** DocTypes only (child tables are covered with their parent — the 99 child
@@ -56,7 +56,6 @@ oversight:
 |---|---|---|
 | Equity / cap table | `Share Transfer`, `Share Type`, `Shareholder`, `Share Balance` | not ERP core |
 | Vendor rating | `Supplier Scorecard` + 4 related | no ledger impact |
-| Operational quality (Stock module) | `Quality Inspection` + 3 related | temporary exclusion until **doc 39**; then these become audited coverage |
 | Debug / maintenance | `Bisect Accounting Statements`, `Bisect Nodes`, `Ledger Health`, `Ledger Health Monitor` | diagnostic tooling; the *reason they exist* is covered in doc 22 §2.3 |
 | Import tools | `Chart of Accounts Importer`, `Bank Statement Import` (+log) | one-time import paths |
 | Trivial lookups | `Industry Type`, `Sales Partner Type`, `UOM Category`, `Warehouse Type`, `Bank Account Type/Subtype`, `Account Category`, `Dunning Type`, `SMS Center`, `Quick Stock Balance` | single-column lookups with no behaviour |
@@ -94,15 +93,15 @@ oversight:
 | Settings singles | `Accounts Settings`, `Stock Settings`, `Delivery Settings`, `Stock Reposting Settings`, `POS Settings` | doc 18 §3.1 covers the *mechanism*; the individual flags that change accounting semantics are catalogued in doc 31 |
 | Reporting config | `Financial Report Template`, `Monthly Distribution` | doc 24 / doc 12 |
 | Manufacturing definitions/settings | `BOM`, `BOM Creator`, `BOM Update Log/Tool`, `Operation`, `Routing`, `Workstation` family, `Manufacturing Settings`, planning/execution parents | **DONE** — docs 33–37; all 18 parent controllers cited |
-| Quality Management + operational inspection | 8 Quality Management parents plus Stock-owned `Quality Inspection` family | **doc 39 / S09** |
+| ~~Quality Management + operational inspection~~ | 8 Quality Management parents plus Stock-owned `Quality Inspection` family | **DONE** — [doc 39](logic/39-quality-inspection-templates-readings-and-gates.md); all 12 parent controllers cited |
 
 \* `Account` is heavily *used* throughout docs 01–07 but its own controller (root types, group vs
 ledger, freezing, balance-must-be) has not been read line by line.
 
 ## Definition of done for "trade + inventory + accounts fully covered"
 
-1. `uncited_submittable` is **0** for Accounts, Stock, Selling, Buying, Manufacturing and
-   Subcontracting; active Quality gaps are listed explicitly.
+1. `uncited_submittable` is **0** for Accounts, Stock, Selling, Buying, Manufacturing,
+   Subcontracting and Quality Management; there are no active audited-module gaps.
 2. Every DocType in the "configuration that determines posting behaviour" list above is either
    cited or excluded with a reason.
 3. Scenario walkthroughs exist for every flow that crosses three or more subsystems
@@ -110,18 +109,18 @@ ledger, freezing, balance-must-be) has not been read line by line.
 4. `tools/verify_refs.py` reports **0 problems** across all doc directories — no unresolved paths,
    no out-of-range lines, and no ambiguous shorthand refs. This covers both full citations and the
    `` (`:NNN`) `` shorthand; the shorthand is the bulk of the corpus, so verifying it is what makes
-   the "every claim is checkable" statement true. Current: **3841** citations in `docs/logic` and
-   **603** in `docs/scenarios`, all resolving (**4444 total**).
+   the "every claim is checkable" statement true. Current: **3933** citations in `docs/logic` and
+   **603** in `docs/scenarios`, all resolving (**4536 total**).
 5. This table is regenerated and committed.
 
 ### Status against that definition
 
 | # | Criterion | State |
 |---|---|---|
-| 1 | `uncited_submittable` = 0 | Accounts **0** ✔, Stock **0** ✔, Selling **0** ✔, Buying **0** ✔, Manufacturing **0** ✔, Subcontracting **0** ✔ |
-| 2 | Config DocTypes cited or excluded | **✔ 0 uncited config** in Accounts, Stock, Selling, Buying, Manufacturing and Subcontracting; Quality Management **8** remain |
-| 3 | Scenario per cross-subsystem flow | **✔** S01–S08 and S10; S09 next |
-| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 4444 citations** |
+| 1 | `uncited_submittable` = 0 | Accounts **0** ✔, Stock **0** ✔, Selling **0** ✔, Buying **0** ✔, Manufacturing **0** ✔, Subcontracting **0** ✔, Quality Management **0** ✔ |
+| 2 | Config DocTypes cited or excluded | **✔ 0 uncited config** in every audited module; Stock operational-QI exclusions removed after doc 39 |
+| 3 | Scenario per cross-subsystem flow | **✔** S01–S08 and S10; S09 quality scenario next |
+| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 4536 citations** |
 | 5 | Table regenerated | **✔** |
 
 **Trade-core definition remains met.** `Accounts`, `Stock`, `Selling` and `Buying` have zero uncited
@@ -135,5 +134,7 @@ capacity, Work Orders/Job Cards, planning/MPS, material consumption, WIP, SLE an
 uncited submittable and zero uncited configuration parents. Doc 38, S08 and S10 cover both legal
 ownership directions, custody, transfer, consumption, receipt/manufacture, SLE, GL and billing.
 
-**Tranche B remains open** only for Quality: eight Quality Management parents plus the temporarily
-excluded Stock-owned operational inspection family in doc 39/S09.
+**Quality is now closed at DocType level:** all **8/8 Quality Management parent controllers** and all
+four Stock-owned operational inspection parents are cited, with zero gaps. Doc 39 covers criteria,
+sampling, formulas, transaction and Job Card gates, QM workflows, scheduler behavior and races. S09 is
+still required as the worked cross-subsystem scenario before Tranche B closure.

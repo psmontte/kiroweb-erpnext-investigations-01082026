@@ -65,10 +65,6 @@ EXCLUDED: dict[str, str] = {
     "Bank Account Subtype": "trivial lookup",
     "Account Category": "trivial lookup",
     "Dunning Type": "config for Dunning (doc 14)",
-    "Quality Inspection Parameter": "deferred to Tranche B (quality)",
-    "Quality Inspection Parameter Group": "deferred to Tranche B (quality)",
-    "Quality Inspection Template": "deferred to Tranche B (quality)",
-    "Quality Inspection": "deferred to Tranche B (quality)",
     # Debug/maintenance tooling
     "Bisect Accounting Statements": "debug tool",
     "Bisect Nodes": "debug tool",
