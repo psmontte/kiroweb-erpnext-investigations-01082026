@@ -7,12 +7,14 @@ Parsed the full standard app set — `frappe`, `erpnext`, `payments`, `hrms`, `w
 modules of `erpnext` are documented at column level.
 
 ```
-docs/reveng/     study output — start at docs/reveng/README.md
+docs/reveng/     schema study — start at docs/reveng/README.md
+docs/logic/      business-logic study — start at docs/logic/README.md
 schema/          machine-readable catalog (JSON + CSV) and generated DDL
 schema/ddl/      *_asis.sql  = ERPNext physical layout as PostgreSQL
                  clean_*.sql = normalised reference schema
 tools/reveng/    the parser toolkit — re-runnable against any Frappe app
 tools/verify_ddl.sh  loads the generated DDL into a throwaway PostgreSQL and reports errors
+tools/verify_refs.py checks every source citation in docs/logic against the source tree
 ```
 
 ## Regenerate everything
@@ -70,4 +72,9 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
 - [x] Deep dive: Accounts, Selling, Buying, Stock, Subcontracting, Setup
 - [x] Ledger anatomy documented (GL, AR/AP, stock ledger, bin, batch/serial)
 - [x] Reference DDL generated and executed against PostgreSQL 15
-- [ ] Our own schema — blocked on the decisions in `docs/reveng/06-findings-and-target-schema.md` §4
+- [x] Business logic documented — GL posting, stock valuation, stock↔GL bridge, AR/AP settlement,
+      taxes/totals/pricing, lifecycle/fulfilment/returns, period close and opening balances
+      (`docs/logic/`, 126 source citations verified against erpnext@ceefd4a)
+- [x] Implementation spec written — invariant register, Phase 0-2 tables, posting algorithm
+      (`docs/logic/08-our-implementation-spec.md`)
+- [ ] Phase 0 build — blocked on the four questions in `docs/logic/08-our-implementation-spec.md` §8.8
