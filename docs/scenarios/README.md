@@ -33,6 +33,7 @@ Citations are `path:line` and are verified mechanically by `tools/verify_refs.py
 | **S02** | [S02-payments-and-allocation.md](S02-payments-and-allocation.md) | Payment against invoice: exact, partial, multi-invoice with bank charge, credit-note offset, advance, un-allocation, over-payment | **Nine places record one fact.** Allocating a payment rewrites the payment's own child rows and deletes-and-rebuilds the payment ledger. A short payment silently consumes credit notes |
 | **S03** | [S03-procure-to-pay.md](S03-procure-to-pay.md) | Purchase Order → Purchase Receipt → Purchase Invoice, with rejection, landed cost, and a return | Structurally the mirror of S01, but **four real asymmetries**: `per_billed == 100` vs `>= 100`, three quantities per line, accrual on the receipt side only, and landed cost that rewrites history without bound |
 | **S04** | [S04-stock-transfer-and-in-transit.md](S04-stock-transfer-and-in-transit.md) | Warehouse → warehouse transfer, direct and via a transit warehouse, with freight capitalised | The flow with **no party and no revenue** — the cleanest view of how valuation crosses warehouses. Transit-on-the-balance-sheet is genuinely good design; the inbound leg has **two builders with different partial-receipt behaviour**, and inter-company transfer is an entirely different mechanism |
+| **S05** | [S05-period-close-and-opening-balances.md](S05-period-close-and-opening-balances.md) | Year-end: Accounting Period gate → Period Closing Voucher → closing snapshots → Stock Closing Entry; then opening balances for a new company | **Four independent mechanisms** control "is this date closed", with no shared model. **Two complete implementations** of year-end close chosen by a setting, with duplicated algorithms. Balance computation streams the year's GL and aggregates in Python. Opening-balance completeness is a convention, not a constraint |
 
 ## Reading order
 
@@ -63,7 +64,6 @@ largest gap between what the system appears to do and what it does.
 
 | Scenario | Depends on |
 |---|---|
-| S05 — Period close and opening balances, walked through | in progress |
 | S06 — Multi-currency invoice → payment → FX revaluation | in progress |
 | Make-to-order: SO → Work Order → material issue → finished goods → DN | **Tranche B (manufacturing)** |
 | Subcontracting: PO → RM transfer → Subcontracting Receipt | **Tranche B** |
