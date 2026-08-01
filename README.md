@@ -111,7 +111,11 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       and the closure statement in
       [`docs/logic/32`](docs/logic/32-stock-configuration-and-remaining-masters.md) §5.
       **3,674 citations verified, 0 problems.**
-- [ ] Tranche C — assets + depreciation engine (**scope to be confirmed — the one open question**)
-- [ ] Tranche B — manufacturing, then quality (**in scope, scheduled last** by decision)
+- [ ] **Tranche B in progress** — manufacturing → subcontracting → quality. Planned deep dives:
+      BOM/costing, capacity, Work Orders/Job Cards, production planning, manufacturing stock/WIP/GL,
+      subcontract order/inward/receipt flows, and operational quality gates (`docs/logic/33`–`40`;
+      scenarios `S07`–`S10`)
+- [ ] Tranche C — assets + depreciation engine (**deferred by decision; revisit after Tranche B and
+      before implementation**)
 - [x] ~~Tranche D~~ — CRM, projects, support: **out of scope** by decision
 - [ ] Build — deferred by decision until the investigation is complete

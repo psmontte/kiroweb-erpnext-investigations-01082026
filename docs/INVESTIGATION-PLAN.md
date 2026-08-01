@@ -113,12 +113,28 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 | ~~**A**~~ | ~~**Accounts remainder**~~ — budget controller, deferred revenue/expense, POS lifecycle, bank matching + reconciliation, payment requests, dunning, invoice discounting, inter-company + common party, repost subsystems, `Unreconcile Payment`, statements | ~60 of the 191 | **DONE** — `docs/logic/11`–`15` |
 | ~~**A**~~ | ~~**Stock remainder**~~ — stock reservation entries, pick-list allocation, reorder / auto material request, batch expiry + FEFO picking, item variants & attributes, UOM conversion precision, warehouse structure | ~35 of the 77 | **DONE** — `docs/logic/16`–`17` |
 | ~~**A**~~ | ~~**Trade / inventory / accounts closure**~~ — Journal Entry + CoA + dimensions, remaining stock documents, tax determination, pricing determination, upstream trade + parties, batch processes + instruments + recurring, stock configuration | the remainder | **DONE** — `docs/logic/26`–`32`, `docs/scenarios/S04`–`S06`. Accounts/Stock/Selling/Buying at **zero uncited DocTypes** |
-| **B** | **Manufacturing** — BOM (+ cost roll-up, exploded items, update-cost job), Work Order, Job Card, Operations/Routing, Workstation capacity, Production Plan, Master Production Schedule, scrap & rework, WIP accounting | 48 (8 submittable) | large, self-contained; only needed if v1 makes things |
-| **B** | **Subcontracting deep dive** — order/receipt lifecycle, supplied-item consumption, RM transfer, `Subcontracting BOM` | 13 | partially covered (valuation + GL in doc 03 §3.6, transfers in S04). The 3 uncited DocTypes in `docs/COVERAGE.md` are these |
-| **C** | **Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement | 26 (8 submittable) | the depreciation engine is a second ledger-posting engine with its own scheduling. **⚠️ Scope not yet confirmed — the one open question** |
+| **B** | **Manufacturing** — BOM (+ cost roll-up, exploded items, update-cost job), Work Order, Job Card, Operations/Routing, Workstation capacity, Production Plan, Master Production Schedule, scrap & rework, WIP accounting | 48 total / 18 parents (8 submittable) | **IN PROGRESS** — first Tranche B scope |
+| **B** | **Subcontracting deep dive** — order/receipt lifecycle, supplied-item consumption, RM transfer, `Subcontracting BOM`, customer-owned inward flow | 13 total / 4 parents (3 submittable) | follows manufacturing. Partially covered by doc 03 §3.6 and S04; the 3 current coverage gaps are here |
+| **C** | **Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement | 26 (8 submittable) | **DEFERRED by decision** — revisit after Tranche B and before implementation |
 | ~~**D**~~ | ~~**Projects, Support, Maintenance, CRM**~~ — project costing, timesheet → billing, Support (11), Maintenance (5), CRM lead/opportunity/prospect (28) | ~75 | **OUT OF SCOPE** — dropped by decision. Not investigated, not built. |
-| **B** | **Quality Management** — inspection templates, readings, inspection gating receipts/deliveries/work orders | 16 | **in scope, after B (manufacturing)** — the gate interacts with receipt and work-order posting |
+| **B** | **Quality Management + operational quality** — Quality Management records plus Stock-owned inspection templates/readings and gates on receipts, deliveries, Stock Entry and Job Card | 16 total / 8 module parents, plus 4 Stock parents | follows subcontracting; the gate interacts with receipt and work-order posting |
 | ~~**E**~~ | ~~**Platform mechanics we must replace, not copy**~~ — permission model, naming series, `hooks.py` extensibility, `@allow_regional` overlay, background jobs + scheduler, patch/migration system, query-report framework, custom fields & Customize Form, virtual doctypes | — | **DONE** — `docs/logic/18`–`25`, with a build/buy/drop decision per capability in `25-our-platform-spec.md` |
+
+### Tranche B deliverables
+
+| Order | Planned document | Scope |
+|---:|---|---|
+| 33 | `33-bom-costing-explosion-and-update-jobs.md` | BOM lifecycle, recursion, rates, roll-up, explosion and background refresh |
+| 34 | `34-operations-routing-workstations-and-capacity.md` | Operation, Routing, workstation calendars/capacity/cost and shop-floor masters |
+| 35 | `35-work-orders-job-cards-and-shop-floor.md` | Work Order, Job Card, reservations, scheduling, time, completion and in-process quality |
+| 36 | `36-production-planning-mps-and-material-netting.md` | Production Plan, demand/netting, generated supply, Sales Forecast and MPS |
+| 37 | `37-manufacturing-stock-consumption-scrap-wip-and-gl.md` | Stock Entry, consumption/backflush, outputs/loss, SLE, WIP and GL |
+| 38 | `38-subcontracting-orders-transfer-consumption-receipt-and-gl.md` | BOM, supplier Order/Receipt and customer-owned Inward Order |
+| 39 | `39-quality-inspection-templates-readings-and-gates.md` | Stock-owned operational inspection plus Quality Management records |
+| 40 | `40-tranche-b-coverage-closure-and-our-production-spec.md` | Coverage closure, invariants, rejected defects and target decisions |
+
+Scenarios: **S07** make-to-order manufacturing; **S08** supplier subcontracting; **S09**
+quality-gated receipt/production; **S10** customer-owned subcontracting inward.
 
 ## 3. Order (confirmed: "Your order")
 
@@ -129,12 +145,14 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
    "how much framework are we writing ourselves": small-to-medium and mostly one-off. The large
    remaining items (report view library, front end, localisation data) are not framework.
    See `25-our-platform-spec.md` §6.
-3. **Scenario walkthroughs** (`docs/scenarios/`) — cross-cutting flow traces that tie the
-   subsystem docs together. S01 (order to cash), S02 (payments and allocation), S03 (procure to
-   pay) written. Remaining candidates listed in `docs/scenarios/README.md` §"What is not here yet".
-4. **Tranche C** (assets + depreciation) — the depreciation engine is a second posting engine.
-5. **Tranche B** (manufacturing, then quality) — **confirmed in scope, scheduled last**
-   ("Production, quality after rest work is completed").
+3. **Scenario walkthroughs** (`docs/scenarios/`) — cross-cutting flow traces tying the subsystem
+   documents together. S01–S06 cover trade/inventory/accounts.
+4. **Tranche B** — **in progress**, in the confirmed order:
+   1. manufacturing,
+   2. subcontracting,
+   3. quality.
+5. **Tranche C** (assets + depreciation) — **deferred**; revisit after Tranche B and before any
+   implementation begins.
 6. ~~**Tranche D**~~ — **dropped**: no CRM, no projects, no support.
 
 Each tranche produces documents in the same shape as `docs/logic/`: pinned commit, `file.py:line`
@@ -144,10 +162,10 @@ citations, invariants, and an "ours" decision per behaviour, verified by `tools/
 
 Answers change the order and the depth, not the method.
 
-1. ~~**Scope for v1**~~ — **answered.** CRM, projects, and support are **out of scope** entirely.
-   **Production (manufacturing) and quality are in**, to be investigated *after* everything else is
-   complete. Still open: **is assets (C) in scope?** — the depreciation engine is a second posting
-   engine and is the last unscoped item.
+1. ~~**Scope for v1**~~ — **answered for investigation order.** CRM, projects, and support are
+   **out of scope**. Manufacturing, subcontracting, and quality are Tranche B and are being
+   investigated now. Assets/depreciation are **deferred**, not dropped: revisit them after Tranche B
+   and before implementation.
 2. **Inventory features that change the core design** — which of these are real requirements:
    batch/serial with expiry and FEFO picking, stock reservation, multi-warehouse transfers,
    landed cost, subcontracting, consignment/customer-owned stock?

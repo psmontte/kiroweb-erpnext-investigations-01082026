@@ -72,10 +72,12 @@ largest gap between what the system appears to do and what it does.
 
 | Scenario | Depends on |
 |---|---|
-| Make-to-order: SO → Work Order → material issue → finished goods → DN | **Tranche B (manufacturing)** |
-| Subcontracting: PO → RM transfer → Subcontracting Receipt | **Tranche B** |
-| Quality inspection gating a receipt | **Tranche B (quality)** |
-| Asset purchase → capitalisation → depreciation run → disposal | **Tranche C (assets)** — scope not yet confirmed |
+| **S07** Make-to-order: SO → Production Plan → Work Order → material issue/consumption → finished goods → DN | **Tranche B (manufacturing; next)** |
+| **S08** Supplier subcontracting: PO → Order → RM transfer/return → Receipt | **Tranche B (subcontracting)** |
+| **S09** Quality-gated receipt and production | **Tranche B (quality)** |
+| **S10** Customer-owned subcontracting inward flow | **Tranche B (subcontracting)** |
+| Asset purchase → capitalisation → depreciation run → disposal | **Tranche C (assets)** — deferred; revisit before implementation |
 
 All trade / inventory / accounts flows that cross three or more subsystems are covered by
-**S01–S06**. See [../COVERAGE.md](../COVERAGE.md) for the DocType-level coverage matrix.
+**S01–S06**. Tranche B will add **S07–S10** in manufacturing → subcontracting → quality order.
+See [../COVERAGE.md](../COVERAGE.md) for the DocType-level coverage matrix.

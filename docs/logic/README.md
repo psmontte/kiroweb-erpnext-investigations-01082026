@@ -83,6 +83,15 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 | 24 | [24-reporting-framework.md](24-reporting-framework.md) | SQL and Python stored in table rows, post-hoc Python row filtering, **aggregates computed before permission filtering** — and our generated queries over RLS-bearing views |
 | 25 | [25-our-platform-spec.md](25-our-platform-spec.md) | **the Tranche E deliverable**: build/buy/drop per capability, the four-layer rule, ten requirements on the orchestration engine, honest cost of leaving Frappe |
 
+### Tranche B — production investigation (in progress)
+
+Confirmed order: **manufacturing → subcontracting → quality**. Planned outputs are docs **33–40**:
+BOM/costing; operations and capacity; Work Orders/Job Cards; production planning/MPS;
+manufacturing Stock Entry/WIP/GL; subcontracting; operational quality gates; then the Tranche B
+coverage closure and target production specification. Scenarios **S07–S10** will walk through
+make-to-order, supplier subcontracting, quality gating, and customer-owned inward subcontracting.
+Assets/depreciation are deferred until after this tranche and before implementation.
+
 Consolidated target schema: **[../design/FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md)** —
 finalised tables, data flow, business rules, lifecycle state machine, fulfilment views,
 settlement model, and the invariant register (F1–U1).
