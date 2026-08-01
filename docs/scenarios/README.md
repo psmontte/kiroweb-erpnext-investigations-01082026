@@ -35,11 +35,14 @@ Citations are `path:line` and are verified mechanically by `tools/verify_refs.py
 | **S04** | [S04-stock-transfer-and-in-transit.md](S04-stock-transfer-and-in-transit.md) | Warehouse → warehouse transfer, direct and via a transit warehouse, with freight capitalised | The flow with **no party and no revenue** — the cleanest view of how valuation crosses warehouses. Transit-on-the-balance-sheet is genuinely good design; the inbound leg has **two builders with different partial-receipt behaviour**, and inter-company transfer is an entirely different mechanism |
 | **S05** | [S05-period-close-and-opening-balances.md](S05-period-close-and-opening-balances.md) | Year-end: Accounting Period gate → Period Closing Voucher → closing snapshots → Stock Closing Entry; then opening balances for a new company | **Four independent mechanisms** control "is this date closed", with no shared model. **Two complete implementations** of year-end close chosen by a setting, with duplicated algorithms. Balance computation streams the year's GL and aggregates in Python. Opening-balance completeness is a convention, not a constraint |
 | **S06** | [S06-multi-currency.md](S06-multi-currency.md) | Foreign-currency invoice → payment at a moved rate (realised FX) → partial payment → period-end revaluation (unrealised FX) → reversal | **Four** simultaneous currency dimensions. `get_exchange_rate` has five fallback layers and **three paths that return a rate of `0`**. Realised FX is a **separate journal** whose idempotency check is float equality. Reporting currency is *stored*, so closing-vs-average translation is not expressible. **8 vouchers for 2 sales** |
+| **S07** | [S07-make-to-order-manufacturing.md](S07-make-to-order-manufacturing.md) | Sales Order → Production Plan → Work Order → Job Cards → WIP transfer → partial manufacture with loss/scrap → Delivery Note | WIP and the SLE→GL accounting core are coherent, but production ownership and progress are mutable projections. **One loss unit completes the Work Order while customer demand remains short**; partial separate consumption can suppress every Manufacture input |
 
 ## Reading order
 
 Read **S01 → S02 → S03**. S02 assumes S01's closing position; S03 assumes both.
-**S04** onwards are independent and can be read in any order.
+**S04–S06** are independent and can be read in any order. Read **S07 after S01** for the
+make-to-order branch that produces stock before returning to S01's Delivery Note mechanics; its
+manufacturing detail builds on docs 33–37.
 
 If you only read one: **S02**. Payment allocation is the flow with the most moving parts and the
 largest gap between what the system appears to do and what it does.
@@ -61,6 +64,11 @@ largest gap between what the system appears to do and what it does.
 | Repost subsystems | [doc 15](../logic/15-intercompany-and-history-rewriting.md) |
 | `Journal Entry`, chart of accounts, dimensions | [doc 26](../logic/26-journal-entry-chart-of-accounts-dimensions.md) |
 | Stock Entry, reconciliation, standard cost, the SLE controller | [doc 27](../logic/27-remaining-stock-documents.md) |
+| BOM revisions, explosion and manufacturing cost inputs | [doc 33](../logic/33-bom-costing-explosion-and-update-jobs.md) |
+| Operations, routing, workstations and capacity | [doc 34](../logic/34-operations-routing-workstations-and-capacity.md) |
+| Work Orders, Job Cards and shop-floor execution | [doc 35](../logic/35-work-orders-job-cards-and-shop-floor.md) |
+| Production Plan, MPS and material netting | [doc 36](../logic/36-production-planning-mps-and-material-netting.md) |
+| Manufacturing consumption, scrap, WIP, valuation and GL | [doc 37](../logic/37-manufacturing-stock-consumption-scrap-wip-and-gl.md) |
 | *Which* tax applies (before doc 05 calculates it) | [doc 28](../logic/28-tax-determination.md) |
 | *Which* price and rule apply | [doc 29](../logic/29-pricing-determination.md) |
 | Quotation / RFQ / Blanket Order / Material Request, drop-ship, terms | [doc 30](../logic/30-upstream-trade-and-parties.md) |
@@ -72,12 +80,12 @@ largest gap between what the system appears to do and what it does.
 
 | Scenario | Depends on |
 |---|---|
-| **S07** Make-to-order: SO → Production Plan → Work Order → material issue/consumption → finished goods → DN | **Tranche B (manufacturing; next)** |
 | **S08** Supplier subcontracting: PO → Order → RM transfer/return → Receipt | **Tranche B (subcontracting)** |
 | **S09** Quality-gated receipt and production | **Tranche B (quality)** |
 | **S10** Customer-owned subcontracting inward flow | **Tranche B (subcontracting)** |
 | Asset purchase → capitalisation → depreciation run → disposal | **Tranche C (assets)** — deferred; revisit before implementation |
 
 All trade / inventory / accounts flows that cross three or more subsystems are covered by
-**S01–S06**. Tranche B will add **S07–S10** in manufacturing → subcontracting → quality order.
+**S01–S07**, including in-house manufacturing. Tranche B will add **S08–S10** in
+subcontracting → quality order.
 See [../COVERAGE.md](../COVERAGE.md) for the DocType-level coverage matrix.
