@@ -52,6 +52,8 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 
 | 30 | [30-upstream-trade-and-parties.md](30-upstream-trade-and-parties.md) | the pre-commitment layer: `Quotation` (alternatives grouped by **row adjacency**), `Proforma Invoice` (totals computed inside a PDF renderer, no cap on cumulative issue), `Request for Quotation` (**submitting it creates `User` accounts** and stores *translated* status values), `Supplier Quotation`, `Blanket Order` (allowance comparing stock UOM to transaction UOM), `Material Request` in depth, drop-ship (a delivery with no document), and the party/terms masters — plus settings singles that **rewrite DocType metadata** |
 
+| 31 | [31-batch-processes-instruments-recurring.md](31-batch-processes-instruments-recurring.md) | background jobs modelled as **submitted documents** (a state machine of two booleans and RQ job-name strings, with a name typo that defeats its own mutex), instruments that post nothing (`Bank Guarantee`, `Cashier Closing` — which attributes cash by `owner` and **adds** returns), `Subscription` idempotency by date comparison, loyalty, banking config — and `Accounts Settings`, whose save rewrites metadata, reschedules a cron job, flushes the cache and makes posted documents editable |
+
 ### Tranche A — deep dives (accounts + trade/inventory remainder)
 
 | Read | File | Covers |
@@ -115,7 +117,7 @@ Last run against the anchor commits:
 
 | Directory | Citations | Confirmed by symbol name | Problems |
 |---|---|---|---|
-| `docs/logic` | 3035 | 1517 | 0 |
+| `docs/logic` | 3160 | 1562 | 0 |
 | `docs/scenarios` | 459 | 164 | 0 |
 
 Name notes under `--strict-names` are advisory: the doc line may legitimately name a symbol defined
