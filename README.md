@@ -88,7 +88,11 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
 - [x] **Finalised schema** — [`docs/design/FINAL-SCHEMA.md`](docs/design/FINAL-SCHEMA.md):
       tables, how data flows through them, business rules, and the invariant register
       (357 source citations across `docs/logic/` verified against erpnext@ceefd4a)
-- [ ] Tranche E — platform mechanics we must replace rather than copy (permissions, naming, hooks,
-      regional overlay, jobs, migrations, reporting)
-- [ ] Tranches B/C/D — manufacturing, assets, projects/quality/CRM (scope to be confirmed)
+- [x] **Tranche E complete** — the platform we must build rather than inherit: metadata + runtime
+      DDL, permissions/RLS, naming + identity + audit, hooks + regional overlay, jobs + scheduling +
+      locking, migrations + patches, reporting (`docs/logic/18`–`24`), plus
+      [`docs/logic/25-our-platform-spec.md`](docs/logic/25-our-platform-spec.md) — build/buy/drop
+      per capability, the four-layer enforcement rule, and 10 requirements on the orchestration engine
+- [ ] Tranches B/C/D — manufacturing, assets, projects/quality/CRM (**scope to be confirmed** —
+      see open question 1 in the investigation plan)
 - [ ] Build — deferred by decision until the investigation is complete

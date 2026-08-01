@@ -55,6 +55,22 @@ Citation verification across `docs/logic/`: **357 citations, 0 unresolved, 0 out
 quality-inspection gate, stock closing entry, loyalty program internals, payment-gateway
 integrations.
 
+### Tranche E (`docs/logic/18`–`25`) — **complete**
+
+| Area | Doc | Depth |
+|---|---|---|
+| Metadata meta-schema, `Meta` assembly, runtime DDL, custom fields / property setters / Customize Form, Singles, virtual doctypes | 18 | full |
+| Permissions: roles, `if_owner`, user permissions, sharing, controller hooks, `permission_query_conditions`, field-level | 19 | full |
+| Naming (11 strategies), the `Series` counter, rename/amend, `Version` / `Audit Trail` / log family, retention | 20 | full |
+| `hooks.py` resolution and merge semantics, `doc_events`, `@allow_regional`, `override_doctype_class`, Server/Client Scripts | 21 | full |
+| RQ + workers, `execute_job` transaction semantics, scheduler and cron mapping, all three locking mechanisms | 22 | full |
+| `bench migrate` pipeline, `patches.txt`, patch execution, `Patch Log`, install/app lifecycle | 23 | full |
+| Five report types, ERPNext financial reports, post-hoc permission filtering, dashboards, print | 24 | full |
+| **Platform specification** — build/buy/drop per capability, four-layer enforcement rule, engine requirements | 25 | deliverable |
+
+Citation verification across `docs/logic/` (01–25): **~600 citations, 0 unresolved, 0 out of
+range**, advisory name notes reviewed.
+
 ## 2. What is left
 
 Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
@@ -68,16 +84,18 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 | **C** | **Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement | 26 (8 submittable) | the depreciation engine is a second ledger-posting engine with its own scheduling |
 | **D** | **Projects & Quality** — project costing, timesheet → billing, Quality Management (16), Support (11), Maintenance (5) | ~47 | adjacent; mostly CRUD over the core |
 | **D** | **CRM** — lead/opportunity/prospect | 28 | lowest priority for an ERP core |
-| **E** | **Platform mechanics we must replace, not copy** — permission model (roles, user permissions, share, `if_owner`), naming series, the `hooks.py` extensibility model, `@allow_regional` overlay architecture (how India GST etc. inject fields and override calculations), background jobs + scheduler, patch/migration system, the query-report framework, custom fields & Customize Form, virtual doctypes | — | this is what we are *not* getting for free by leaving Frappe; it needs a deliberate answer per item |
+| ~~**E**~~ | ~~**Platform mechanics we must replace, not copy**~~ — permission model, naming series, `hooks.py` extensibility, `@allow_regional` overlay, background jobs + scheduler, patch/migration system, query-report framework, custom fields & Customize Form, virtual doctypes | — | **DONE** — `docs/logic/18`–`25`, with a build/buy/drop decision per capability in `25-our-platform-spec.md` |
 
 ## 3. Order (confirmed: "Your order")
 
 1. ~~**Tranche A** (accounts + stock remainder)~~ — **complete**, `docs/logic/09`–`17`, and it did
    change the design: `doc_link` + fulfilment views (D7), insert-only `settlement` (D8),
    explicit `approval_state` (D10), and the reservation/on-hand trigger model all came out of it.
-2. **Tranche E** (platform mechanics) — **next**. Needed before any build decision, because it
-   determines how much framework we are writing ourselves.
-3. **Tranche B / C** (manufacturing, assets) — only if in scope for v1.
+2. ~~**Tranche E** (platform mechanics)~~ — **complete**, `docs/logic/18`–`25`. Answer to
+   "how much framework are we writing ourselves": small-to-medium and mostly one-off. The large
+   remaining items (report view library, front end, localisation data) are not framework.
+   See `25-our-platform-spec.md` §6.
+3. **Tranche B / C** (manufacturing, assets) — **next, if in scope for v1**. Open question 1.
 4. **Tranche D** last.
 
 Each tranche produces documents in the same shape as `docs/logic/`: pinned commit, `file.py:line`

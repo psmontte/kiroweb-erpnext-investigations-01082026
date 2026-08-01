@@ -54,6 +54,19 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 | 16 | [16-stock-reservation-picking-warehouse.md](16-stock-reservation-picking-warehouse.md) | reservation correctness that **depends on the database engine** (with the source's own comments), pick allocation locking, `Bin`'s twelve caches, nested-set warehouses |
 | 17 | [17-item-uom-variants-batch-reorder.md](17-item-uom-variants-batch-reorder.md) | item identity, `Bin.stock_uom` rewriting, variants with no uniqueness constraint, `Item Price` with no overlap detection, the reorder rollup bug, FEFO |
 
+### Tranche E — platform mechanics (what we must build ourselves)
+
+| Read | File | Covers |
+|---|---|---|
+| 18 | [18-metadata-and-runtime-ddl.md](18-metadata-and-runtime-ddl.md) | **the schema is data**: `DocType`/`DocField`/`Meta` assembly, `ALTER TABLE` on user save, silent blank→0 coercion, orphaned columns, Singles as untyped global settings — and our migrations + dimension slots + `setting_def` |
+| 19 | [19-permissions-and-access-control.md](19-permissions-and-access-control.md) | six composed mechanisms, all application-level; the `if_owner` collapse; SQL from hooks and DB rows spliced into `WHERE`; eight bypass routes — and our RLS + grant model |
+| 20 | [20-naming-identity-and-audit-trail.md](20-naming-identity-and-audit-trail.md) | eleven naming strategies, the `Series` counter, counter reversion by character offset, `Version` diffs that miss every `db_set` — and our `uuid` + `numbering_rule` + trigger-written audit |
+| 21 | [21-extensibility-hooks-and-regional.md](21-extensibility-hooks-and-regional.md) | hooks as module-namespace introspection, install-order precedence, `doc_events["*"]`, `@allow_regional` taking the region from the **session** — and our typed `domain_event` + `tax_regime` data + `company_extension` |
+| 22 | [22-background-jobs-scheduling-and-locking.md](22-background-jobs-scheduling-and-locking.md) | RQ without idempotency, a live scheduler bug (`maintenance_offset` computed then discarded), "weak" file locks used for GL rewrites — and our `job`/`schedule` tables + row locks in triggers |
+| 23 | [23-migrations-and-patches.md](23-migrations-and-patches.md) | no schema migration at all: JSON reconciliation + `exec`'d patch strings, `skip_failing` reporting success, no rollback — and our checksummed transactional migrations |
+| 24 | [24-reporting-framework.md](24-reporting-framework.md) | SQL and Python stored in table rows, post-hoc Python row filtering, **aggregates computed before permission filtering** — and our generated queries over RLS-bearing views |
+| 25 | [25-our-platform-spec.md](25-our-platform-spec.md) | **the Tranche E deliverable**: build/buy/drop per capability, the four-layer rule, ten requirements on the orchestration engine, honest cost of leaving Frappe |
+
 Consolidated target schema: **[../design/FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md)** —
 finalised tables, data flow, business rules, lifecycle state machine, fulfilment views,
 settlement model, and the invariant register (F1–U1).
@@ -70,9 +83,9 @@ python3 tools/verify_refs.py --docs docs/logic \
   --app frappe=/path/to/frappe/frappe --strict-names
 ```
 
-Last run against the anchor commits: **126 citations, 0 unresolved paths, 0 out of range**
-(5 advisory name notes, each reviewed — those lines mention a symbol defined elsewhere in the
-same file, which is intentional).
+Last run against the anchor commits: **~600 citations, 0 unresolved paths, 0 out of range**
+(advisory name notes only — those lines mention a symbol defined elsewhere in the same file,
+which is intentional). Frappe-side citations are prefixed `frappe/`.
 
 ## Conventions used in these docs
 
