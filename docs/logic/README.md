@@ -46,6 +46,7 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 | 8 | [08-our-implementation-spec.md](08-our-implementation-spec.md) | **the deliverable**: invariants to enforce, what we keep/change, decisions taken, and the provisional build spec (parked — see [../INVESTIGATION-PLAN.md](../INVESTIGATION-PLAN.md)) |
 | 26 | [26-journal-entry-chart-of-accounts-dimensions.md](26-journal-entry-chart-of-accounts-dimensions.md) | the structures that define *where* posting happens: `Account` as a nested set with 14 validations, `Cost Center`, the **runtime-DDL dimension mechanism** (`Accounting Dimension` / `Inventory Dimension`), and `Journal Entry` — 16 voucher types in one table, with a **documented balancing exemption** |
 | 27 | [27-remaining-stock-documents.md](27-remaining-stock-documents.md) | `Stock Reconciliation` (the only valuation override), `Item Standard Cost` (**the one design we adopt verbatim**), `Putaway Rule`, `Serial No`, `Product Bundle`/`Packing Slip`, `Delivery Trip`/`Shipment`, `Stock Entry Type`, and the `Stock Ledger Entry` **controller** — deferred naming, a second backward-only negative-stock check, three more freeze mechanisms |
+| 28 | [28-tax-determination.md](28-tax-determination.md) | *which* tax applies, before doc 05 calculates it: `Tax Category` (a label with an unread flag), `Tax Rule`'s twenty-column matcher where **specificity outranks `priority`** and blank means wildcard except for `tax_category`, `Item Tax Template` slab selection (with a live sort-key bug), withholding category/group/rate selection, and Lower Deduction Certificates keyed on the **tax ID** rather than the party |
 
 ### Tranche A — deep dives (accounts + trade/inventory remainder)
 
@@ -110,7 +111,7 @@ Last run against the anchor commits:
 
 | Directory | Citations | Confirmed by symbol name | Problems |
 |---|---|---|---|
-| `docs/logic` | 2721 | 1403 | 0 |
+| `docs/logic` | 2812 | 1428 | 0 |
 | `docs/scenarios` | 459 | 164 | 0 |
 
 Name notes under `--strict-names` are advisory: the doc line may legitimately name a symbol defined
