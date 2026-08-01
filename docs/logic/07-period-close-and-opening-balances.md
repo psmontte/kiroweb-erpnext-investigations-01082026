@@ -133,7 +133,8 @@ reporting_currency_exchange_rate, is_period_closing_voucher_entry, period_closin
 columns.
 
 `make_closing_entries(closing_entries, voucher_name, company, closing_date)` (:46-70):
-1. `get_previous_closing_entries(company, closing_date, dimensions)` (:119-155) — finds the single
+1. `get_previous_closing_entries(company, closing_date, dimensions)`
+   (`accounts/doctype/account_closing_balance/account_closing_balance.py:119`) — finds the single
    latest submitted PCV with `period_end_date < closing_date` and reads **all** its
    `Account Closing Balance` rows.
    > **Invariant** Closing balances are **cumulative snapshots**: each PCV's rows = its own period
@@ -222,7 +223,8 @@ Used when `use_legacy_controller_for_pcv = 0`; `pcv_job_timeout` default 3600.
 | Freezing while reposts pending | `stock/utils.py:542` | `PendingRepostingError` | — |
 
 Note `Accounting Period.validate_dates` also refuses a period whose `end_date > nowdate()`
-("cannot be created for a future date"), and `validate_overlap` (:61) does **not** exclude disabled
+("cannot be created for a future date"), and `validate_overlap`
+(`accounts/doctype/accounting_period/accounting_period.py:61`) does **not** exclude disabled
 periods from the overlap test.
 
 The migration `patches/v16_0/migrate_account_freezing_settings_to_company.py` moved
@@ -248,7 +250,8 @@ company-agnostic **or** they share a company via `Fiscal Year Company` →
 (`frappe.NameError`). So parallel fiscal years are legal only when scoped to disjoint companies.
 The overlap query does not filter `disabled`.
 
-`auto_create_fiscal_year()` (:94-133, scheduled): for non-short FYs ending in 3 days, creates the next
+`auto_create_fiscal_year()` (`accounts/doctype/fiscal_year/fiscal_year.py:96`, scheduled): for
+non-short FYs ending in 3 days, creates the next
 one inside `frappe.db.savepoint("auto_create_fiscal_year")`, copying `disabled` and the company rows,
 `auto_created = 1`; a `frappe.NameError` rolls back to the savepoint (explicitly so a duplicate does not
 poison the scheduler transaction on Postgres).
@@ -318,7 +321,9 @@ Resulting GL: Dr warehouse stock account / Cr Temporary Opening.
 
 ## 7.8 Exchange Rate Revaluation
 
-Candidate selection (`get_account_balance_from_gle`, :180-265): accounts with `is_group = 0`,
+Candidate selection
+(`accounts/doctype/exchange_rate_revaluation/exchange_rate_revaluation.py`,
+`get_account_balance_from_gle` :187): accounts with `is_group = 0`,
 `report_type = "Balance Sheet"`, `root_type IN (Asset, Liability, Equity)`,
 `account_type != "Stock"`, and `account_currency != company_currency`. Per
 `(account, NULLIF(party_type,''), NULLIF(party,''))` over non-cancelled GL rows up to the posting date:

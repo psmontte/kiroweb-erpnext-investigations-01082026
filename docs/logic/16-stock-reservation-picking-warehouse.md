@@ -288,7 +288,8 @@ Structural notes:
 - `unlink_from_items` (`:164`) nulls the warehouse on `Item Default` rows on delete.
 - Nested sets mean **every insert or move rewrites `lft`/`rgt` across the subtree**, under a
   table-level contention pattern, and the rollup queries in budgets (doc 12 §1.2), reorder
-  (doc 17 §5), and picking (`get_descendants_of`, `:576`, `:610`) all depend on those values being
+  (doc 17 §5), and picking (`get_descendants_of` at
+  `stock/doctype/pick_list/pick_list.py:576`, `:610`) all depend on those values being
   current.
 
 ---

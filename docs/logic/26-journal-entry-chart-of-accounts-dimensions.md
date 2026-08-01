@@ -599,7 +599,8 @@ The reasoning is that an FX journal's *account-currency* amounts are legitimatel
 post an unbalanced GL entry**, and `process_debit_credit_difference`
 (`accounts/general_ledger.py:397`) is left to absorb it. Invariant F1 has a documented exception.
 
-`get_balance` (`:890`) / `_apply_difference_to_blank_row` (`:904`) is the "auto-balance" helper:
+`get_balance` (`accounts/doctype/journal_entry/journal_entry.py:890`) /
+`_apply_difference_to_blank_row` (`:904`) is the "auto-balance" helper:
 
 ```python
 blank_row = None
@@ -651,13 +652,14 @@ different currencies (a pegged 1:1 pair) is silently refetched every save. And n
 function** from `setup/utils.py:62` (S06 §2) — a nine-argument JE-specific variant that can derive
 the rate from a referenced invoice.
 
-`set_amounts_in_company_currency` (`:706`) then computes
+`set_amounts_in_company_currency` (`accounts/doctype/journal_entry/journal_entry.py:706`) then computes
 `debit = debit_in_account_currency × exchange_rate`, rounded to the field precision — the
 relationship S06 §8.1 makes a `CHECK` constraint.
 
 ### 4.5 Referencing other documents
 
-`validate_against_jv` (`:562`) with `_validate_jv_reference` (`:568`),
+`validate_against_jv` (`accounts/doctype/journal_entry/journal_entry.py:562`)
+with `_validate_jv_reference` (`:568`),
 `_validate_jv_reference_direction` (`:595`), `_get_against_jv_entries` (`:614`);
 `get_against_jv` (`:1069`), `get_outstanding` (`:1108`),
 `_get_journal_entry_outstanding` (`:1143`), `_get_invoice_outstanding` (`:1164`).

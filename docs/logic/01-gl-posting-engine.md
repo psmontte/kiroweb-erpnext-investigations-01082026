@@ -128,9 +128,11 @@ recompute; if still > allowance: throw
   `default_dimension` for dimensions mandatory for the account's `report_type`.
 - **Exchange differences are not absorbed here.** They are posted as a separate system-generated
   Journal Entry with `voucher_type = "Exchange Gain Or Loss"` (`services/exchange_gain_loss.py`),
-  which is exactly why that subtype is exempted from: the balance check (:376, :396), the zero-amount
-  merge filter (:263), the zero-amount row check (gl_entry.py:155) and `update_outstanding_amt`
-  (gl_entry.py:108).
+  which is exactly why that subtype is exempted from: the balance check, twice, in
+  `process_debit_credit_difference` (`accounts/general_ledger.py:413` and `:425`, either side of
+  `make_round_off_gle`), the zero-amount merge filter in `merge_similar_entries` (`:273`), the
+  zero-amount row check (`accounts/doctype/gl_entry/gl_entry.py:163`) and `update_outstanding_amt`
+  (`:109`).
 
 > **Ours** Balance in base currency with **zero tolerance**, enforced by a deferred constraint
 > trigger over the voucher. Rounding residue is computed and posted explicitly by the calculation
@@ -157,7 +159,7 @@ Note two deliberate design quirks worth copying or rejecting consciously:
 > single place, with an explicit `override_reason` + `overridden_by` audit column when a privileged
 > role bypasses it. No implicit bypass flag like `adv_adj`.
 
-## 1.5 Building one GL row (`services/base_gl_composer.py::get_gl_dict`, :27-122)
+## 1.5 Building one GL row (`accounts/services/base_gl_composer.py`, `get_gl_dict` :27-123)
 
 Order matters:
 
@@ -166,18 +168,22 @@ Order matters:
    ("Multiple fiscal years exist for the date … Please set company in Fiscal Year").
 2. Seed: company, posting_date, fiscal_year, `voucher_type = doc.doctype`, `voucher_no = doc.name`,
    remarks, all four amount columns zeroed, `is_opening = doc.is_opening or "No"`, party fields None,
-   project, `post_net_value`, `voucher_detail_no`, `voucher_subtype` (:168-188).
-3. Regional + app hooks (`update_gl_dict_with_regional_fields`, `update_gl_dict_with_app_based_fields`).
+   project, `post_net_value`, `voucher_detail_no`, `voucher_subtype` (:40-60, `get_voucher_subtype`
+   at :171).
+3. Regional + app hooks (`update_gl_dict_with_regional_fields` :63,
+   `update_gl_dict_with_app_based_fields`).
 4. Dimensions: for each enabled dimension fieldname, `doc.get(dim)` overridden by `item.get(dim)`.
-5. **`gl_dict.update(args)` — caller args win over everything above.**
+5. **`gl_dict.update(args)` (:75) — caller args win over everything above.**
 6. `account_currency = account_currency or get_account_currency(account)`.
-7. `validate_account_currency` (:198) — skipped for JE, PCV, PE, PR, PI. Valid currencies are the
-   company currency plus `doc.currency`.
-8. `set_balance_in_account_currency` (`services/taxes.py:325-348`) — skipped for JE, PCV, PE.
+7. `validate_account_currency` (called at :88, defined at :206) — skipped for JE, PCV, PE, PR, PI
+   **and Stock Entry**. Valid currencies are the company currency plus `doc.currency`.
+8. `set_balance_in_account_currency` (called at :95, defined in
+   `accounts/services/taxes.py:325-348`) — skipped for JE, PCV, PE.
    Only fills the account-currency leg **if still zero**:
    `debit_in_account_currency = debit` when account currency == company currency, else
    `flt(debit / conversion_rate, 2)` — note the **hard-coded precision 2**.
-9. Transaction-currency leg (`get_value_in_transaction_currency`, :191): reuse the account-currency
+9. Transaction-currency leg (`accounts/services/base_gl_composer.py`,
+   `get_value_in_transaction_currency` :200): reuse the account-currency
    value when the currencies coincide, else `base / conversion_rate`. Skipped for PI, SI, JE, PE,
    which set it explicitly (`exchange_gain_loss.py:205`).
 10. `against_voucher_type` / `against_voucher` inherited from `doc` only if the caller did not supply
@@ -237,7 +243,7 @@ gle_active_cover  (company, account, posting_date)          WHERE is_cancelled =
 ```
 The partial + covering indexes already exist for Postgres — directly reusable in our schema.
 
-## 1.7 Cancellation and the immutable-ledger switch (:593-735)
+## 1.7 Cancellation and the immutable-ledger switch (`accounts/general_ledger.py`, `make_reverse_gl_entries` :607-726, `set_as_cancel` :728)
 
 ```
 immutable = is_immutable_ledger_enabled()        # accounts/utils.py:2748 -> Accounts Settings.enable_immutable_ledger

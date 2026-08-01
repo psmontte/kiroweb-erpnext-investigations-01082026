@@ -26,11 +26,11 @@ The table is generated, so it cannot drift from reality. `--check` belongs in CI
 | Module | DocTypes | Controller cited | Uncited (submittable) | Uncited (config) | Excluded |
 |---|---:|---:|---:|---:|---:|
 | Accounts | 92 | 40 | 6 | 32 | 14 |
-| Stock | 45 | 18 | 4 | 16 | 7 |
-| Selling | 12 | 3 | 3 | 3 | 3 |
+| Stock | 45 | 25 | 0 | 13 | 7 |
+| Selling | 12 | 4 | 2 | 3 | 3 |
 | Buying | 10 | 1 | 2 | 2 | 5 |
 | Subcontracting | 4 | 1 | 2 | 1 | 0 |
-| **Total** | **163** | **63** | **17** | **54** | **29** |
+| **Total** | **163** | **71** | **12** | **51** | **29** |
 <!-- END COVERAGE TABLE -->
 
 Counts are **parent** DocTypes only (child tables are covered with their parent — the 99 child
@@ -65,12 +65,12 @@ oversight:
 
 | DocType | Module | Closing in |
 |---|---|---|
-| `Stock Entry` *(cited but shallow)*, `Stock Reconciliation`, `Stock Closing Entry`, `Stock Closing Balance`, `Stock Ledger Entry`, `Item Standard Cost`, `Putaway Rule`, `Stock Entry Type` | Stock | **S04** + **doc 27** |
-| `Delivery Trip`, `Shipment`, `Shipment Parcel Template` | Stock | doc 27 (logistics section) |
-| `Product Bundle`, `Packing Slip` | Selling / Stock | doc 27 |
+| ~~`Stock Entry`, `Stock Reconciliation`, `Stock Closing Entry`, `Stock Ledger Entry`, `Item Standard Cost`, `Putaway Rule`, `Stock Entry Type`~~ | Stock | **DONE** — [S04](scenarios/S04-stock-transfer-and-in-transit.md) + [doc 27](logic/27-remaining-stock-documents.md) |
+| ~~`Delivery Trip`, `Shipment`~~ | Stock | **DONE** — doc 27 §5.3 |
+| ~~`Product Bundle`, `Packing Slip`~~ | Selling / Stock | **DONE** — doc 27 §5.1, §5.2 |
 | `Quotation`, `Proforma Invoice` | Selling | doc 30 |
 | `Request for Quotation`, `Supplier Quotation` | Buying | doc 30 |
-| `Advance Payment Ledger Entry` | Accounts | doc 26 (already traced in doc 11 §2.3, controller to be read) |
+| ~~`Advance Payment Ledger Entry`~~ | Accounts | **DONE** — doc 26 |
 | `Payment Order`, `Bank Guarantee` | Accounts | doc 31 |
 | `Process Deferred Accounting`, `Process Payment Reconciliation`, `Process Subscription`, `Cashier Closing` | Accounts | doc 31 (batch-process documents) |
 | `Subcontracting Order`, `Subcontracting Inward Order`, `Subcontracting BOM` | Subcontracting | **Tranche B** by decision |
@@ -102,6 +102,19 @@ ledger, freezing, balance-must-be) has not been read line by line.
    cited or excluded with a reason.
 3. Scenario walkthroughs exist for every flow that crosses three or more subsystems
    (`docs/scenarios/`).
-4. `tools/verify_refs.py` reports 0 unresolved and 0 out-of-range citations across all doc
-   directories.
+4. `tools/verify_refs.py` reports **0 problems** across all doc directories — no unresolved paths,
+   no out-of-range lines, and no ambiguous shorthand refs. This covers both full citations and the
+   `` (`:NNN`) `` shorthand; the shorthand is the bulk of the corpus, so verifying it is what makes
+   the "every claim is checkable" statement true. Current: **2721** citations in `docs/logic` and
+   **459** in `docs/scenarios`, all resolving.
 5. This table is regenerated and committed.
+
+### Status against that definition
+
+| # | Criterion | State |
+|---|---|---|
+| 1 | `uncited_submittable` = 0 | Stock **0** ✔; Accounts 6, Selling 2, Buying 2 remaining (docs 28–31) |
+| 2 | Config DocTypes cited or excluded | in progress — taxes/pricing/party config in docs 28–30 |
+| 3 | Scenario per cross-subsystem flow | S01–S06 done |
+| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 3180 citations** |
+| 5 | Table regenerated | **✔** |

@@ -386,7 +386,7 @@ matching company/item/party with `to_date >= transaction_date`.
 "Month(s) after the end of the invoice month"  -> get_last_day(add_months(date, credit_months))
 clamped: if due_date < posting_date: due_date = posting_date
 ```
-`get_discount_date` (:426) is the same three modes on `discount_validity_based_on`.
+`get_discount_date` (:416) is the same three modes on `discount_validity_based_on`.
 
 `set_due_date` (:209): `doc.due_date = max(schedule.due_date)`.
 `validate_payment_schedule_dates` (:214): clears `discount_date` without a discount, validates

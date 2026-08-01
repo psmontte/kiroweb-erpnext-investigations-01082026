@@ -69,7 +69,7 @@ for row in sl_entries:
 
 Sorting the (item, warehouse) pairs before taking locks is the deadlock-avoidance trick — copy it.
 
-## 2.4 The row-by-row core (`process_sle`, :1008-1195)
+## 2.4 The row-by-row core (`stock/stock_ledger.py`, `process_sle` :1008-1195)
 
 This is the function to reimplement most carefully.
 
@@ -390,8 +390,9 @@ projected_qty = actual + ordered + indented + planned
               - reserved - reserved_for_production - reserved_for_sub_contract - reserved_qty_for_production_plan
 ```
 Full recompute helpers exist per column and are what `repost_stock` uses:
-`get_reserved_qty` (:89), `get_indented_qty` (:150), `get_ordered_qty` (:192) =
-PO + Subcontracting Order, `get_planned_qty` (:256), and `Bin.recalculate_values` (:39).
+`stock/stock_balance.py` — `get_reserved_qty` (:89), `get_indented_qty` (:150),
+`get_ordered_qty` (:192) = PO + Subcontracting Order, `get_planned_qty` (:256) — and
+`Bin.recalculate_values` (`stock/doctype/bin/bin.py:40`).
 `repost_stock` creates a repost at `1900-01-01 00:01` for a full replay.
 
 > **Ours** Same idea, but every demand column is defined **only** as a query over open order lines,

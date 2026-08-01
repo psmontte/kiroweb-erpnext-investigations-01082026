@@ -456,7 +456,8 @@ That is the right idea. Three caveats:
 
 ### 5.6 Cancellation
 
-`on_cancel` (`:152`) → `cancel_gl_entries` (`:456`):
+`on_cancel` (`:152`) → `cancel_gl_entries`
+(`accounts/doctype/period_closing_voucher/period_closing_voucher.py:456`):
 
 ```python
 if self.get_gle_count_against_current_pcv() > 5000:          # :472
@@ -466,7 +467,8 @@ else:
     process_cancellation(voucher_type="Period Closing Voucher", voucher_no=self.name)
 ```
 
-`process_cancellation` (`:504`) → `delete_closing_entries` (`:526`) — the `Account Closing Balance`
+`process_cancellation` (`accounts/doctype/period_closing_voucher/period_closing_voucher.py:504`) →
+`delete_closing_entries` (`:526`) — the `Account Closing Balance`
 rows are **deleted**, not reversed. And `on_cancel` sets:
 
 ```python
@@ -554,7 +556,9 @@ The reverse operation. Three separate paths.
 An `Opening Entry` voucher type on `Journal Entry`, with `is_opening = "Yes"` on every row.
 The offsetting account is **`Temporary Opening`** (`Account.account_type = 'Temporary'`).
 
-`get_gl_entries_for_current_period` (`:302`) filters `is_opening = 'No'`, so opening entries are
+`get_gl_entries_for_current_period`
+(`accounts/doctype/period_closing_voucher/period_closing_voucher.py:302`) filters
+`is_opening = 'No'`, so opening entries are
 excluded from period movement — and included for Balance Sheet accounts on the first PCV only
 (§5.3).
 

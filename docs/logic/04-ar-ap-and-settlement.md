@@ -31,7 +31,7 @@ Called from `make_gl_entries` **after** `process_gl_map` and **before** `save_en
 
 1. Collect the company's accounts with `account_type in ("Receivable","Payable")`. **Only GL rows
    hitting those accounts produce a PLE** — that is the entire filter.
-2. Sign convention (:2049):
+2. Sign convention (`accounts/utils.py:2049`):
    ```
    Receivable: amount = debit  - credit
    Payable:    amount = credit - debit          # mirrored
@@ -124,7 +124,7 @@ Reads only `outstanding_amount` and `total = rounded_total|grand_total` (base va
 
 ## 4.4 Payment Entry
 
-Lifecycle (:172-318):
+`accounts/doctype/payment_entry/payment_entry.py`. Lifecycle (:172-318):
 ```
 validate: set_missing_values, set_liability_account, set_missing_ref_details(force=True),
           validate_payment_type, set_exchange_rate, validate_mandatory, validate_reference_documents,
@@ -194,7 +194,7 @@ difference_amount:
 - **Bank rows** (:172-208): Cr `paid_from` with `paid_amount` (`post_net_value: True`) for Pay /
   Internal Transfer; Dr `paid_to` with `received_amount` for Receive / Internal Transfer.
 - Deductions (:276) and taxes (:210, tax accounts must be in company currency).
-- Advance GL (:1306-1425) — see §4.5.
+- Advance GL (`accounts/doctype/payment_entry/payment_entry.py:1306-1425`) — see §4.5.
 
 ## 4.5 Advances
 
@@ -313,7 +313,8 @@ Three places compute the same number: `PaymentEntry.calculate_base_allocated_amo
 (:1051), `PaymentReconciliation.get_difference_amount` (:426), `advances.set_advance_gain_or_loss`
 (:128).
 
-Posting — `accounts/services/exchange_gain_loss.py` → `utils.py::create_gain_loss_journal` (:2534):
+Posting — `accounts/services/exchange_gain_loss.py` → `create_gain_loss_journal`
+(`accounts/utils.py:2534`):
 a Journal Entry with `voucher_type = "Exchange Gain Or Loss"`, `multi_currency = 1`,
 `is_system_generated = True`:
 - leg 1 on the **party account**: `abs(exc_gain_loss)` in company currency and **0 in account

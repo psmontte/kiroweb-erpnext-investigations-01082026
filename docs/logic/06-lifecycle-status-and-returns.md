@@ -199,7 +199,7 @@ And a third at payment time: `payment_entry.py:2613` refuses SO/PO references wh
 
 ### Cancel ordering is load-bearing
 
-`AccountsController.on_cancel` (:1109-1136):
+`AccountsController.on_cancel` (`controllers/accounts_controller.py:1109-1136`):
 ```
 remove_from_bank_transaction
 if SI/PI/PE/JE:

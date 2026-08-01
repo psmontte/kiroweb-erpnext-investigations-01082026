@@ -45,6 +45,7 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 | 7 | [07-period-close-and-opening-balances.md](07-period-close-and-opening-balances.md) | period closing voucher, closing-balance snapshots, freeze/period gates, fiscal years, opening balances (AR/AP/stock), FX revaluation, report reads |
 | 8 | [08-our-implementation-spec.md](08-our-implementation-spec.md) | **the deliverable**: invariants to enforce, what we keep/change, decisions taken, and the provisional build spec (parked — see [../INVESTIGATION-PLAN.md](../INVESTIGATION-PLAN.md)) |
 | 26 | [26-journal-entry-chart-of-accounts-dimensions.md](26-journal-entry-chart-of-accounts-dimensions.md) | the structures that define *where* posting happens: `Account` as a nested set with 14 validations, `Cost Center`, the **runtime-DDL dimension mechanism** (`Accounting Dimension` / `Inventory Dimension`), and `Journal Entry` — 16 voucher types in one table, with a **documented balancing exemption** |
+| 27 | [27-remaining-stock-documents.md](27-remaining-stock-documents.md) | `Stock Reconciliation` (the only valuation override), `Item Standard Cost` (**the one design we adopt verbatim**), `Putaway Rule`, `Serial No`, `Product Bundle`/`Packing Slip`, `Delivery Trip`/`Shipment`, `Stock Entry Type`, and the `Stock Ledger Entry` **controller** — deferred naming, a second backward-only negative-stock check, three more freeze mechanisms |
 
 ### Tranche A — deep dives (accounts + trade/inventory remainder)
 
@@ -79,9 +80,9 @@ settlement model, and the invariant register (F1–U1).
 
 ## Verifying the citations
 
-Line numbers drift with every upstream commit. `tools/verify_refs.py` extracts every
-`file.py:NNN` citation from these docs, resolves it against the source tree, and reports the
-enclosing `def`/`class`:
+Line numbers drift with every upstream commit. `tools/verify_refs.py` extracts every citation from
+these docs, resolves it against the source tree, and reports the enclosing `def`/`class`, so a
+drifted line shows up as an obviously wrong symbol name:
 
 ```bash
 python3 tools/verify_refs.py --docs docs/logic \
@@ -89,9 +90,31 @@ python3 tools/verify_refs.py --docs docs/logic \
   --app frappe=/path/to/frappe/frappe --strict-names
 ```
 
-Last run against the anchor commits: **~600 citations, 0 unresolved paths, 0 out of range**
-(advisory name notes only — those lines mention a symbol defined elsewhere in the same file,
-which is intentional). Frappe-side citations are prefixed `frappe/`.
+Run it once per directory (`docs/logic`, `docs/scenarios`); it does not recurse.
+
+Both citation forms are verified:
+
+| Form | Example | How it is resolved |
+|---|---|---|
+| full | `accounts/doctype/journal_entry/journal_entry.py:562` | path relative to the app package root, or by unique basename |
+| shorthand | a bare line number in parentheses, or a trailing `#` comment inside a quoted code block | "another line of the file under discussion" |
+
+A shorthand ref is resolved against **every file the document cites in full**, preferring the
+candidate whose enclosing symbol at that line matches a backticked identifier on the same (or
+previous) doc line. That name agreement is the real check — a drifted line number stops matching its
+symbol and is reported rather than silently resolving. Where a line number is plausible in more than
+one cited file and no name pins it down, the tool reports `AMBIGUOUS` and lists what sits at that
+line in each candidate; the fix is to cite that one in full.
+
+Last run against the anchor commits:
+
+| Directory | Citations | Confirmed by symbol name | Problems |
+|---|---|---|---|
+| `docs/logic` | 2721 | 1403 | 0 |
+| `docs/scenarios` | 459 | 164 | 0 |
+
+Name notes under `--strict-names` are advisory: the doc line may legitimately name a symbol defined
+elsewhere in the same file. Frappe-side citations are prefixed `frappe/`.
 
 ## Conventions used in these docs
 

@@ -69,7 +69,7 @@ Accounts used, and where they come from:
 Note: v17 has **renamed** the classic "Expenses Included In Valuation" / "Stock In Hand" fields into
 the `expenses_added_to_stock_*` and `purchase_expense_*` pairs plus `default_inventory_account`.
 
-## 3.3 The canonical pair (`BaseStockGLComposer.compose`, :30-155)
+## 3.3 The canonical pair (`stock/services/base_stock_gl_composer.py`, `BaseStockGLComposer.compose` :30-155)
 
 ```
 sle_map = doc.get_stock_ledger_details()      # stock_ledger_service.py:56 — SLEs grouped by voucher_detail_no
@@ -158,9 +158,11 @@ to a Sales Invoice; final fallback `default_expense_account`.
 ### Stock Entry (`stock_entry/services/gl_composer.py`)
 
 Base loop (source warehouse Cr, target Dr), then:
-- **Additional costs** (:265-357): each `additional_costs.expense_account` **Cr**
+- **Additional costs** (`_build_additional_cost_per_item_account` :189,
+  `_append_additional_cost_gl_entries` :219-273): each `additional_costs.expense_account` **Cr**
   `t.amount * (basic_amount or qty) / divide_based_on`; contra is `d.expense_account` **Dr**.
-- **LCV** (:359-428): LCV expense account **Cr** `base_amount`, `item.expense_account` Dr.
+- **LCV** (`_append_lcv_gl_entries` :275): LCV expense account **Cr** `base_amount`,
+  `item.expense_account` Dr.
 - **Standard-cost variances**: `Manufacture`/`Repack` → `item.amount − Σ positive SVD` to
   `get_manufacturing_variance_account` (:59); `Material Receipt` → the same delta to
   `get_purchase_price_variance_account` (:82).
@@ -171,7 +173,9 @@ Throws if no cost center. Because SR has no expense rows, `get_voucher_details` 
 pseudo-row per SLE** keyed by `voucher_detail_no`, with `is_opening = "Yes"` when
 `purpose == "Opening Stock"`. Then: warehouse account ± SVD vs `doc.expense_account` (default
 `Company.stock_adjustment_account`), plus the `expenses_added_to_stock` pair.
-`validate_expense_account` (:1098) forces an **Asset/Liability** difference account for
+`validate_expense_account`
+(`stock/doctype/stock_reconciliation/stock_reconciliation.py:1098`) forces an
+**Asset/Liability** difference account for
 `Opening Stock` → `OpeningEntryAccountError`.
 
 ### Sales Invoice (`accounts/doctype/sales_invoice/services/gl_composer.py`)

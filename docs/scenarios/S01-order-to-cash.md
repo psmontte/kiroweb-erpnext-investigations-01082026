@@ -621,7 +621,7 @@ ERPNext cannot answer this from its own data — the counters are current-value 
 | Two order lines → one invoice line? | No | Two `doc_link` rows |
 | Delivery progress unit | qty | `qty_stock`, always stock UOM |
 | Billing progress unit | **amount** | both available; `billing_complete` is explicit |
-| Zero-value line completes? | special-case code (`:694`) | `Σ ordered = 0 → 100` in the view |
+| Zero-value line completes? | special-case code (`controllers/status_updater.py:694`) | `Σ ordered = 0 → 100` in the view |
 | Close one line? | **No** | `line.is_closed` + reason + who |
 | Close whole order? | write `'Closed'` into `status`, no provenance | `closed_at`/`closed_by`/`close_reason` |
 | Return reduces open qty? | No — parallel `returned_qty` counter | Yes, same aggregate |
