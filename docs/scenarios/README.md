@@ -37,6 +37,7 @@ Citations are `path:line` and are verified mechanically by `tools/verify_refs.py
 | **S06** | [S06-multi-currency.md](S06-multi-currency.md) | Foreign-currency invoice → payment at a moved rate (realised FX) → partial payment → period-end revaluation (unrealised FX) → reversal | **Four** simultaneous currency dimensions. `get_exchange_rate` has five fallback layers and **three paths that return a rate of `0`**. Realised FX is a **separate journal** whose idempotency check is float equality. Reporting currency is *stored*, so closing-vs-average translation is not expressible. **8 vouchers for 2 sales** |
 | **S07** | [S07-make-to-order-manufacturing.md](S07-make-to-order-manufacturing.md) | Sales Order → Production Plan → Work Order → Job Cards → WIP transfer → partial manufacture with loss/scrap → Delivery Note | WIP and the SLE→GL accounting core are coherent, but production ownership and progress are mutable projections. **One loss unit completes the Work Order while customer demand remains short**; partial separate consumption can suppress every Manufacture input |
 | **S08** | [S08-supplier-subcontracting.md](S08-supplier-subcontracting.md) | Subcontract PO service → Subcontracting Order → RM reservation/send/return → partial Subcontracting Receipt → optional service Purchase Receipt | Supplier custody remains company inventory and the SLE→GL bridge stays exact, but **the same transfer and output consume 10/5 RM under BOM backflush versus 8/4 under transferred-material backflush**; the residual allocation is unlocked |
+| **S09** | [S09-quality-gated-production-and-receipt.md](S09-quality-gated-production-and-receipt.md) | Multi-row Purchase Receipt → post-transaction inspection → Job Card operation gate → separately gated Manufacture Stock Entry | Inventory and GL remain balanced under Accepted and Warn, but **Warn posts draft/Rejected evidence as ordinary stock and one allow-after row returns from the entire receipt loop**; exact scoped release and durable exceptions are absent |
 | **S10** | [S10-customer-owned-subcontracting-inward.md](S10-customer-owned-subcontracting-inward.md) | Subcontracted SO service → customer RM receipt/return → internal Work Order/Job Card/Manufacture → FG delivery/return → service + company-material Sales Invoice | Customer material moves through company warehouses at **zero company value but without an owner dimension**; gross delivery 10 and return 2 leaves net fulfilment 8 while status is Delivered |
 
 ## Reading order
@@ -45,9 +46,11 @@ Read **S01 → S02 → S03**. S02 assumes S01's closing position; S03 assumes bo
 **S04–S06** are independent and can be read in any order. Read **S07 after S01** for the
 make-to-order branch that produces stock before returning to S01's Delivery Note mechanics; its
 manufacturing detail builds on docs 33–37. Read **S08 after S03** for the supplier-subcontracting branch
-of procurement. Read **S10 after S07**, then compare it with S08: S10 reuses ordinary internal
-manufacturing but reverses material ownership, so the same Warehouse/SLE machinery must represent
-customer custody at zero company value. Use doc 38 for both subcontracting branches.
+of procurement. Read **S09 after S03 and S07**: it joins a multi-row Purchase Receipt to operation and
+finished-output release, and doc 39 supplies the complete quality model and M56–M69. Read **S10 after
+S07**, then compare it with S08: S10 reuses ordinary internal manufacturing but reverses material
+ownership, so the same Warehouse/SLE machinery must represent customer custody at zero company value.
+Use doc 38 for both subcontracting branches.
 
 If you only read one: **S02**. Payment allocation is the flow with the most moving parts and the
 largest gap between what the system appears to do and what it does.
@@ -74,6 +77,7 @@ largest gap between what the system appears to do and what it does.
 | Work Orders, Job Cards and shop-floor execution | [doc 35](../logic/35-work-orders-job-cards-and-shop-floor.md) |
 | Production Plan, MPS and material netting | [doc 36](../logic/36-production-planning-mps-and-material-netting.md) |
 | Manufacturing consumption, scrap, WIP, valuation and GL | [doc 37](../logic/37-manufacturing-stock-consumption-scrap-wip-and-gl.md) |
+| Quality templates, observations, formula/manual disposition, receipt/operation/stock gates, release and exceptions | [S09](S09-quality-gated-production-and-receipt.md) and [doc 39](../logic/39-quality-inspection-templates-readings-and-gates.md) |
 | Supplier subcontract PO/SCO, custody send/return, receipt and service PR | [S08](S08-supplier-subcontracting.md) and [doc 38](../logic/38-subcontracting-orders-transfer-consumption-receipt-and-gl.md) |
 | Customer-owned inward SCIO, zero-valued custody, internal manufacture, delivery/return and billing | [S10](S10-customer-owned-subcontracting-inward.md) and [doc 38](../logic/38-subcontracting-orders-transfer-consumption-receipt-and-gl.md) |
 | *Which* tax applies (before doc 05 calculates it) | [doc 28](../logic/28-tax-determination.md) |
@@ -83,14 +87,15 @@ largest gap between what the system appears to do and what it does.
 | `Stock Settings`, reposting settings, variants — and the coverage closure | [doc 32](../logic/32-stock-configuration-and-remaining-masters.md) |
 | The target schema and invariant register | [FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md) |
 
-## What is not here yet
+## What is left
 
-| Scenario | Depends on |
+| Deliverable | Depends on |
 |---|---|
-| **S09** Quality-gated receipt and production | **Tranche B (quality)** |
+| **Doc 40** Production coverage closure and target-specification consolidation | **Tranche B** — the only remaining Tranche B deliverable |
 | Asset purchase → capitalisation → depreciation run → disposal | **Tranche C (assets)** — deferred; revisit before implementation |
 
 All trade / inventory / accounts flows that cross three or more subsystems are covered by
-**S01–S08 and S10**, including in-house manufacturing and both ownership directions of subcontracting.
-**S09 quality is next; assets remain deferred to Tranche C.**
+**S01–S10**, including in-house manufacturing, both ownership directions of subcontracting and the
+quality-gated receipt/production boundary. **S09 completes the Tranche B scenario set; only doc 40
+remains in Tranche B.** Assets remain deferred to Tranche C.
 See [../COVERAGE.md](../COVERAGE.md) for the DocType-level coverage matrix.

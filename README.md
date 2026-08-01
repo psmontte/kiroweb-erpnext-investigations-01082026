@@ -103,8 +103,8 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       Receipt → Invoice (rejection, landed cost, return), **S04** warehouse transfer including
       in-transit, **S05** period close + opening balances, **S06** multi-currency invoice →
       payment → FX revaluation, **S07** make-to-order manufacturing with partial production, WIP,
-      process loss, scrap and Standard Cost variance, **S08** supplier subcontracting, and **S10**
-      customer-owned subcontracting inward
+      process loss, scrap and Standard Cost variance, **S08** supplier subcontracting, **S09**
+      quality-gated receipt/production, and **S10** customer-owned subcontracting inward
 - [x] **Trade / inventory / accounts closed out** (`docs/logic/26`–`32`) — Journal Entry + chart of
       accounts + dimensions, the remaining stock documents, tax determination, pricing
       determination, upstream trade + parties, batch processes + instruments + recurring, and stock
@@ -112,17 +112,17 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       submittable and configuration alike; see [`docs/COVERAGE.md`](docs/COVERAGE.md) (generated)
       and the closure statement in
       [`docs/logic/32`](docs/logic/32-stock-configuration-and-remaining-masters.md) §5.
-      **4,536 citations verified, 0 problems.**
+      **4,574 citations verified, 0 problems.**
 - [x] **Tranche B manufacturing complete** (`docs/logic/33`–`37`, scenario `S07`) — BOM costing and
       explosion, operations/routing/capacity, Work Orders/Job Cards, Production Plan/MPS/netting, and
       manufacturing Stock Entry/WIP/GL. **Manufacturing: 18/18 parent controllers cited, 0 gaps.**
 - [x] **Tranche B subcontracting complete** (`docs/logic/38`, scenarios `S08` and `S10`) — all
       four Subcontracting parents and both ownership directions are documented. **Subcontracting:
       4/4 parent controllers cited, 0 gaps.**
-- [x] **Tranche B quality controller coverage complete** (`docs/logic/39`) — all eight Quality
+- [x] **Tranche B quality complete** (`docs/logic/39`, scenario `S09`) — all eight Quality
       Management parents and all four Stock-owned operational inspection parents are documented with
-      **0 coverage gaps**.
-- [ ] **Tranche B quality scenario/closure next** — S09, then closure/spec doc 40
+      **0 coverage gaps**; accepted, blocked, warned and post-transaction gates are worked end to end.
+- [ ] **Tranche B closure next** — target production-spec and final closure doc 40
 - [ ] Tranche C — assets + depreciation engine (**deferred by decision; revisit after Tranche B and
       before implementation**)
 - [x] ~~Tranche D~~ — CRM, projects, support: **out of scope** by decision

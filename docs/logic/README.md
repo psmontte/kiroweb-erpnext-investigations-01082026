@@ -95,8 +95,9 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 Confirmed order: **manufacturing → subcontracting → quality**. Manufacturing is complete in docs
 **33–37** plus **S07**: all 18 parent controllers are cited with zero coverage gaps. Subcontracting is
 complete in **doc 38**, **S08** and **S10**: all four parent controllers are cited with zero gaps.
-**Quality is active** in **doc 39**; **S09** remains planned. Doc 39 covers all eight Quality
-Management parents and all four Stock operational-QI parents. Planned doc 40 then closes coverage and
+**Quality is complete** in **doc 39** and **S09**. Doc 39 covers all eight Quality Management
+parents and all four Stock operational-QI parents; S09 exercises blocked, accepted, warned and
+post-transaction receipt/operation/output gates. Planned doc 40 now closes Tranche B coverage and
 consolidates the target production specification. Assets/depreciation are deferred until after this
 tranche and before implementation.
 
@@ -137,7 +138,7 @@ Last run against the anchor commits:
 | Directory | Citations | Confirmed by symbol name | Problems |
 |---|---|---|---|
 | `docs/logic` | 3933 | 1574 | 0 |
-| `docs/scenarios` | 603 | 164 | 0 |
+| `docs/scenarios` | 641 | 164 | 0 |
 
 Name notes under `--strict-names` are advisory: the doc line may legitimately name a symbol defined
 elsewhere in the same file. Frappe-side citations are prefixed `frappe/`.

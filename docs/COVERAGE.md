@@ -110,7 +110,7 @@ ledger, freezing, balance-must-be) has not been read line by line.
    no out-of-range lines, and no ambiguous shorthand refs. This covers both full citations and the
    `` (`:NNN`) `` shorthand; the shorthand is the bulk of the corpus, so verifying it is what makes
    the "every claim is checkable" statement true. Current: **3933** citations in `docs/logic` and
-   **603** in `docs/scenarios`, all resolving (**4536 total**).
+   **641** in `docs/scenarios`, all resolving (**4574 total**).
 5. This table is regenerated and committed.
 
 ### Status against that definition
@@ -119,8 +119,8 @@ ledger, freezing, balance-must-be) has not been read line by line.
 |---|---|---|
 | 1 | `uncited_submittable` = 0 | Accounts **0** ✔, Stock **0** ✔, Selling **0** ✔, Buying **0** ✔, Manufacturing **0** ✔, Subcontracting **0** ✔, Quality Management **0** ✔ |
 | 2 | Config DocTypes cited or excluded | **✔ 0 uncited config** in every audited module; Stock operational-QI exclusions removed after doc 39 |
-| 3 | Scenario per cross-subsystem flow | **✔** S01–S08 and S10; S09 quality scenario next |
-| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 4536 citations** |
+| 3 | Scenario per cross-subsystem flow | **✔** S01–S10 complete |
+| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 4574 citations** |
 | 5 | Table regenerated | **✔** |
 
 **Trade-core definition remains met.** `Accounts`, `Stock`, `Selling` and `Buying` have zero uncited
@@ -136,5 +136,5 @@ ownership directions, custody, transfer, consumption, receipt/manufacture, SLE, 
 
 **Quality is now closed at DocType level:** all **8/8 Quality Management parent controllers** and all
 four Stock-owned operational inspection parents are cited, with zero gaps. Doc 39 covers criteria,
-sampling, formulas, transaction and Job Card gates, QM workflows, scheduler behavior and races. S09 is
-still required as the worked cross-subsystem scenario before Tranche B closure.
+sampling, formulas, transaction and Job Card gates, QM workflows, scheduler behavior and races. S09
+completes the worked cross-subsystem scenario with accepted, blocked, warned and post-transaction gates.
