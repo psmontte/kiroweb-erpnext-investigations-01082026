@@ -48,6 +48,8 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 | 27 | [27-remaining-stock-documents.md](27-remaining-stock-documents.md) | `Stock Reconciliation` (the only valuation override), `Item Standard Cost` (**the one design we adopt verbatim**), `Putaway Rule`, `Serial No`, `Product Bundle`/`Packing Slip`, `Delivery Trip`/`Shipment`, `Stock Entry Type`, and the `Stock Ledger Entry` **controller** — deferred naming, a second backward-only negative-stock check, three more freeze mechanisms |
 | 28 | [28-tax-determination.md](28-tax-determination.md) | *which* tax applies, before doc 05 calculates it: `Tax Category` (a label with an unread flag), `Tax Rule`'s twenty-column matcher where **specificity outranks `priority`** and blank means wildcard except for `tax_category`, `Item Tax Template` slab selection (with a live sort-key bug), withholding category/group/rate selection, and Lower Deduction Certificates keyed on the **tax ID** rather than the party |
 
+| 29 | [29-pricing-determination.md](29-pricing-determination.md) | which price list, which rule, in what order — plus a `Price List` currency change that re-labels stored amounts without converting them, `Promotional Scheme` **generating and deleting** Pricing Rule documents, an unlocked coupon counter, and a `Shipping Rule` sort that assigns to the wrong attribute |
+
 ### Tranche A — deep dives (accounts + trade/inventory remainder)
 
 | Read | File | Covers |
@@ -111,7 +113,7 @@ Last run against the anchor commits:
 
 | Directory | Citations | Confirmed by symbol name | Problems |
 |---|---|---|---|
-| `docs/logic` | 2812 | 1428 | 0 |
+| `docs/logic` | 2919 | 1465 | 0 |
 | `docs/scenarios` | 459 | 164 | 0 |
 
 Name notes under `--strict-names` are advisory: the doc line may legitimately name a symbol defined
