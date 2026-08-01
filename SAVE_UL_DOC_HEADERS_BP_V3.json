@@ -1,0 +1,3531 @@
+{
+  "orchestration_id": "SAVE_UL_DOC_HEADERS_BP_V3",
+  "authoring": {
+    "method": "handwritten"
+  },
+  "version": 13,
+  "description": "Production-grade document save with optimistic locking, compliance checks, fulfillment handling, reservations. V11: Unified post-save fulfillment linking  -  auto-creates ul_doc_line_links when lines have source_doc_id/source_line_id (covers SOâ†’SI, POâ†’GRN, SQâ†’SO, etc.). V12: Payload completeness validation, FK validation (currency/address/warehouse/payment-terms/line-items), post-save reconciliation (header totals, allocations, fulfillment links, extension tables). V13: Refactored 15 inline FK/SUB_ORCH validation steps into 1 RUN_PYTHON (fk_validation_service.validate_doc_save_payload) + 1 VALIDATE gate.",
+  "entity_type": "ul_document",
+  "requires_transaction": true,
+  "timeout_seconds": 30,
+  "mode": "SYNC",
+  "tenant_scope": {
+    "tenant_id_required": true,
+    "applies_to_schema": "uni_app"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "header"
+    ],
+    "properties": {
+      "header": {
+        "type": "object"
+      },
+      "lines": {
+        "type": "array"
+      },
+      "taxes": {
+        "type": "array"
+      },
+      "schedules": {
+        "type": "array"
+      },
+      "serials": {
+        "type": "array"
+      },
+      "allocations": {
+        "type": "array"
+      },
+      "extensions": {
+        "type": "object",
+        "properties": {
+          "header_ext_dev": {
+            "type": "object",
+            "description": "Developer/ISV extension fields for header"
+          },
+          "header_ext_partner": {
+            "type": "object",
+            "description": "Implementation Partner extension fields for header"
+          },
+          "header_ext_regional": {
+            "type": "object",
+            "description": "Regional extension fields for header (India GST, E-Invoice, E-Way Bill)"
+          },
+          "lines_ext_dev": {
+            "type": "array",
+            "description": "Developer/ISV extension fields for lines (array with line_id)"
+          },
+          "lines_ext_partner": {
+            "type": "array",
+            "description": "Implementation Partner extension fields for lines (array with line_id)"
+          },
+          "lines_ext_regional": {
+            "type": "array",
+            "description": "Regional extension fields for lines (HSN, SAC, Cess)"
+          },
+          "header_export": {
+            "type": "object",
+            "description": "Export-specific header fields (shipping bill, ports, LUT ARN)"
+          },
+          "lines_export": {
+            "type": "array",
+            "description": "Export-specific line fields (incentive rate, drawback rate, FOB value)"
+          },
+          "header_ext_custom": {
+            "type": "object",
+            "description": "Customer-specific custom extension fields for header"
+          },
+          "lines_ext_custom": {
+            "type": "array",
+            "description": "Customer-specific custom extension fields for lines (array with line_id)"
+          },
+          "header_ext_order": {
+            "type": "object",
+            "description": "Order extension fields (validity, delivery date, blanket)"
+          },
+          "header_ext_quote": {
+            "type": "object",
+            "description": "Quote extension fields (validity, revision, probability)"
+          },
+          "header_ext_packing": {
+            "type": "object",
+            "description": "Packing slip extension fields (packages, weight, volume)"
+          },
+          "header_ext_stock": {
+            "type": "object",
+            "description": "Stock adjustment extension fields (from/to warehouse, reason)"
+          },
+          "header_ext_jobwork": {
+            "type": "object",
+            "description": "Jobwork extension fields (challan, process)"
+          },
+          "header_ext_payment": {
+            "type": "object",
+            "description": "Payment extension fields (payment mode, instrument)"
+          },
+          "lines_ext_order": {
+            "type": "array",
+            "description": "Order extension fields for lines"
+          },
+          "lines_ext_logistics": {
+            "type": "array",
+            "description": "Logistics extension fields for lines"
+          },
+          "lines_ext_jobwork": {
+            "type": "array",
+            "description": "Jobwork extension fields for lines"
+          },
+          "lines_ext_payment": {
+            "type": "array",
+            "description": "Payment extension fields for lines"
+          }
+        }
+      },
+      "expected_version": {
+        "type": "integer"
+      }
+    }
+  },
+  "steps": [
+    {
+      "step_id": "determine_operation",
+      "sequence": 5,
+      "step_type": "SET_VARIABLE",
+      "description": "Check _is_new flag OR missing doc_id to determine INSERT vs UPDATE",
+      "name": "is_new",
+      "value": {
+        "$or": [
+          {
+            "$eq": [
+              "$.input.header._is_new",
+              true
+            ]
+          },
+          {
+            "$eq": [
+              "$.input.header.doc_id",
+              null
+            ]
+          },
+          {
+            "$eq": [
+              "$.input.header.doc_id",
+              ""
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "step_id": "validate_payload_completeness",
+      "sequence": 7,
+      "step_type": "CALL_FUNCTION",
+      "description": "Layer 2: Validate payload completeness — required extension tables present, no forbidden child tables, all required columns present per subtype",
+      "function": "uni_app.sp_validate_payload_completeness",
+      "params": {
+        "p_doc_type": "$.input.header.doc_type",
+        "p_doc_subtype": {
+          "$coalesce": [
+            "$.input.header.doc_subtype",
+            "STANDARD"
+          ]
+        },
+        "p_payload_keys": {
+          "$json_stringify": {
+            "$keys": "$.input"
+          }
+        },
+        "p_tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "payload_completeness"
+    },
+    {
+      "step_id": "check_payload_completeness",
+      "sequence": 7.5,
+      "step_type": "VALIDATE",
+      "description": "Abort if payload is missing required tables/columns or contains forbidden child data",
+      "condition": "$.results.payload_completeness.is_valid == true",
+      "error_code": "PAYLOAD_INCOMPLETE",
+      "error_message": {
+        "$coalesce": [
+          "$.results.payload_completeness.message",
+          "Payload completeness validation failed"
+        ]
+      }
+    },
+    {
+      "step_id": "load_existing",
+      "sequence": 10,
+      "step_type": "SELECT_ONE",
+      "execute_if": "$.variables.is_new == false",
+      "table": "ul_doc_headers",
+      "columns": [
+        "doc_id",
+        "version_no",
+        "status",
+        "has_active_hold"
+      ],
+      "where": {
+        "doc_id": "$.input.header.doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "existing_doc"
+    },
+    {
+      "step_id": "load_existing_ext_regional",
+      "sequence": 10.5,
+      "step_type": "SELECT_ONE",
+      "description": "Load existing ext_regional to check IRN/compliance_frozen (moved from core header)",
+      "execute_if": "$.variables.is_new == false",
+      "table": "ul_doc_headers_ext_regional",
+      "columns": [
+        "doc_id",
+        "e_invoice_irn",
+        "compliance_frozen"
+      ],
+      "where": {
+        "doc_id": "$.input.header.doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "existing_ext_regional"
+    },
+    {
+      "step_id": "load_existing_lines",
+      "sequence": 11,
+      "step_type": "SELECT_MANY",
+      "description": "Load existing lines for reservation delta calculation",
+      "execute_if": "$.variables.is_new == false",
+      "table": "ul_doc_lines",
+      "columns": [
+        "line_id",
+        "item_id",
+        "item_code_cache",
+        "warehouse_id",
+        "qty",
+        "uom_code"
+      ],
+      "where": {
+        "doc_id": "$.input.header.doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "deleted_at": null
+      },
+      "result_key": "existing_lines"
+    },
+    {
+      "step_id": "validate_exists",
+      "sequence": 12,
+      "step_type": "VALIDATE",
+      "execute_if": "$.variables.is_new == false",
+      "condition": "$.results.existing_doc != null",
+      "error_code": "NOT_FOUND",
+      "error_message": "Document not found"
+    },
+    {
+      "step_id": "validate_not_locked",
+      "sequence": 14,
+      "step_type": "VALIDATE",
+      "execute_if": "$.variables.is_new == false",
+      "condition": "$.results.existing_doc.has_active_hold != true",
+      "error_code": "DOCUMENT_LOCKED",
+      "error_message": "Document is locked and cannot be modified"
+    },
+    {
+      "step_id": "validate_compliance_freeze",
+      "sequence": 15,
+      "step_type": "VALIDATE",
+      "description": "Check compliance_frozen from ext_regional (IRN/E-Waybill now in extension table)",
+      "execute_if": "$.variables.is_new == false  and  $.results.existing_ext_regional != null",
+      "condition": "$.results.existing_ext_regional.compliance_frozen != true",
+      "error_code": "COMPLIANCE_FROZEN",
+      "error_message": "Document has IRN/E-Waybill and cannot be modified. Use Credit Note instead."
+    },
+    {
+      "step_id": "check_payment_allocations",
+      "sequence": 15.5,
+      "step_type": "SELECT_ONE",
+      "description": "Check if document has any payment allocations",
+      "execute_if": "$.variables.is_new == false",
+      "table": "ac_doc_balances",
+      "columns": [
+        "paid_amount_fc"
+      ],
+      "where": {
+        "doc_id": "$.input.header.doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "payment_check"
+    },
+    {
+      "step_id": "validate_no_payments",
+      "sequence": 16,
+      "step_type": "VALIDATE",
+      "description": "Block editing if document has payment allocations",
+      "execute_if": "$.variables.is_new == false  and  $.results.payment_check != null",
+      "condition": {
+        "$lte": [
+          "$.results.payment_check.paid_amount_fc",
+          0
+        ]
+      },
+      "error_code": "HAS_PAYMENTS",
+      "error_message": "Document has payment allocations. Unallocate payments before editing."
+    },
+    {
+      "step_id": "validate_version",
+      "sequence": 17,
+      "step_type": "VALIDATE",
+      "execute_if": "$.variables.is_new == false",
+      "condition": {
+        "$or": [
+          {
+            "$eq": [
+              "$.input.header.version_no",
+              null
+            ]
+          },
+          {
+            "$eq": [
+              "$.results.existing_doc.version_no",
+              "$.input.header.version_no"
+            ]
+          }
+        ]
+      },
+      "error_code": "VERSION_CONFLICT",
+      "error_message": "Document was modified by another user. Please refresh."
+    },
+    {
+      "step_id": "validate_editable_status",
+      "sequence": 18,
+      "step_type": "VALIDATE",
+      "execute_if": "$.variables.is_new == false",
+      "condition": {
+        "$in": [
+          "$.results.existing_doc.status",
+          [
+            "DRAFT",
+            "REJECTED"
+          ]
+        ]
+      },
+      "error_code": "NOT_EDITABLE",
+      "error_message": "Only DRAFT/REJECTED documents can be edited"
+    },
+    {
+      "step_id": "check_downstream_docs",
+      "sequence": 19,
+      "step_type": "EXECUTE_SQL",
+      "execute_if": "$.variables.is_new == false",
+      "sql": "SELECT COUNT(*) as cnt FROM ul_doc_line_links WHERE source_doc_id = :doc_id AND link_status = 'ACTIVE' AND tenant_id = :tenant_id",
+      "params": {
+        "doc_id": "$.input.header.doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "output_schema": {
+        "cnt": "number"
+      },
+      "result_key": "downstream_check"
+    },
+    {
+      "step_id": "validate_no_downstream",
+      "sequence": 20,
+      "step_type": "VALIDATE",
+      "execute_if": "$.variables.is_new == false  and  $.results.downstream_check.cnt > 0",
+      "condition": false,
+      "error_code": "HAS_DOWNSTREAM",
+      "error_message": "Document has linked child documents. Cannot edit."
+    },
+    {
+      "step_id": "debug_party_id",
+      "sequence": 21,
+      "step_type": "LOG",
+      "level": "debug",
+      "message": "DEBUG party_id and doc_type for save operation",
+      "metadata": {
+        "party_id": "$.input.header.party_id",
+        "doc_type": "$.input.header.doc_type"
+      }
+    },
+    {
+      "step_id": "validate_party",
+      "sequence": 22,
+      "step_type": "RUN_PYTHON",
+      "description": "Validate party exists and is eligible  -  skip for partyless documents (e.g. DLN_TRANSFER)",
+      "execute_if": "$.input.header.party_id != null and $.input.header.party_id != ''",
+      "mode": "service",
+      "params": {
+        "service": "party_service",
+        "method": "validate_party",
+        "party_id": "$.input.header.party_id",
+        "doc_type": "$.input.header.doc_type"
+      },
+      "result_key": "party_validation"
+    },
+    {
+      "step_id": "check_party_valid",
+      "sequence": 23,
+      "step_type": "VALIDATE",
+      "execute_if": "$.input.header.party_id != null and $.input.header.party_id != ''",
+      "condition": "$.results.party_validation.is_valid == true",
+      "error_code": "INVALID_PARTY",
+      "error_message": "$.results.party_validation.message"
+    },
+    {
+      "step_id": "validate_lines_data",
+      "sequence": 24,
+      "step_type": "RUN_PYTHON",
+      "description": "Validate line data - qty > 0, required fields",
+      "mode": "service",
+      "params": {
+        "service": "validation_engine",
+        "method": "validate_for_save",
+        "document": {
+          "header": "$.input.header",
+          "lines": "$.input.lines"
+        }
+      },
+      "result_key": "line_validation"
+    },
+    {
+      "step_id": "check_lines_valid",
+      "sequence": 24.1,
+      "step_type": "VALIDATE",
+      "condition": "$.results.line_validation.is_valid == true",
+      "error_code": "INVALID_LINE_DATA",
+      "error_message": {
+        "$coalesce": [
+          "$.results.line_validation.errors[0].message",
+          "Line validation failed"
+        ]
+      }
+    },
+    {
+      "step_id": "run_generated_validation",
+      "sequence": 24.2,
+      "step_type": "RUN_PYTHON",
+      "description": "Run generated Python validator from validations.json rules",
+      "mode": "service",
+      "params": {
+        "service": "validation_engine",
+        "method": "validate_document",
+        "entity_code": "$.input.header.doc_type",
+        "data": {
+          "header": "$.input.header",
+          "lines": "$.input.lines"
+        },
+        "trigger": "SAVE",
+        "subtype": "$.input.header.doc_subtype"
+      },
+      "result_key": "generated_validation"
+    },
+    {
+      "step_id": "check_generated_valid",
+      "sequence": 24.3,
+      "step_type": "VALIDATE",
+      "description": "Abort if generated validation failed",
+      "condition": "$.results.generated_validation.is_valid == true",
+      "error_code": "GENERATED_VALIDATION_FAILED",
+      "error_message": {
+        "$coalesce": [
+          "$.results.generated_validation.errors[0].message",
+          "Generated validation failed"
+        ]
+      }
+    },
+    {
+      "step_id": "load_subtype_flags_for_fk",
+      "sequence": 24.35,
+      "step_type": "SELECT_ONE",
+      "description": "Load subtype flags needed for FK validation gates (party_mandatory, warehouse_mandatory)",
+      "table": "ul_doc_subtype_flags",
+      "columns": [
+        "party_mandatory",
+        "warehouse_mandatory"
+      ],
+      "where": {
+        "doc_type_code": "$.input.header.doc_type",
+        "doc_subtype_code": {
+          "$coalesce": [
+            "$.input.header.doc_subtype",
+            "STANDARD"
+          ]
+        },
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "subtype_flags_for_fk"
+    },
+    {
+      "step_id": "validate_fk_save_payload",
+      "sequence": 24.4,
+      "step_type": "RUN_PYTHON",
+      "description": "Layer 2: All FK + payload validation in single Python call — currency, addresses, warehouse, payment terms, line items, subtype gates (party_mandatory, warehouse_mandatory, forbidden_children)",
+      "mode": "service",
+      "params": {
+        "service": "fk_validation_service",
+        "method": "validate_doc_save_payload",
+        "header": "$.input.header",
+        "lines": "$.input.lines",
+        "doc_type": "$.input.header.doc_type",
+        "doc_subtype": {
+          "$coalesce": [
+            "$.input.header.doc_subtype",
+            "STANDARD"
+          ]
+        },
+        "subtype_flags": "$.results.subtype_flags_for_fk"
+      },
+      "result_key": "fk_validation"
+    },
+    {
+      "step_id": "check_fk_save_payload",
+      "sequence": 24.41,
+      "step_type": "VALIDATE",
+      "description": "Abort if any FK or payload validation failed",
+      "condition": "$.results.fk_validation.is_valid == true",
+      "error_code": "FK_VALIDATION_FAILED",
+      "error_message": {
+        "$coalesce": [
+          "$.results.fk_validation.message",
+          "Foreign key or payload validation failed"
+        ]
+      }
+    },
+    {
+      "step_id": "generate_doc_id",
+      "sequence": 25,
+      "step_type": "SET_VARIABLE",
+      "execute_if": "$.variables.is_new == true",
+      "name": "new_doc_id",
+      "value": {
+        "$function": "UUID"
+      }
+    },
+    {
+      "step_id": "resolve_fiscal_year",
+      "sequence": 25.5,
+      "step_type": "EXECUTE_SQL",
+      "description": "Resolve fiscal year from doc_date for document numbering",
+      "execute_if": "$.variables.is_new == true",
+      "sql": "SELECT fy.year_name FROM uni_app.sys_fiscal_years fy WHERE fy.tenant_id = CAST(:tenant_id AS uuid) AND CAST(:doc_date AS date) BETWEEN fy.start_date AND fy.end_date AND fy.is_deleted = false LIMIT 1",
+      "single_row": true,
+      "params": {
+        "tenant_id": "$.env.tenant_id",
+        "doc_date": {
+          "$coalesce": [
+            "$.input.header.doc_date",
+            {
+              "$function": "TODAY"
+            }
+          ]
+        }
+      },
+      "result_key": "fiscal_year_for_numbering",
+      "output_schema": {
+        "year_name": "string"
+      }
+    },
+    {
+      "step_id": "generate_doc_no",
+      "sequence": 26,
+      "step_type": "CALL_FUNCTION",
+      "description": "Generate doc number via sp_get_next_number(sequence_code, tenant, entity, fiscal_year). Falls back to NULL doc_no if sequence not configured.",
+      "execute_if": "$.variables.is_new == true and $.results.fiscal_year_for_numbering != null",
+      "function": "sp_get_next_number",
+      "params": {
+        "p_sequence_code": "$.input.header.doc_type",
+        "p_tenant_id": "$.env.tenant_id",
+        "p_entity_id": "$.env.bu_id",
+        "p_fiscal_year": "$.results.fiscal_year_for_numbering.year_name"
+      },
+      "result_key": "doc_no_result"
+    },
+    {
+      "step_id": "load_subtype_settings",
+      "sequence": 27,
+      "step_type": "SELECT_ONE",
+      "description": "Load subtype settings for GL/AR/Stock posting modes and ui_mandatory_fields from ul_doc_subtype_flags (BP4 flat schema). Uses tenant_id=null because this is GLOBAL config, not per-tenant.",
+      "execute_if": "$.variables.is_new == true",
+      "table": "ul_doc_subtype_flags",
+      "columns": [
+        "gl_posting_mode",
+        "affects_ar",
+        "affects_ap",
+        "party_balance_impact",
+        "stock_mode",
+        "affects_stock_ledger",
+        "affects_cost_layers",
+        "reservation_mode",
+        "ui_mandatory_fields"
+      ],
+      "where": {
+        "tenant_id": "$.env.tenant_id",
+        "doc_type_code": "$.input.header.doc_type",
+        "doc_subtype_code": "$.input.header.doc_subtype"
+      },
+      "result_key": "subtype_settings"
+    },
+    {
+      "step_id": "validate_mandatory_fields",
+      "sequence": 27.1,
+      "step_type": "VALIDATE",
+      "description": "Validate subtype-specific mandatory fields from ui_mandatory_fields array",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              true
+            ]
+          },
+          {
+            "$ne": [
+              "$.results.subtype_settings.ui_mandatory_fields",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": {
+                  "$coalesce": [
+                    "$.results.subtype_settings.ui_mandatory_fields",
+                    []
+                  ]
+                }
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "condition": {
+        "$every": [
+          "$.results.subtype_settings.ui_mandatory_fields",
+          {
+            "$and": [
+              {
+                "$ne": [
+                  {
+                    "$get": [
+                      "$.input.header",
+                      "@item"
+                    ]
+                  },
+                  null
+                ]
+              },
+              {
+                "$ne": [
+                  {
+                    "$get": [
+                      "$.input.header",
+                      "@item"
+                    ]
+                  },
+                  ""
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "error_code": "MANDATORY_FIELD_MISSING",
+      "error_message": "Required fields missing for this invoice type"
+    },
+    {
+      "step_id": "validate_doc_type_active",
+      "sequence": 27.2,
+      "step_type": "SELECT_ONE",
+      "description": "Load doc_type_flags to verify is_active status",
+      "table": "ul_doc_type_flags",
+      "columns": [
+        "doc_type_code",
+        "is_active"
+      ],
+      "where": {
+        "doc_type_code": "$.input.header.doc_type",
+        "tenant_id": null
+      },
+      "result_key": "doc_type_flags",
+      "_comment": "doc_type_flags are global (tenant_id=NULL), subtype_flags are tenant-specific"
+    },
+    {
+      "step_id": "check_doc_type_status",
+      "sequence": 27.3,
+      "step_type": "VALIDATE",
+      "condition": "$.results.doc_type_flags != null  and  $.results.doc_type_flags.is_active == true",
+      "error_code": "DOC_TYPE_INACTIVE",
+      "error_message": "Document type is not active and cannot be used"
+    },
+    {
+      "step_id": "validate_subtype_active",
+      "sequence": 27.4,
+      "step_type": "SELECT_ONE",
+      "description": "Load subtype_flags to verify is_active status",
+      "table": "ul_doc_subtype_flags",
+      "columns": [
+        "doc_subtype_code",
+        "is_active"
+      ],
+      "where": {
+        "doc_type_code": "$.input.header.doc_type",
+        "doc_subtype_code": "$.input.header.doc_subtype",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "doc_subtype_flags"
+    },
+    {
+      "step_id": "check_subtype_status",
+      "sequence": 27.5,
+      "step_type": "VALIDATE",
+      "condition": "$.results.doc_subtype_flags != null  and  $.results.doc_subtype_flags.is_active == true",
+      "error_code": "DOC_SUBTYPE_INACTIVE",
+      "error_message": "Document subtype is not active and cannot be used"
+    },
+    {
+      "step_id": "load_use_flags",
+      "sequence": 27.6,
+      "step_type": "SELECT_ONE",
+      "description": "Load use_* flags from subtype_flags for forbidden child validation",
+      "table": "ul_doc_subtype_flags",
+      "columns": [
+        "use_taxes",
+        "use_schedules",
+        "use_allocations",
+        "use_serials",
+        "use_charges",
+        "is_export",
+        "is_jobwork"
+      ],
+      "where": {
+        "doc_type_code": "$.input.header.doc_type",
+        "doc_subtype_code": {
+          "$coalesce": [
+            "$.input.header.doc_subtype",
+            "STANDARD"
+          ]
+        },
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "use_flags"
+    },
+    {
+      "step_id": "validate_no_forbidden_children",
+      "sequence": 27.7,
+      "step_type": "VALIDATE",
+      "description": "Reject if forbidden child arrays present based on use_* flags",
+      "execute_if": "$.results.use_flags != null",
+      "condition": {
+        "$and": [
+          {
+            "$or": [
+              {
+                "$ne": [
+                  "$.results.use_flags.use_taxes",
+                  false
+                ]
+              },
+              {
+                "$eq": [
+                  "$.input.taxes",
+                  null
+                ]
+              },
+              {
+                "$lte": [
+                  {
+                    "$len": {
+                      "$coalesce": [
+                        "$.input.taxes",
+                        []
+                      ]
+                    }
+                  },
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "$or": [
+              {
+                "$ne": [
+                  "$.results.use_flags.use_schedules",
+                  false
+                ]
+              },
+              {
+                "$eq": [
+                  "$.input.schedules",
+                  null
+                ]
+              },
+              {
+                "$lte": [
+                  {
+                    "$len": {
+                      "$coalesce": [
+                        "$.input.schedules",
+                        []
+                      ]
+                    }
+                  },
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "$or": [
+              {
+                "$ne": [
+                  "$.results.use_flags.use_allocations",
+                  false
+                ]
+              },
+              {
+                "$eq": [
+                  "$.input.allocations",
+                  null
+                ]
+              },
+              {
+                "$lte": [
+                  {
+                    "$len": {
+                      "$coalesce": [
+                        "$.input.allocations",
+                        []
+                      ]
+                    }
+                  },
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "$or": [
+              {
+                "$ne": [
+                  "$.results.use_flags.use_serials",
+                  false
+                ]
+              },
+              {
+                "$eq": [
+                  "$.input.serials",
+                  null
+                ]
+              },
+              {
+                "$lte": [
+                  {
+                    "$len": {
+                      "$coalesce": [
+                        "$.input.serials",
+                        []
+                      ]
+                    }
+                  },
+                  0
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "error_code": "FORBIDDEN_CHILD_DATA",
+      "error_message": "Payload contains child data not allowed by subtype flags"
+    },
+    {
+      "step_id": "validate_subtype_required_fields",
+      "sequence": 28,
+      "step_type": "RUN_PYTHON",
+      "description": "Validate required fields for subtype using ConfigResolver",
+      "mode": "service",
+      "params": {
+        "service": "subtype_config_service",
+        "method": "validate_required_fields",
+        "doc": "$.input.header",
+        "entity_code": "$.input.header.doc_type",
+        "subtype_code": "$.input.header.doc_subtype"
+      },
+      "result_key": "subtype_validation",
+      "on_error": "abort"
+    },
+    {
+      "step_id": "validate_line_uom_required",
+      "sequence": 28.1,
+      "step_type": "VALIDATE",
+      "description": "Fail closed if any active item line has blank uom_code",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.lines",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.lines"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "condition": {
+        "$every": [
+          "$.input.lines",
+          {
+            "$or": [
+              {
+                "$eq": [
+                  "@item._is_deleted",
+                  true
+                ]
+              },
+              {
+                "$eq": [
+                  "@item.item_id",
+                  null
+                ]
+              },
+              {
+                "$ne": [
+                  {
+                    "$trim": "@item.uom_code"
+                  },
+                  ""
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "error_code": "LINE_UOM_REQUIRED",
+      "error_message": "Unit of Measure is required for each line"
+    },
+    {
+      "step_id": "resolve_entity_base_currency",
+      "sequence": 29,
+      "step_type": "EXECUTE_SQL",
+      "description": "Resolve entity base currency from sys_legal_entities  -  prevents fallback to doc currency_code which causes EXCHANGE_RATE_SUSPECT false positives",
+      "execute_if": "$.variables.is_new == true",
+      "sql": "SELECT base_currency_code FROM uni_app.sys_legal_entities WHERE entity_id = CAST(:entity_id AS uuid) AND is_deleted = false LIMIT 1",
+      "single_row": true,
+      "params": {
+        "entity_id": "$.env.bu_id"
+      },
+      "result_key": "entity_currency",
+      "output_schema": {
+        "base_currency_code": "string"
+      }
+    },
+    {
+      "step_id": "insert_header",
+      "sequence": 30,
+      "step_type": "DB_INSERT",
+      "execute_if": "$.variables.is_new == true",
+      "table": "ul_doc_headers",
+      "description": "Insert header  -  columns match uni_app.ul_doc_headers DDL",
+      "data": {
+        "doc_id": "$.variables.new_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "entity_id": "$.env.bu_id",
+        "doc_no": {
+          "$coalesce": [
+            "$.results.doc_no_result",
+            {
+              "$concat": [
+                "DRAFT-",
+                {
+                  "$function": "UUID"
+                }
+              ]
+            }
+          ]
+        },
+        "doc_type": "$.input.header.doc_type",
+        "doc_subtype": "$.input.header.doc_subtype",
+        "status": "DRAFT",
+        "version_no": 1,
+        "created_by": "$.env.user_id",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "party_id": "$.input.header.party_id",
+        "party_name_cache": "$.input.header.party_name",
+        "bill_to_address_id": "$.input.header.bill_to_address_id",
+        "ship_to_address_id": "$.input.header.ship_to_address_id",
+        "warehouse_id": "$.input.header.warehouse_id",
+        "currency_code": "$.input.header.currency_code",
+        "base_currency_code": {
+          "$coalesce": [
+            "$.results.entity_currency.base_currency_code",
+            "$.input.header.base_currency_code",
+            "$.input.header.currency_code"
+          ]
+        },
+        "exchange_rate": "$.input.header.exchange_rate",
+        "doc_date": "$.input.header.doc_date",
+        "due_date": "$.input.header.due_date",
+        "customer_po_no": "$.input.header.external_ref_no",
+        "narration": "$.input.header.narration",
+        "internal_notes": "$.input.header.internal_notes",
+        "is_deleted": false
+      },
+      "returning": [
+        "doc_id",
+        "doc_no",
+        "version_no"
+      ],
+      "result_key": "insert_result"
+    },
+    {
+      "step_id": "capture_field_changes",
+      "sequence": 32,
+      "step_type": "RUN_PYTHON",
+      "mode": "service",
+      "execute_if": "$.variables.is_new == false",
+      "params": {
+        "service": "audit_service",
+        "method": "log_action",
+        "table_name": "ul_doc_headers",
+        "record_id": "$.input.header.doc_id",
+        "action": "UPDATE",
+        "old_values": "$.results.existing_doc",
+        "new_values": "$.input.header"
+      },
+      "result_key": "field_changes"
+    },
+    {
+      "step_id": "update_header",
+      "sequence": 35,
+      "step_type": "DB_UPDATE",
+      "execute_if": "$.variables.is_new == false",
+      "table": "ul_doc_headers",
+      "where": {
+        "doc_id": "$.input.header.doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "version_no": "$.results.existing_doc.version_no"
+      },
+      "data": {
+        "version_no": {
+          "$add": [
+            "$.results.existing_doc.version_no",
+            1
+          ]
+        },
+        "updated_by": "$.env.user_id",
+        "updated_at": {
+          "$function": "NOW"
+        },
+        "party_id": "$.input.header.party_id",
+        "party_name_cache": "$.input.header.party_name",
+        "bill_to_address_id": "$.input.header.bill_to_address_id",
+        "ship_to_address_id": "$.input.header.ship_to_address_id",
+        "warehouse_id": "$.input.header.warehouse_id",
+        "currency_code": "$.input.header.currency_code",
+        "exchange_rate": "$.input.header.exchange_rate",
+        "doc_date": "$.input.header.doc_date",
+        "due_date": "$.input.header.due_date",
+        "customer_po_no": "$.input.header.external_ref_no",
+        "narration": "$.input.header.narration",
+        "internal_notes": "$.input.header.internal_notes"
+      },
+      "returning": [
+        "doc_id",
+        "doc_no",
+        "version_no"
+      ],
+      "result_key": "update_result"
+    },
+    {
+      "step_id": "set_effective_doc_id",
+      "sequence": 38,
+      "step_type": "SET_VARIABLE",
+      "name": "effective_doc_id",
+      "value": {
+        "$if": [
+          "$.variables.is_new",
+          "$.variables.new_doc_id",
+          "$.input.header.doc_id"
+        ]
+      }
+    },
+    {
+      "step_id": "set_effective_version_no",
+      "step_type": "SET_VARIABLE",
+      "sequence": 38.5,
+      "name": "effective_version_no",
+      "value": {
+        "$if": [
+          "$.variables.is_new",
+          "$.results.insert_result.version_no",
+          "$.results.update_result.version_no"
+        ]
+      }
+    },
+    {
+      "step_id": "soft_delete_existing_taxes",
+      "sequence": 39,
+      "step_type": "DB_UPDATE",
+      "description": "Soft delete taxes for lines marked _is_deleted=true in input",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.input.lines",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": {
+                  "$filter": [
+                    "$.input.lines",
+                    {
+                      "$eq": [
+                        "@item._is_deleted",
+                        true
+                      ]
+                    }
+                  ]
+                }
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_line_taxes",
+      "where": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "is_deleted": false,
+        "line_id": {
+          "$in": {
+            "$map": {
+              "array": {
+                "$filter": [
+                  "$.input.lines",
+                  {
+                    "$eq": [
+                      "@item._is_deleted",
+                      true
+                    ]
+                  }
+                ]
+              },
+              "item": "@item.line_id"
+            }
+          }
+        }
+      },
+      "data": {
+        "is_deleted": true
+      }
+    },
+    {
+      "step_id": "soft_delete_existing_lines",
+      "sequence": 40,
+      "step_type": "EXECUTE_SQL",
+      "description": "Soft delete only lines marked _is_deleted=true in input",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.input.lines",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": {
+                  "$filter": [
+                    "$.input.lines",
+                    {
+                      "$eq": [
+                        "@item._is_deleted",
+                        true
+                      ]
+                    }
+                  ]
+                }
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "sql": "UPDATE ul_doc_lines SET is_deleted = true, deleted_at = NOW(), deleted_by = :user_id, version_no = version_no + 1 WHERE doc_id = :doc_id AND tenant_id = :tenant_id AND deleted_at IS NULL AND line_id = ANY(:line_ids)",
+      "params": {
+        "doc_id": "$.input.header.doc_id",
+        "user_id": "$.env.user_id",
+        "tenant_id": "$.env.tenant_id",
+        "line_ids": {
+          "$map": {
+            "array": {
+              "$filter": [
+                "$.input.lines",
+                {
+                  "$eq": [
+                    "@item._is_deleted",
+                    true
+                  ]
+                }
+              ]
+            },
+            "item": "@item.line_id"
+          }
+        }
+      }
+    },
+    {
+      "step_id": "insert_lines",
+      "sequence": 45,
+      "step_type": "INSERT_BATCH",
+      "description": "Insert NEW lines only (_is_new=true or undefined for new documents)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.lines",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.lines"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_lines",
+      "data_source": {
+        "$filter": [
+          "$.input.lines",
+          {
+            "$or": [
+              {
+                "$eq": [
+                  "$.variables.is_new",
+                  true
+                ]
+              },
+              {
+                "$eq": [
+                  "@item._is_new",
+                  true
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "returning": [
+        "line_id",
+        "line_no",
+        "qty",
+        "rate_fc",
+        "discount_amount_fc",
+        "net_amount_fc"
+      ],
+      "data_template": {
+        "line_id": {
+          "$coalesce": [
+            "@item.line_id",
+            {
+              "$function": "UUID"
+            }
+          ]
+        },
+        "tenant_id": "$.env.tenant_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "created_by": "$.env.user_id",
+        "line_no": {
+          "$if": [
+            {
+              "$gt": [
+                {
+                  "$coalesce": [
+                    "@item.line_num",
+                    0
+                  ]
+                },
+                0
+              ]
+            },
+            "@item.line_num",
+            {
+              "$coalesce": [
+                "@item._line_num",
+                {
+                  "$add": [
+                    "@index",
+                    1
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "item_id": "@item.item_id",
+        "item_code_cache": "@item.item_code",
+        "item_name_cache": "@item.item_name",
+        "description": "@item.description",
+        "qty": "@item.qty",
+        "uom_code": "@item.uom_code",
+        "rate_fc": "@item.rate_fc",
+        "rate_bc": "@item.rate_bc",
+        "discount_pct": "@item.discount_pct",
+        "discount_amount_fc": "@item.discount_amount_fc",
+        "amount_fc": "@item.gross_amount_fc",
+        "amount_bc": "@item.gross_amount_bc",
+        "net_amount_fc": "@item.net_amount_fc",
+        "net_amount_bc": "@item.net_amount_bc",
+        "tax_amount_fc": "@item.tax_amount_fc",
+        "tax_amount_bc": "@item.tax_amount_bc",
+        "warehouse_id": "@item.warehouse_id",
+        "tax_code_id": "@item.tax_code_id",
+        "cost_center_id": "@item.cost_center_id",
+        "project_id": "@item.project_id",
+        "source_doc_id": "@item.source_doc_id",
+        "source_line_id": "@item.source_line_id"
+      },
+      "result_key": "lines_result"
+    },
+    {
+      "step_id": "update_lines",
+      "sequence": 46,
+      "step_type": "UPDATE_MULTI",
+      "description": "Update EXISTING lines only (_is_new=false)",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.input.lines",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": {
+                  "$filter": [
+                    "$.input.lines",
+                    {
+                      "$eq": [
+                        "@item._is_new",
+                        false
+                      ]
+                    }
+                  ]
+                }
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_lines",
+      "key_columns": [
+        "line_id"
+      ],
+      "data_source": {
+        "$filter": [
+          "$.input.lines",
+          {
+            "$eq": [
+              "@item._is_new",
+              false
+            ]
+          }
+        ]
+      },
+      "update_columns": {
+        "line_no": "@item.line_num",
+        "item_id": "@item.item_id",
+        "item_code_cache": "@item.item_code",
+        "item_name_cache": "@item.item_name",
+        "description": "@item.description",
+        "qty": "@item.qty",
+        "uom_code": "@item.uom_code",
+        "rate_fc": "@item.rate_fc",
+        "rate_bc": "@item.rate_bc",
+        "discount_pct": "@item.discount_pct",
+        "discount_amount_fc": "@item.discount_amount_fc",
+        "amount_fc": "@item.gross_amount_fc",
+        "amount_bc": "@item.gross_amount_bc",
+        "net_amount_fc": "@item.net_amount_fc",
+        "net_amount_bc": "@item.net_amount_bc",
+        "tax_amount_fc": "@item.tax_amount_fc",
+        "tax_amount_bc": "@item.tax_amount_bc",
+        "warehouse_id": "@item.warehouse_id",
+        "tax_code_id": "@item.tax_code_id",
+        "cost_center_id": "@item.cost_center_id",
+        "project_id": "@item.project_id",
+        "source_doc_id": "@item.source_doc_id",
+        "source_line_id": "@item.source_line_id",
+        "updated_at": {
+          "$function": "NOW"
+        },
+        "updated_by": "$.env.user_id"
+      },
+      "returning": [
+        "line_id",
+        "line_no",
+        "qty",
+        "rate_fc",
+        "net_amount_fc"
+      ],
+      "result_key": "lines_update_result"
+    },
+    {
+      "step_id": "resolve_uom_lines",
+      "sequence": 48,
+      "step_type": "RUN_PYTHON",
+      "mode": "service",
+      "description": "V8: Resolve dual UOM  -  compute stock_qty from transaction qty using mst_uom_conversions. No-op for single-UOM items (factor=1).",
+      "params": {
+        "service": "uom_conversion_service",
+        "method": "resolve_doc_lines",
+        "doc_id": "$.variables.effective_doc_id"
+      },
+      "result_key": "uom_resolution",
+      "on_error": "abort"
+    },
+    {
+      "step_id": "calculate_taxes",
+      "sequence": 52,
+      "step_type": "RUN_PYTHON",
+      "mode": "service",
+      "description": "Calculate taxes if not provided by FE (null or empty array)",
+      "execute_if": {
+        "$or": [
+          {
+            "$eq": [
+              "$.input.taxes",
+              null
+            ]
+          },
+          {
+            "$eq": [
+              {
+                "$len": {
+                  "$coalesce": [
+                    "$.input.taxes",
+                    []
+                  ]
+                }
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "params": {
+        "service": "tax_engine",
+        "method": "calculate_line_taxes",
+        "doc_id": "$.variables.effective_doc_id",
+        "lines": "$.input.lines",
+        "header": "$.input.header"
+      },
+      "result_key": "calculated_taxes"
+    },
+    {
+      "step_id": "hard_delete_all_existing_taxes",
+      "sequence": 54.5,
+      "step_type": "EXECUTE_SQL",
+      "description": "Hard delete ALL existing taxes via CTE (set_config + DELETE in single statement bypasses soft-delete trigger)",
+      "execute_if": {
+        "$eq": [
+          "$.variables.is_new",
+          false
+        ]
+      },
+      "sql": "DELETE FROM uni_app.ul_doc_line_taxes WHERE doc_id = :doc_id::uuid AND tenant_id = :tenant_id::uuid AND (SELECT set_config('app.force_hard_delete', 'true', true)) = 'true' RETURNING line_tax_id",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      }
+    },
+    {
+      "step_id": "reset_hard_delete_flag",
+      "sequence": 54.7,
+      "step_type": "EXECUTE_SQL",
+      "description": "Reset hard delete bypass after tax cleanup",
+      "execute_if": {
+        "$eq": [
+          "$.variables.is_new",
+          false
+        ]
+      },
+      "sql": "SELECT set_config('app.force_hard_delete', 'false', true) AS setting"
+    },
+    {
+      "step_id": "insert_taxes",
+      "sequence": 55,
+      "step_type": "INSERT_BATCH",
+      "description": "Insert tax details for lines (prefer calculated if input is null/empty)",
+      "table": "ul_doc_line_taxes",
+      "data_source": {
+        "$if": [
+          {
+            "$gt": [
+              {
+                "$len": {
+                  "$coalesce": [
+                    "$.input.taxes",
+                    []
+                  ]
+                }
+              },
+              0
+            ]
+          },
+          "$.input.taxes",
+          "$.results.calculated_taxes.taxes"
+        ]
+      },
+      "data_template": {
+        "line_tax_id": {
+          "$function": "UUID"
+        },
+        "tenant_id": "$.env.tenant_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "line_id": "@item.line_id",
+        "tax_type": "@item.tax_type",
+        "tax_code_id": "@item.tax_code_id",
+        "taxable_amount_fc": "@item.taxable_amount_fc",
+        "taxable_amount_bc": "@item.taxable_amount_bc",
+        "tax_rate": "@item.tax_rate",
+        "tax_amount_fc": "@item.tax_amount_fc",
+        "tax_amount_bc": "@item.tax_amount_bc",
+        "is_reverse_charge": "@item.is_reverse_charge",
+        "tax_account_id": "@item.gl_account_id",
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "taxes_result"
+    },
+    {
+      "step_id": "update_line_tax_counts",
+      "sequence": 56,
+      "step_type": "EXECUTE_SQL",
+      "description": "Update each line's tax_count and tax_amount totals from actual inserted tax rows to eliminate rounding drift",
+      "sql": "UPDATE uni_app.ul_doc_lines SET tax_count = t.cnt, tax_amount_fc = t.total_fc, tax_amount_bc = t.total_bc, version_no = ul_doc_lines.version_no + 1 FROM (SELECT line_id, COUNT(*) AS cnt, COALESCE(SUM(tax_amount_fc), 0) AS total_fc, COALESCE(SUM(tax_amount_bc), 0) AS total_bc FROM uni_app.ul_doc_line_taxes WHERE doc_id = :doc_id::uuid AND tenant_id = :tenant_id::uuid AND is_deleted = false GROUP BY line_id) t WHERE ul_doc_lines.line_id = t.line_id AND ul_doc_lines.tenant_id = :tenant_id::uuid AND ul_doc_lines.is_deleted = false",
+      "params": {
+        "tenant_id": "$.env.tenant_id",
+        "doc_id": "$.variables.effective_doc_id"
+      }
+    },
+    {
+      "step_id": "delete_schedules",
+      "sequence": 60,
+      "step_type": "DB_DELETE",
+      "execute_if": "$.variables.is_new == false",
+      "table": "ul_doc_line_schedules",
+      "hard_delete": true,
+      "where": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      }
+    },
+    {
+      "step_id": "insert_schedules",
+      "sequence": 65,
+      "step_type": "INSERT_BATCH",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.schedules",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.schedules"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_line_schedules",
+      "data_source": "$.input.schedules",
+      "data_template": {
+        "schedule_id": {
+          "$function": "UUID"
+        },
+        "tenant_id": "$.env.tenant_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "fulfillment_status": "OPEN",
+        "qty_fulfilled": 0,
+        "qty_pending": "@item.qty_scheduled",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "line_id": "@item.line_id",
+        "schedule_date": "@item.schedule_date",
+        "qty_scheduled": "@item.qty_scheduled",
+        "warehouse_id": "@item.warehouse_id",
+        "notes": "@item.notes",
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "schedules_result"
+    },
+    {
+      "step_id": "delete_serials",
+      "sequence": 66,
+      "step_type": "DB_DELETE",
+      "execute_if": "$.variables.is_new == false",
+      "table": "ul_doc_line_serials",
+      "hard_delete": true,
+      "where": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      }
+    },
+    {
+      "step_id": "insert_serials",
+      "sequence": 67,
+      "step_type": "INSERT_BATCH",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.serials",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.serials"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_line_serials",
+      "data_source": "$.input.serials",
+      "data_template": {
+        "serial_id": {
+          "$function": "UUID"
+        },
+        "tenant_id": "$.env.tenant_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "serial_no": "@item.serial_no",
+        "line_id": "@item.line_id",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "serials_result"
+    },
+    {
+      "step_id": "delete_allocations",
+      "sequence": 68,
+      "step_type": "DB_DELETE",
+      "execute_if": "$.variables.is_new == false",
+      "table": "ul_doc_line_allocations",
+      "hard_delete": true,
+      "where": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      }
+    },
+    {
+      "step_id": "insert_allocations",
+      "sequence": 69,
+      "step_type": "INSERT_BATCH",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.allocations",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.allocations"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_line_allocations",
+      "data_source": "$.input.allocations",
+      "data_template": {
+        "allocation_id": {
+          "$function": "UUID"
+        },
+        "tenant_id": "$.env.tenant_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "line_id": "@item.line_id",
+        "batch_id": "@item.batch_id",
+        "bin_id": "@item.bin_id",
+        "layer_id": "@item.layer_id",
+        "qty": "@item.qty",
+        "cost_fc": "@item.cost_fc",
+        "cost_bc": "@item.cost_bc",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "allocations_result"
+    },
+    {
+      "step_id": "upsert_header_ext_dev",
+      "sequence": 70,
+      "step_type": "EXECUTE_SQL",
+      "description": "UPSERT Developer/ISV extension fields for header",
+      "execute_if": "$.input.extensions.header_ext_dev != null",
+      "sql": "INSERT INTO ul_doc_headers_ext_dev (doc_id, tenant_id, dev_field_1, dev_field_2, dev_field_3, dev_metadata, created_at, updated_at, version_no) VALUES (:doc_id, :tenant_id, :dev_field_1, :dev_field_2, :dev_field_3, :dev_metadata, NOW(), NOW(), 1) ON CONFLICT (doc_id) DO UPDATE SET dev_field_1 = EXCLUDED.dev_field_1, dev_field_2 = EXCLUDED.dev_field_2, dev_field_3 = EXCLUDED.dev_field_3, dev_metadata = EXCLUDED.dev_metadata, updated_at = NOW(), version_no = ul_doc_headers_ext_dev.version_no + 1 RETURNING doc_id, version_no",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "dev_field_1": "$.input.extensions.header_ext_dev.dev_field_1",
+        "dev_field_2": "$.input.extensions.header_ext_dev.dev_field_2",
+        "dev_field_3": "$.input.extensions.header_ext_dev.dev_field_3",
+        "dev_metadata": "$.input.extensions.header_ext_dev.dev_metadata"
+      },
+      "result_key": "header_ext_dev_result"
+    },
+    {
+      "step_id": "upsert_header_ext_partner",
+      "sequence": 71,
+      "step_type": "EXECUTE_SQL",
+      "description": "UPSERT Implementation Partner extension fields for header",
+      "execute_if": "$.input.extensions.header_ext_partner != null",
+      "sql": "INSERT INTO ul_doc_headers_ext_partner (doc_id, tenant_id, partner_field_1, partner_field_2, partner_field_3, partner_metadata, created_at, updated_at, version_no) VALUES (:doc_id, :tenant_id, :partner_field_1, :partner_field_2, :partner_field_3, :partner_metadata, NOW(), NOW(), 1) ON CONFLICT (doc_id) DO UPDATE SET partner_field_1 = EXCLUDED.partner_field_1, partner_field_2 = EXCLUDED.partner_field_2, partner_field_3 = EXCLUDED.partner_field_3, partner_metadata = EXCLUDED.partner_metadata, updated_at = NOW(), version_no = ul_doc_headers_ext_partner.version_no + 1 RETURNING doc_id, version_no",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "partner_field_1": "$.input.extensions.header_ext_partner.partner_field_1",
+        "partner_field_2": "$.input.extensions.header_ext_partner.partner_field_2",
+        "partner_field_3": "$.input.extensions.header_ext_partner.partner_field_3",
+        "partner_metadata": "$.input.extensions.header_ext_partner.partner_metadata"
+      },
+      "result_key": "header_ext_partner_result"
+    },
+    {
+      "step_id": "delete_lines_ext_dev",
+      "sequence": 72,
+      "step_type": "EXECUTE_SQL",
+      "description": "Delete existing line dev extensions (will be re-inserted with new line_ids)",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_dev",
+              null
+            ]
+          }
+        ]
+      },
+      "sql": "DELETE FROM ul_doc_lines_ext_dev WHERE line_id IN (SELECT line_id FROM ul_doc_lines WHERE doc_id = :doc_id AND tenant_id = :tenant_id) AND tenant_id = :tenant_id AND (SELECT set_config('app.force_hard_delete', 'true', true)) = 'true'",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "delete_lines_ext_dev_result"
+    },
+    {
+      "step_id": "insert_lines_ext_dev",
+      "sequence": 73,
+      "step_type": "INSERT_BATCH",
+      "description": "Insert Developer/ISV extension fields for lines",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_dev",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.extensions.lines_ext_dev"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_lines_ext_dev",
+      "data_source": "$.input.extensions.lines_ext_dev",
+      "data_template": {
+        "line_id": "@item.line_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "dev_field_1": "@item.dev_field_1",
+        "dev_field_2": "@item.dev_field_2",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "updated_at": {
+          "$function": "NOW"
+        },
+        "version_no": 1,
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "lines_ext_dev_result"
+    },
+    {
+      "step_id": "delete_lines_ext_partner",
+      "sequence": 74,
+      "step_type": "EXECUTE_SQL",
+      "description": "Delete existing line partner extensions (will be re-inserted with new line_ids)",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_partner",
+              null
+            ]
+          }
+        ]
+      },
+      "sql": "DELETE FROM ul_doc_lines_ext_partner WHERE line_id IN (SELECT line_id FROM ul_doc_lines WHERE doc_id = :doc_id AND tenant_id = :tenant_id) AND tenant_id = :tenant_id AND (SELECT set_config('app.force_hard_delete', 'true', true)) = 'true'",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "delete_lines_ext_partner_result"
+    },
+    {
+      "step_id": "insert_lines_ext_partner",
+      "sequence": 74.5,
+      "step_type": "INSERT_BATCH",
+      "description": "Insert Implementation Partner extension fields for lines",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_partner",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.extensions.lines_ext_partner"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_lines_ext_partner",
+      "data_source": "$.input.extensions.lines_ext_partner",
+      "data_template": {
+        "line_id": "@item.line_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "partner_field_1": "@item.partner_field_1",
+        "partner_field_2": "@item.partner_field_2",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "updated_at": {
+          "$function": "NOW"
+        },
+        "version_no": 1,
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "lines_ext_partner_result"
+    },
+    {
+      "step_id": "delete_lines_ext_custom",
+      "sequence": 74.53,
+      "step_type": "EXECUTE_SQL",
+      "description": "Delete existing line custom extensions (will be re-inserted with new line_ids)",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_custom",
+              null
+            ]
+          }
+        ]
+      },
+      "sql": "DELETE FROM ul_doc_lines_ext_custom WHERE line_id IN (SELECT line_id FROM ul_doc_lines WHERE doc_id = :doc_id AND tenant_id = :tenant_id) AND tenant_id = :tenant_id AND (SELECT set_config('app.force_hard_delete', 'true', true)) = 'true'",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "delete_lines_ext_custom_result"
+    },
+    {
+      "step_id": "insert_lines_ext_custom",
+      "sequence": 74.54,
+      "step_type": "INSERT_BATCH",
+      "description": "Insert custom extensions for lines",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_custom",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.extensions.lines_ext_custom"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_lines_ext_custom",
+      "data_source": "$.input.extensions.lines_ext_custom",
+      "data_template": {
+        "line_id": "@item.line_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "custom_field_1": "@item.custom_field_1",
+        "custom_field_2": "@item.custom_field_2",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "updated_at": {
+          "$function": "NOW"
+        },
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "lines_ext_custom_result"
+    },
+    {
+      "step_id": "upsert_header_ext_custom",
+      "sequence": 74.55,
+      "step_type": "EXECUTE_SQL",
+      "description": "UPSERT Customer-specific custom extension fields for header",
+      "execute_if": "$.input.extensions.header_ext_custom != null",
+      "sql": "INSERT INTO ul_doc_headers_ext_custom (doc_id, tenant_id, custom_field_1, custom_field_2, custom_field_3, created_at, updated_at) VALUES (:doc_id, :tenant_id, :custom_field_1, :custom_field_2, :custom_field_3, NOW(), NOW()) ON CONFLICT (doc_id) DO UPDATE SET custom_field_1 = EXCLUDED.custom_field_1, custom_field_2 = EXCLUDED.custom_field_2, custom_field_3 = EXCLUDED.custom_field_3, updated_at = NOW() RETURNING doc_id",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "custom_field_1": "$.input.extensions.header_ext_custom.custom_field_1",
+        "custom_field_2": "$.input.extensions.header_ext_custom.custom_field_2",
+        "custom_field_3": "$.input.extensions.header_ext_custom.custom_field_3"
+      },
+      "result_key": "header_ext_custom_result"
+    },
+    {
+      "step_id": "upsert_header_ext_regional",
+      "sequence": 74.6,
+      "step_type": "EXECUTE_SQL",
+      "description": "UPSERT Regional extension fields for header (India GST, E-Invoice, E-Way Bill)",
+      "execute_if": "$.input.extensions.header_ext_regional != null",
+      "sql": "INSERT INTO ul_doc_headers_ext_regional (doc_id, tenant_id, region_code, seller_gstin, buyer_gstin, place_of_supply, is_intrastate, gst_treatment, is_reverse_charge, e_invoice_status, e_invoice_irn, e_invoice_ack_no, e_invoice_ack_date, e_invoice_qr_code, e_waybill_no, e_waybill_date, e_waybill_valid_till, created_at, updated_at, version_no) VALUES (:doc_id, :tenant_id, 'INDIA', :seller_gstin, :buyer_gstin, :place_of_supply, :is_intrastate, :gst_treatment, :is_reverse_charge, :e_invoice_status, :e_invoice_irn, :e_invoice_ack_no, :e_invoice_ack_date, :e_invoice_qr_code, :e_waybill_no, :e_waybill_date, :e_waybill_valid_till, NOW(), NOW(), 1) ON CONFLICT (doc_id) DO UPDATE SET seller_gstin = EXCLUDED.seller_gstin, buyer_gstin = EXCLUDED.buyer_gstin, place_of_supply = EXCLUDED.place_of_supply, is_intrastate = EXCLUDED.is_intrastate, gst_treatment = EXCLUDED.gst_treatment, is_reverse_charge = EXCLUDED.is_reverse_charge, e_invoice_status = EXCLUDED.e_invoice_status, e_invoice_irn = EXCLUDED.e_invoice_irn, e_invoice_ack_no = EXCLUDED.e_invoice_ack_no, e_invoice_ack_date = EXCLUDED.e_invoice_ack_date, e_invoice_qr_code = EXCLUDED.e_invoice_qr_code, e_waybill_no = EXCLUDED.e_waybill_no, e_waybill_date = EXCLUDED.e_waybill_date, e_waybill_valid_till = EXCLUDED.e_waybill_valid_till, updated_at = NOW(), version_no = ul_doc_headers_ext_regional.version_no + 1 RETURNING doc_id, version_no",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "seller_gstin": "$.input.extensions.header_ext_regional.seller_gstin",
+        "buyer_gstin": "$.input.extensions.header_ext_regional.buyer_gstin",
+        "place_of_supply": "$.input.extensions.header_ext_regional.place_of_supply",
+        "is_intrastate": "$.input.extensions.header_ext_regional.is_intrastate",
+        "gst_treatment": "$.input.extensions.header_ext_regional.gst_treatment",
+        "is_reverse_charge": "$.input.extensions.header_ext_regional.is_reverse_charge",
+        "e_invoice_status": "$.input.extensions.header_ext_regional.e_invoice_status",
+        "e_invoice_irn": "$.input.extensions.header_ext_regional.e_invoice_irn",
+        "e_invoice_ack_no": "$.input.extensions.header_ext_regional.e_invoice_ack_no",
+        "e_invoice_ack_date": "$.input.extensions.header_ext_regional.e_invoice_ack_date",
+        "e_invoice_qr_code": "$.input.extensions.header_ext_regional.e_invoice_qr_code",
+        "e_waybill_no": "$.input.extensions.header_ext_regional.e_waybill_no",
+        "e_waybill_date": "$.input.extensions.header_ext_regional.e_waybill_date",
+        "e_waybill_valid_till": "$.input.extensions.header_ext_regional.e_waybill_valid_till"
+      },
+      "result_key": "header_ext_regional_result"
+    },
+    {
+      "step_id": "delete_lines_ext_regional",
+      "sequence": 74.7,
+      "step_type": "EXECUTE_SQL",
+      "description": "Delete existing line regional extensions (will be re-inserted with new line_ids)",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_regional",
+              null
+            ]
+          }
+        ]
+      },
+      "sql": "DELETE FROM ul_doc_lines_ext_regional WHERE line_id IN (SELECT line_id FROM ul_doc_lines WHERE doc_id = :doc_id AND tenant_id = :tenant_id) AND tenant_id = :tenant_id AND (SELECT set_config('app.force_hard_delete', 'true', true)) = 'true'",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "delete_lines_ext_regional_result"
+    },
+    {
+      "step_id": "insert_lines_ext_regional",
+      "sequence": 74.8,
+      "step_type": "INSERT_BATCH",
+      "description": "Insert Regional extension fields for lines (HSN, SAC, Cess)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_regional",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.extensions.lines_ext_regional"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_lines_ext_regional",
+      "data_source": "$.input.extensions.lines_ext_regional",
+      "data_template": {
+        "line_id": "@item.line_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "region_code": "INDIA",
+        "hsn_code": "@item.hsn_code",
+        "sac_code": "@item.sac_code",
+        "cess_rate": "@item.cess_rate",
+        "cess_amount": "@item.cess_amount",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "updated_at": {
+          "$function": "NOW"
+        },
+        "version_no": 1,
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "lines_ext_regional_result"
+    },
+    {
+      "step_id": "upsert_header_export",
+      "sequence": 74.81,
+      "step_type": "EXECUTE_SQL",
+      "description": "UPSERT Export extension fields for header (shipping bill, ports, LUT ARN)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.header_export",
+              null
+            ]
+          },
+          {
+            "$eq": [
+              "$.results.use_flags.is_export",
+              true
+            ]
+          }
+        ]
+      },
+      "sql": "INSERT INTO ul_doc_headers_export (doc_id, tenant_id, shipping_bill_no, shipping_bill_date, port_of_loading, port_of_discharge, country_of_origin, country_of_destination, export_under, lut_arn, created_at, updated_at) VALUES (:doc_id, :tenant_id, :shipping_bill_no, :shipping_bill_date, :port_of_loading, :port_of_discharge, :country_of_origin, :country_of_destination, :export_under, :lut_arn, NOW(), NOW()) ON CONFLICT (doc_id) DO UPDATE SET shipping_bill_no = EXCLUDED.shipping_bill_no, shipping_bill_date = EXCLUDED.shipping_bill_date, port_of_loading = EXCLUDED.port_of_loading, port_of_discharge = EXCLUDED.port_of_discharge, country_of_origin = EXCLUDED.country_of_origin, country_of_destination = EXCLUDED.country_of_destination, export_under = EXCLUDED.export_under, lut_arn = EXCLUDED.lut_arn, updated_at = NOW() RETURNING doc_id",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "shipping_bill_no": "$.input.extensions.header_export.shipping_bill_no",
+        "shipping_bill_date": "$.input.extensions.header_export.shipping_bill_date",
+        "port_of_loading": "$.input.extensions.header_export.port_of_loading",
+        "port_of_discharge": "$.input.extensions.header_export.port_of_discharge",
+        "country_of_origin": "$.input.extensions.header_export.country_of_origin",
+        "country_of_destination": "$.input.extensions.header_export.country_of_destination",
+        "export_under": "$.input.extensions.header_export.export_under",
+        "lut_arn": "$.input.extensions.header_export.lut_arn"
+      },
+      "result_key": "header_export_result"
+    },
+    {
+      "step_id": "delete_lines_export",
+      "sequence": 74.82,
+      "step_type": "EXECUTE_SQL",
+      "description": "Delete existing line export extensions (will be re-inserted with new line_ids)",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.input.extensions.lines_export",
+              null
+            ]
+          },
+          {
+            "$eq": [
+              "$.results.use_flags.is_export",
+              true
+            ]
+          }
+        ]
+      },
+      "sql": "DELETE FROM ul_doc_lines_export WHERE line_id IN (SELECT line_id FROM ul_doc_lines WHERE doc_id = :doc_id AND tenant_id = :tenant_id) AND tenant_id = :tenant_id AND (SELECT set_config('app.force_hard_delete', 'true', true)) = 'true'",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "delete_lines_export_result"
+    },
+    {
+      "step_id": "insert_lines_export",
+      "sequence": 74.83,
+      "step_type": "INSERT_BATCH",
+      "description": "Insert Export extension fields for lines (incentive rate, drawback rate, FOB value)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.lines_export",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.extensions.lines_export"
+              },
+              0
+            ]
+          },
+          {
+            "$eq": [
+              "$.results.use_flags.is_export",
+              true
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_lines_export",
+      "data_source": "$.input.extensions.lines_export",
+      "data_template": {
+        "line_id": "@item.line_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "incentive_rate": "@item.incentive_rate",
+        "drawback_rate": "@item.drawback_rate",
+        "export_value_fob": "@item.export_value_fob",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "updated_at": {
+          "$function": "NOW"
+        },
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "lines_export_result"
+    },
+    {
+      "step_id": "upsert_header_ext_order",
+      "sequence": 74.91,
+      "step_type": "EXECUTE_SQL",
+      "description": "UPSERT Order extension fields for header (validity, delivery date, blanket)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.header_ext_order",
+              null
+            ]
+          },
+          {
+            "$in": [
+              "$.input.header.doc_type",
+              [
+                "SALE_ORDER",
+                "PURCHASE_ORDER",
+                "PURCHASE_REQUISITION"
+              ]
+            ]
+          }
+        ]
+      },
+      "sql": "INSERT INTO ul_doc_headers_ext_order (doc_id, tenant_id, validity_date, delivery_date_requested, blanket_qty, commitment_amount, created_at, updated_at, version_no) VALUES (:doc_id, :tenant_id, :validity_date, :delivery_date_requested, :blanket_qty, :commitment_amount, NOW(), NOW(), 1) ON CONFLICT (doc_id) DO UPDATE SET validity_date = EXCLUDED.validity_date, delivery_date_requested = EXCLUDED.delivery_date_requested, blanket_qty = EXCLUDED.blanket_qty, commitment_amount = EXCLUDED.commitment_amount, updated_at = NOW(), version_no = ul_doc_headers_ext_order.version_no + 1 RETURNING doc_id, version_no",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "validity_date": "$.input.extensions.header_ext_order.validity_date",
+        "delivery_date_requested": "$.input.extensions.header_ext_order.delivery_date_requested",
+        "blanket_qty": "$.input.extensions.header_ext_order.blanket_qty",
+        "commitment_amount": "$.input.extensions.header_ext_order.commitment_amount"
+      },
+      "result_key": "header_ext_order_result"
+    },
+    {
+      "step_id": "upsert_header_ext_quote",
+      "sequence": 74.92,
+      "step_type": "EXECUTE_SQL",
+      "description": "UPSERT Quote extension fields for header (validity, revision, probability)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.header_ext_quote",
+              null
+            ]
+          },
+          {
+            "$in": [
+              "$.input.header.doc_type",
+              [
+                "SALE_QUOTE",
+                "REQUEST_FOR_QUOTE"
+              ]
+            ]
+          }
+        ]
+      },
+      "sql": "INSERT INTO ul_doc_headers_ext_quote (doc_id, tenant_id, quote_validity_date, revision, competitor_ref, probability, created_at, updated_at, version_no) VALUES (:doc_id, :tenant_id, :quote_validity_date, :revision, :competitor_ref, :probability, NOW(), NOW(), 1) ON CONFLICT (doc_id) DO UPDATE SET quote_validity_date = EXCLUDED.quote_validity_date, revision = EXCLUDED.revision, competitor_ref = EXCLUDED.competitor_ref, probability = EXCLUDED.probability, updated_at = NOW(), version_no = ul_doc_headers_ext_quote.version_no + 1 RETURNING doc_id, version_no",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "quote_validity_date": "$.input.extensions.header_ext_quote.quote_validity_date",
+        "revision": "$.input.extensions.header_ext_quote.revision",
+        "competitor_ref": "$.input.extensions.header_ext_quote.competitor_ref",
+        "probability": "$.input.extensions.header_ext_quote.probability"
+      },
+      "result_key": "header_ext_quote_result"
+    },
+    {
+      "step_id": "upsert_header_ext_packing",
+      "sequence": 74.93,
+      "step_type": "EXECUTE_SQL",
+      "description": "UPSERT Packing slip extension fields for header (packages, weight, volume)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.header_ext_packing",
+              null
+            ]
+          },
+          {
+            "$in": [
+              "$.input.header.doc_type",
+              [
+                "PACKING_SLIP",
+                "DELIVERY_NOTE"
+              ]
+            ]
+          }
+        ]
+      },
+      "sql": "INSERT INTO ul_doc_headers_ext_packing (doc_id, tenant_id, total_packages, gross_weight, net_weight, volume, created_at, updated_at, version_no) VALUES (:doc_id, :tenant_id, :total_packages, :gross_weight, :net_weight, :volume, NOW(), NOW(), 1) ON CONFLICT (doc_id) DO UPDATE SET total_packages = EXCLUDED.total_packages, gross_weight = EXCLUDED.gross_weight, net_weight = EXCLUDED.net_weight, volume = EXCLUDED.volume, updated_at = NOW(), version_no = ul_doc_headers_ext_packing.version_no + 1 RETURNING doc_id, version_no",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "total_packages": "$.input.extensions.header_ext_packing.total_packages",
+        "gross_weight": "$.input.extensions.header_ext_packing.gross_weight",
+        "net_weight": "$.input.extensions.header_ext_packing.net_weight",
+        "volume": "$.input.extensions.header_ext_packing.volume"
+      },
+      "result_key": "header_ext_packing_result"
+    },
+    {
+      "step_id": "upsert_header_ext_stock",
+      "sequence": 74.94,
+      "step_type": "EXECUTE_SQL",
+      "description": "UPSERT Stock adjustment extension fields for header (from/to warehouse, reason)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.header_ext_stock",
+              null
+            ]
+          },
+          {
+            "$in": [
+              "$.input.header.doc_type",
+              [
+                "STOCK_ADJUSTMENT",
+                "STOCK_TRANSFER",
+                "CYCLE_COUNT"
+              ]
+            ]
+          }
+        ]
+      },
+      "sql": "INSERT INTO ul_doc_headers_ext_stock (doc_id, tenant_id, from_warehouse_id, to_warehouse_id, transfer_type, adjustment_reason, created_at, updated_at, version_no) VALUES (:doc_id, :tenant_id, :from_warehouse_id, :to_warehouse_id, :transfer_type, :adjustment_reason, NOW(), NOW(), 1) ON CONFLICT (doc_id) DO UPDATE SET from_warehouse_id = EXCLUDED.from_warehouse_id, to_warehouse_id = EXCLUDED.to_warehouse_id, transfer_type = EXCLUDED.transfer_type, adjustment_reason = EXCLUDED.adjustment_reason, updated_at = NOW(), version_no = ul_doc_headers_ext_stock.version_no + 1 RETURNING doc_id, version_no",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "from_warehouse_id": "$.input.extensions.header_ext_stock.from_warehouse_id",
+        "to_warehouse_id": "$.input.extensions.header_ext_stock.to_warehouse_id",
+        "transfer_type": "$.input.extensions.header_ext_stock.transfer_type",
+        "adjustment_reason": "$.input.extensions.header_ext_stock.adjustment_reason"
+      },
+      "result_key": "header_ext_stock_result"
+    },
+    {
+      "step_id": "upsert_header_ext_jobwork",
+      "sequence": 74.95,
+      "step_type": "EXECUTE_SQL",
+      "description": "UPSERT Jobwork extension fields for header (challan, process)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.header_ext_jobwork",
+              null
+            ]
+          },
+          {
+            "$eq": [
+              "$.results.use_flags.is_jobwork",
+              true
+            ]
+          }
+        ]
+      },
+      "sql": "INSERT INTO ul_doc_headers_ext_jobwork (doc_id, tenant_id, challan_no, challan_date, process_type, created_at, updated_at, version_no) VALUES (:doc_id, :tenant_id, :challan_no, :challan_date, :process_type, NOW(), NOW(), 1) ON CONFLICT (doc_id) DO UPDATE SET challan_no = EXCLUDED.challan_no, challan_date = EXCLUDED.challan_date, process_type = EXCLUDED.process_type, updated_at = NOW(), version_no = ul_doc_headers_ext_jobwork.version_no + 1 RETURNING doc_id, version_no",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "challan_no": "$.input.extensions.header_ext_jobwork.challan_no",
+        "challan_date": "$.input.extensions.header_ext_jobwork.challan_date",
+        "process_type": "$.input.extensions.header_ext_jobwork.process_type"
+      },
+      "result_key": "header_ext_jobwork_result"
+    },
+    {
+      "step_id": "upsert_header_ext_payment",
+      "sequence": 74.96,
+      "step_type": "EXECUTE_SQL",
+      "description": "UPSERT Payment extension fields for header (payment mode, instrument)",
+      "execute_if": "$.input.extensions.header_ext_payment != null",
+      "sql": "INSERT INTO ul_doc_headers_ext_payment (doc_id, tenant_id, payment_mode, cheque_no, instrument_date, bank_account_id, created_at, updated_at, version_no) VALUES (:doc_id, :tenant_id, :payment_mode, :cheque_no, :instrument_date, :bank_account_id, NOW(), NOW(), 1) ON CONFLICT (doc_id) DO UPDATE SET payment_mode = EXCLUDED.payment_mode, cheque_no = EXCLUDED.cheque_no, instrument_date = EXCLUDED.instrument_date, bank_account_id = EXCLUDED.bank_account_id, updated_at = NOW(), version_no = ul_doc_headers_ext_payment.version_no + 1 RETURNING doc_id, version_no",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "payment_mode": "$.input.extensions.header_ext_payment.payment_mode",
+        "cheque_no": "$.input.extensions.header_ext_payment.cheque_no",
+        "instrument_date": "$.input.extensions.header_ext_payment.instrument_date",
+        "bank_account_id": "$.input.extensions.header_ext_payment.bank_account_id"
+      },
+      "result_key": "header_ext_payment_result"
+    },
+    {
+      "step_id": "delete_lines_ext_order",
+      "sequence": 74.97,
+      "step_type": "EXECUTE_SQL",
+      "description": "Delete existing line order extensions before re-insert",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_order",
+              null
+            ]
+          }
+        ]
+      },
+      "sql": "DELETE FROM ul_doc_lines_ext_order WHERE line_id IN (SELECT line_id FROM ul_doc_lines WHERE doc_id = :doc_id AND tenant_id = :tenant_id) AND tenant_id = :tenant_id AND (SELECT set_config('app.force_hard_delete', 'true', true)) = 'true'",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "delete_lines_ext_order_result"
+    },
+    {
+      "step_id": "insert_lines_ext_order",
+      "sequence": 74.971,
+      "step_type": "INSERT_BATCH",
+      "description": "Insert Order extension fields for lines (requested_date, promised_date)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_order",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.extensions.lines_ext_order"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_lines_ext_order",
+      "data_source": "$.input.extensions.lines_ext_order",
+      "data_template": {
+        "line_id": "@item.line_id",
+        "tenant_id": "$.env.tenant_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "requested_date": "@item.requested_date",
+        "promised_date": "@item.promised_date",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "updated_at": {
+          "$function": "NOW"
+        },
+        "version_no": 1,
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "lines_ext_order_result"
+    },
+    {
+      "step_id": "delete_lines_ext_logistics",
+      "sequence": 74.98,
+      "step_type": "EXECUTE_SQL",
+      "description": "Delete existing line logistics extensions before re-insert",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_logistics",
+              null
+            ]
+          }
+        ]
+      },
+      "sql": "DELETE FROM ul_doc_lines_ext_logistics WHERE line_id IN (SELECT line_id FROM ul_doc_lines WHERE doc_id = :doc_id AND tenant_id = :tenant_id) AND tenant_id = :tenant_id AND (SELECT set_config('app.force_hard_delete', 'true', true)) = 'true'",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "delete_lines_ext_logistics_result"
+    },
+    {
+      "step_id": "insert_lines_ext_logistics",
+      "sequence": 74.981,
+      "step_type": "INSERT_BATCH",
+      "description": "Insert Logistics extension fields for lines (packed_qty, gross_weight_kg, net_weight_kg, volume_cbm)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_logistics",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.extensions.lines_ext_logistics"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_lines_ext_logistics",
+      "data_source": "$.input.extensions.lines_ext_logistics",
+      "data_template": {
+        "line_id": "@item.line_id",
+        "tenant_id": "$.env.tenant_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "packed_qty": "@item.packed_qty",
+        "gross_weight_kg": "@item.gross_weight_kg",
+        "net_weight_kg": "@item.net_weight_kg",
+        "volume_cbm": "@item.volume_cbm",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "updated_at": {
+          "$function": "NOW"
+        },
+        "version_no": 1,
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "lines_ext_logistics_result"
+    },
+    {
+      "step_id": "delete_lines_ext_jobwork",
+      "sequence": 74.985,
+      "step_type": "EXECUTE_SQL",
+      "description": "Delete existing line jobwork extensions before re-insert",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_jobwork",
+              null
+            ]
+          }
+        ]
+      },
+      "sql": "DELETE FROM ul_doc_lines_ext_jobwork WHERE line_id IN (SELECT line_id FROM ul_doc_lines WHERE doc_id = :doc_id AND tenant_id = :tenant_id) AND tenant_id = :tenant_id AND (SELECT set_config('app.force_hard_delete', 'true', true)) = 'true'",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "delete_lines_ext_jobwork_result"
+    },
+    {
+      "step_id": "insert_lines_ext_jobwork",
+      "sequence": 74.986,
+      "step_type": "INSERT_BATCH",
+      "description": "Insert Jobwork extension fields for lines (process_loss_qty, scrap_qty, output_item_id)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_jobwork",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.extensions.lines_ext_jobwork"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_lines_ext_jobwork",
+      "data_source": "$.input.extensions.lines_ext_jobwork",
+      "data_template": {
+        "line_id": "@item.line_id",
+        "tenant_id": "$.env.tenant_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "process_loss_qty": "@item.process_loss_qty",
+        "scrap_qty": "@item.scrap_qty",
+        "output_item_id": "@item.output_item_id",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "lines_ext_jobwork_result"
+    },
+    {
+      "step_id": "delete_lines_ext_payment",
+      "sequence": 74.99,
+      "step_type": "DB_DELETE",
+      "hard_delete": true,
+      "description": "Delete existing line payment extensions before re-insert",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_payment",
+              null
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_lines_ext_payment",
+      "where": {
+        "line_id": {
+          "$in": {
+            "$map": {
+              "array": {
+                "$coalesce": [
+                  "$.results.existing_lines",
+                  null
+                ]
+              },
+              "item": "@item.line_id"
+            }
+          }
+        },
+        "tenant_id": "$.env.tenant_id"
+      }
+    },
+    {
+      "step_id": "insert_lines_ext_payment",
+      "sequence": 74.991,
+      "step_type": "INSERT_BATCH",
+      "description": "Insert Payment extension fields for lines (allocated_doc_id, allocated_amount_fc/bc, discount_taken_fc/bc)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_payment",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.extensions.lines_ext_payment"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_lines_ext_payment",
+      "data_source": "$.input.extensions.lines_ext_payment",
+      "data_template": {
+        "line_id": "@item.line_id",
+        "tenant_id": "$.env.tenant_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "allocated_doc_id": "@item.allocated_doc_id",
+        "allocated_amount_fc": "@item.allocated_amount_fc",
+        "allocated_amount_bc": "@item.allocated_amount_bc",
+        "discount_taken_fc": "@item.discount_taken_fc",
+        "discount_taken_bc": "@item.discount_taken_bc",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "lines_ext_payment_result"
+    },
+    {
+      "step_id": "upsert_header_ext_adjustment",
+      "sequence": 74.992,
+      "step_type": "EXECUTE_SQL",
+      "description": "UPSERT Stock Adjustment header extension (adjustment_type, reason_code, reference_count_sheet_id)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.header_ext_adjustment",
+              null
+            ]
+          },
+          {
+            "$in": [
+              "$.input.header.doc_type",
+              [
+                "STOCK_ADJUSTMENT"
+              ]
+            ]
+          }
+        ]
+      },
+      "sql": "INSERT INTO ul_doc_headers_ext_adjustment (doc_id, tenant_id, adjustment_type, reason_code, reference_count_sheet_id, created_at, updated_at, version_no) VALUES (:doc_id, :tenant_id, :adjustment_type, :reason_code, :reference_count_sheet_id, NOW(), NOW(), 1) ON CONFLICT (doc_id) DO UPDATE SET adjustment_type = EXCLUDED.adjustment_type, reason_code = EXCLUDED.reason_code, reference_count_sheet_id = EXCLUDED.reference_count_sheet_id, updated_at = NOW(), version_no = ul_doc_headers_ext_adjustment.version_no + 1 RETURNING doc_id, version_no",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "adjustment_type": "$.input.extensions.header_ext_adjustment.adjustment_type",
+        "reason_code": "$.input.extensions.header_ext_adjustment.reason_code",
+        "reference_count_sheet_id": "$.input.extensions.header_ext_adjustment.reference_count_sheet_id"
+      },
+      "result_key": "header_ext_adjustment_result"
+    },
+    {
+      "step_id": "delete_lines_ext_adjustment",
+      "sequence": 74.993,
+      "step_type": "EXECUTE_SQL",
+      "description": "Delete existing line adjustment extensions before re-insert",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_adjustment",
+              null
+            ]
+          }
+        ]
+      },
+      "sql": "DELETE FROM ul_doc_lines_ext_adjustment WHERE line_id IN (SELECT line_id FROM ul_doc_lines WHERE doc_id = :doc_id AND tenant_id = :tenant_id) AND tenant_id = :tenant_id AND (SELECT set_config('app.force_hard_delete', 'true', true)) = 'true'",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "delete_lines_ext_adjustment_result"
+    },
+    {
+      "step_id": "insert_lines_ext_adjustment",
+      "sequence": 74.994,
+      "step_type": "INSERT_BATCH",
+      "description": "Insert Stock Adjustment extension fields for lines (reason_code, current_qty, gl_account_id)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_adjustment",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.extensions.lines_ext_adjustment"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_lines_ext_adjustment",
+      "data_source": "$.input.extensions.lines_ext_adjustment",
+      "data_template": {
+        "line_id": "@item.line_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "reason_code": "@item.reason_code",
+        "current_qty": "@item.current_qty",
+        "gl_account_id": "@item.gl_account_id",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "updated_at": {
+          "$function": "NOW"
+        },
+        "version_no": 1,
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "lines_ext_adjustment_result"
+    },
+    {
+      "step_id": "upsert_header_ext_count",
+      "sequence": 74.995,
+      "step_type": "EXECUTE_SQL",
+      "description": "UPSERT Count Sheet header extension (count_type, counted_by, counted_at, reviewed_by, reviewed_at)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.header_ext_count",
+              null
+            ]
+          },
+          {
+            "$in": [
+              "$.input.header.doc_type",
+              [
+                "COUNT_SHEET"
+              ]
+            ]
+          }
+        ]
+      },
+      "sql": "INSERT INTO ul_doc_headers_ext_count (doc_id, tenant_id, count_type, counted_by, counted_at, reviewed_by, reviewed_at, created_at, updated_at, version_no) VALUES (:doc_id, :tenant_id, :count_type, :counted_by, :counted_at, :reviewed_by, :reviewed_at, NOW(), NOW(), 1) ON CONFLICT (doc_id) DO UPDATE SET count_type = EXCLUDED.count_type, counted_by = EXCLUDED.counted_by, counted_at = EXCLUDED.counted_at, reviewed_by = EXCLUDED.reviewed_by, reviewed_at = EXCLUDED.reviewed_at, updated_at = NOW(), version_no = ul_doc_headers_ext_count.version_no + 1 RETURNING doc_id, version_no",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "count_type": "$.input.extensions.header_ext_count.count_type",
+        "counted_by": "$.input.extensions.header_ext_count.counted_by",
+        "counted_at": "$.input.extensions.header_ext_count.counted_at",
+        "reviewed_by": "$.input.extensions.header_ext_count.reviewed_by",
+        "reviewed_at": "$.input.extensions.header_ext_count.reviewed_at"
+      },
+      "result_key": "header_ext_count_result"
+    },
+    {
+      "step_id": "delete_lines_ext_count",
+      "sequence": 74.996,
+      "step_type": "EXECUTE_SQL",
+      "description": "Delete existing line count extensions before re-insert",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_count",
+              null
+            ]
+          }
+        ]
+      },
+      "sql": "DELETE FROM ul_doc_lines_ext_count WHERE line_id IN (SELECT line_id FROM ul_doc_lines WHERE doc_id = :doc_id AND tenant_id = :tenant_id) AND tenant_id = :tenant_id AND (SELECT set_config('app.force_hard_delete', 'true', true)) = 'true'",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "delete_lines_ext_count_result"
+    },
+    {
+      "step_id": "insert_lines_ext_count",
+      "sequence": 74.997,
+      "step_type": "INSERT_BATCH",
+      "description": "Insert Count Sheet extension fields for lines (expected_qty, variance_qty)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_count",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.extensions.lines_ext_count"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_lines_ext_count",
+      "data_source": "$.input.extensions.lines_ext_count",
+      "data_template": {
+        "line_id": "@item.line_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "expected_qty": "@item.expected_qty",
+        "variance_qty": "@item.variance_qty",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "updated_at": {
+          "$function": "NOW"
+        },
+        "version_no": 1,
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "lines_ext_count_result"
+    },
+    {
+      "step_id": "upsert_header_ext_requisition",
+      "sequence": 74.998,
+      "step_type": "EXECUTE_SQL",
+      "description": "UPSERT Purchase Requisition header extension (priority, requested_by, department_id, budget_code, required_by_date)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.header_ext_requisition",
+              null
+            ]
+          },
+          {
+            "$in": [
+              "$.input.header.doc_type",
+              [
+                "PURCHASE_REQUISITION"
+              ]
+            ]
+          }
+        ]
+      },
+      "sql": "INSERT INTO ul_doc_headers_ext_requisition (doc_id, tenant_id, priority, requested_by, department_id, budget_code, required_by_date, created_at, updated_at, version_no) VALUES (:doc_id, :tenant_id, :priority, :requested_by, :department_id, :budget_code, :required_by_date, NOW(), NOW(), 1) ON CONFLICT (doc_id) DO UPDATE SET priority = EXCLUDED.priority, requested_by = EXCLUDED.requested_by, department_id = EXCLUDED.department_id, budget_code = EXCLUDED.budget_code, required_by_date = EXCLUDED.required_by_date, updated_at = NOW(), version_no = ul_doc_headers_ext_requisition.version_no + 1 RETURNING doc_id, version_no",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "priority": "$.input.extensions.header_ext_requisition.priority",
+        "requested_by": "$.input.extensions.header_ext_requisition.requested_by",
+        "department_id": "$.input.extensions.header_ext_requisition.department_id",
+        "budget_code": "$.input.extensions.header_ext_requisition.budget_code",
+        "required_by_date": "$.input.extensions.header_ext_requisition.required_by_date"
+      },
+      "result_key": "header_ext_requisition_result"
+    },
+    {
+      "step_id": "delete_lines_ext_requisition",
+      "sequence": 74.999,
+      "step_type": "EXECUTE_SQL",
+      "description": "Delete existing line requisition extensions before re-insert",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_requisition",
+              null
+            ]
+          }
+        ]
+      },
+      "sql": "DELETE FROM ul_doc_lines_ext_requisition WHERE line_id IN (SELECT line_id FROM ul_doc_lines WHERE doc_id = :doc_id AND tenant_id = :tenant_id) AND tenant_id = :tenant_id AND (SELECT set_config('app.force_hard_delete', 'true', true)) = 'true'",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "delete_lines_ext_requisition_result"
+    },
+    {
+      "step_id": "insert_lines_ext_requisition",
+      "sequence": 74.9991,
+      "step_type": "INSERT_BATCH",
+      "description": "Insert Purchase Requisition extension fields for lines (required_date, suggested_vendor_id, budget_line_code, specification_notes)",
+      "execute_if": {
+        "$and": [
+          {
+            "$ne": [
+              "$.input.extensions.lines_ext_requisition",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": "$.input.extensions.lines_ext_requisition"
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_lines_ext_requisition",
+      "data_source": "$.input.extensions.lines_ext_requisition",
+      "data_template": {
+        "line_id": "@item.line_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "required_date": "@item.required_date",
+        "suggested_vendor_id": "@item.suggested_vendor_id",
+        "budget_line_code": "@item.budget_line_code",
+        "specification_notes": "@item.specification_notes",
+        "created_at": {
+          "$function": "NOW"
+        },
+        "updated_at": {
+          "$function": "NOW"
+        },
+        "version_no": 1,
+        "created_by": "$.env.user_id"
+      },
+      "result_key": "lines_ext_requisition_result"
+    },
+    {
+      "step_id": "handle_reservation_delta",
+      "sequence": 75,
+      "step_type": "RUN_PYTHON",
+      "mode": "service",
+      "execute_if": "$.variables.is_new == false",
+      "params": {
+        "service": "stock_engine",
+        "method": "handle_reservation_delta",
+        "doc_id": "$.variables.effective_doc_id",
+        "old_lines": "$.results.existing_lines",
+        "new_lines": "$.input.lines"
+      },
+      "result_key": "reservation_delta"
+    },
+    {
+      "step_id": "validate_line_amounts",
+      "sequence": 80,
+      "step_type": "EXECUTE_SQL",
+      "description": "Validate FE-computed amounts: RAISE if any line has NULL amount_fc or amount_bc. FE is SSOT for calculations  -  BE only validates.",
+      "sql": "SELECT COUNT(*) AS null_count, string_agg(CAST(line_no AS text), ', ') AS affected_lines FROM uni_app.ul_doc_lines WHERE doc_id = :doc_id::uuid AND tenant_id = :tenant_id::uuid AND is_deleted = false AND (amount_fc IS NULL OR amount_bc IS NULL OR net_amount_fc IS NULL OR net_amount_bc IS NULL)",
+      "single_row": true,
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "line_amount_check",
+      "output_schema": {
+        "affected_lines": "string",
+        "null_count": "number"
+      }
+    },
+    {
+      "step_id": "raise_if_null_amounts",
+      "sequence": 81,
+      "step_type": "VALIDATE",
+      "description": "RAISE if FE sent NULL BC amounts  -  indicates broken FE trigger_fields in calculations.json",
+      "condition": {
+        "$eq": [
+          "$.results.line_amount_check.null_count",
+          0
+        ]
+      },
+      "error_code": "FE_CALC_MISSING_BC",
+      "error_message": {
+        "$concat": [
+          "FE calculation error: Lines [",
+          "$.results.line_amount_check.affected_lines",
+          "] have NULL amount_bc or net_amount_bc. Fix FE trigger_fields in calculations.json  -  BC calcs must trigger on FC field changes."
+        ]
+      }
+    },
+    {
+      "step_id": "reconcile_header_tax_totals",
+      "sequence": 82.5,
+      "step_type": "EXECUTE_SQL",
+      "description": "DB reconciliation: derive header totals from actual saved line values (FE-computed, tax-reconciled). Eliminates rounding drift  -  NOT recalculation, just aggregation from DB source of truth.",
+      "sql": "WITH line_agg AS (SELECT COALESCE(SUM(tax_amount_fc), 0) AS tax_fc, COALESCE(SUM(amount_fc), 0) AS amount_fc, COALESCE(SUM(discount_amount_fc), 0) AS discount_fc, COUNT(*) AS line_cnt FROM uni_app.ul_doc_lines WHERE doc_id = :doc_id::uuid AND tenant_id = :tenant_id::uuid AND is_deleted = false), tax_agg AS (SELECT COUNT(*) AS tax_cnt FROM uni_app.ul_doc_line_taxes WHERE doc_id = :doc_id::uuid AND tenant_id = :tenant_id::uuid AND is_deleted = false) UPDATE uni_app.ul_doc_headers SET total_tax_fc = t.tax_fc, total_tax_bc = ROUND(t.tax_fc * exchange_rate, 3), total_amount_fc = t.amount_fc, total_amount_bc = ROUND(t.amount_fc * exchange_rate, 3), total_discount_fc = t.discount_fc, total_discount_bc = ROUND(t.discount_fc * exchange_rate, 3), grand_total_fc = t.amount_fc - t.discount_fc + t.tax_fc, grand_total_bc = ROUND((t.amount_fc - t.discount_fc + t.tax_fc) * exchange_rate, 3), line_count = t.line_cnt, tax_count = tx.tax_cnt, version_no = uni_app.ul_doc_headers.version_no + 1 FROM line_agg t, tax_agg tx WHERE doc_id = :doc_id::uuid AND tenant_id = :tenant_id::uuid RETURNING doc_id, version_no, line_count",
+      "single_row": true,
+      "params": {
+        "tenant_id": "$.env.tenant_id",
+        "doc_id": "$.variables.effective_doc_id"
+      },
+      "result_key": "reconcile_result"
+    },
+    {
+      "step_id": "reconcile_line_child_counts",
+      "sequence": 83,
+      "step_type": "EXECUTE_SQL",
+      "description": "Reconcile per-line child counts (serial_count, discount_count) from actual child rows  -  Phase 0 count integrity",
+      "sql": "UPDATE uni_app.ul_doc_lines l SET serial_count = COALESCE(s.cnt, 0), discount_count = COALESCE(d.cnt, 0) FROM (SELECT line_id, COUNT(*) AS cnt FROM uni_app.ul_doc_line_serials WHERE doc_id = :doc_id::uuid AND tenant_id = :tenant_id::uuid AND is_deleted = false GROUP BY line_id) s FULL OUTER JOIN (SELECT line_id, COUNT(*) AS cnt FROM uni_app.ul_doc_line_discounts WHERE doc_id = :doc_id::uuid AND tenant_id = :tenant_id::uuid GROUP BY line_id) d ON s.line_id = d.line_id WHERE l.doc_id = :doc_id::uuid AND l.tenant_id = :tenant_id::uuid AND l.is_deleted = false AND l.line_id = COALESCE(s.line_id, d.line_id)",
+      "params": {
+        "tenant_id": "$.env.tenant_id",
+        "doc_id": "$.variables.effective_doc_id"
+      }
+    },
+    {
+      "step_id": "log_field_changes",
+      "sequence": 85,
+      "step_type": "INSERT_BATCH",
+      "description": "Log field-level changes for audit trail (ul_doc_field_changes table now exists in new schema)",
+      "execute_if": {
+        "$and": [
+          {
+            "$eq": [
+              "$.variables.is_new",
+              false
+            ]
+          },
+          {
+            "$ne": [
+              "$.results.field_changes.changes",
+              null
+            ]
+          },
+          {
+            "$gt": [
+              {
+                "$len": {
+                  "$coalesce": [
+                    "$.results.field_changes.changes",
+                    []
+                  ]
+                }
+              },
+              0
+            ]
+          }
+        ]
+      },
+      "table": "ul_doc_field_changes",
+      "data_source": "$.results.field_changes.changes",
+      "data_template": {
+        "change_id": {
+          "$function": "UUID"
+        },
+        "tenant_id": "$.env.tenant_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "field_name": "@item.field_name",
+        "old_value": "@item.old_value",
+        "new_value": "@item.new_value",
+        "changed_by": "$.env.user_id",
+        "changed_at": {
+          "$function": "NOW"
+        }
+      }
+    },
+    {
+      "step_id": "build_fulfillment_links",
+      "sequence": 86,
+      "step_type": "RUN_PYTHON",
+      "description": "Query saved lines with source_doc_id/source_line_id set and build links array for SUB_SAVE_FULFILLMENT_LINKS. Covers all FE copy flows: SOâ†’SI, SOâ†’DN, POâ†’GRN, POâ†’PI, SQâ†’SO, DNâ†’SI, GRNâ†’PI.",
+      "mode": "service",
+      "params": {
+        "service": "fulfillment_engine",
+        "method": "build_links_from_saved_lines",
+        "doc_id": "$.variables.effective_doc_id"
+      },
+      "result_key": "built_links"
+    },
+    {
+      "step_id": "save_fulfillment_links",
+      "sequence": 87,
+      "step_type": "SUB_ORCHESTRATION",
+      "description": "Create fulfillment link records in ul_doc_line_links. Validates source lines, checks over-fulfillment, soft-deletes old links, inserts new, updates source fulfilled_qty.",
+      "execute_if": "$.variables.is_new == false or $.results.built_links.has_links == true",
+      "orchestration_id": "SUB_SAVE_FULFILLMENT_LINKS_BP_V3",
+      "input": {
+        "target_doc_id": "$.variables.effective_doc_id",
+        "links": "$.results.built_links.links"
+      },
+      "result_key": "fulfillment_result"
+    },
+    {
+      "step_id": "validate_fulfillment_links",
+      "sequence": 88,
+      "step_type": "CALL_FUNCTION",
+      "description": "Run comprehensive fulfillment link validation SP (11 checks). Fail-fast if any check fails.",
+      "execute_if": "$.results.built_links.has_links == true",
+      "function": "uni_app.sp_validate_doc__fulfillment_links",
+      "params": {
+        "p_doc_id": "$.variables.effective_doc_id",
+        "p_tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "fulfillment_validation"
+    },
+    {
+      "step_id": "check_fulfillment_validation",
+      "sequence": 88.5,
+      "step_type": "VALIDATE",
+      "description": "Abort if fulfillment link validation failed",
+      "execute_if": "$.results.built_links.has_links == true",
+      "condition": "$.results.fulfillment_validation.is_valid == true",
+      "error_code": "FULFILLMENT_LINK_INVALID",
+      "error_message": "$.results.fulfillment_validation.message"
+    },
+    {
+      "step_id": "validate_pricing",
+      "sequence": 88.6,
+      "step_type": "CALL_FUNCTION",
+      "description": "Run pricing validation SP (7 checks). Returns {is_valid, error_count, warn_count, info_count, failures[]} — is_valid blocks ONLY on ERROR severity; INFO (manual override) and WARN (rounding) pass through.",
+      "function": "uni_app.sp_validate_doc__pricing",
+      "params": {
+        "p_doc_id": "$.variables.effective_doc_id",
+        "p_tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "pricing_validation"
+    },
+    {
+      "step_id": "check_pricing_validation",
+      "sequence": 88.7,
+      "step_type": "VALIDATE",
+      "description": "Abort if any ERROR-severity pricing failure exists. INFO/WARN rows do not block.",
+      "condition": "$.results.pricing_validation.is_valid == true",
+      "error_code": "PRICING_VALIDATION_FAILED",
+      "error_message": "Pricing validation failed with ERROR-severity findings"
+    },
+    {
+      "step_id": "refresh_header_cache",
+      "sequence": 89,
+      "step_type": "EXECUTE_SQL",
+      "description": "Re-resolve party_name_cache from mst_parties",
+      "sql": "UPDATE uni_app.ul_doc_headers h SET party_name_cache = p.party_name FROM uni_app.mst_parties p WHERE h.doc_id = :doc_id AND h.tenant_id = :tenant_id AND h.party_id = p.party_id AND p.tenant_id = :tenant_id AND h.party_id IS NOT NULL",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "header_cache_refresh"
+    },
+    {
+      "step_id": "refresh_line_cache",
+      "sequence": 89.5,
+      "step_type": "EXECUTE_SQL",
+      "description": "Re-resolve item_code_cache and item_name_cache from mst_items",
+      "sql": "UPDATE uni_app.ul_doc_lines l SET item_code_cache = i.item_code, item_name_cache = i.item_name FROM uni_app.mst_items i WHERE l.doc_id = :doc_id AND l.tenant_id = :tenant_id AND l.item_id = i.item_id AND i.tenant_id = :tenant_id AND l.item_id IS NOT NULL",
+      "params": {
+        "doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "line_cache_refresh"
+    },
+    {
+      "step_id": "record_event",
+      "sequence": 90,
+      "step_type": "DB_INSERT",
+      "description": "Record document lifecycle event (ul_doc_events table now exists in new schema)",
+      "table": "ul_doc_events",
+      "data": {
+        "event_id": {
+          "$function": "UUID"
+        },
+        "tenant_id": "$.env.tenant_id",
+        "doc_id": "$.variables.effective_doc_id",
+        "event_type": {
+          "$if": [
+            "$.variables.is_new",
+            "CREATED",
+            "UPDATED"
+          ]
+        },
+        "event_data": {
+          "version_no": {
+            "$if": [
+              "$.variables.is_new",
+              1,
+              {
+                "$add": [
+                  {
+                    "$coalesce": [
+                      "$.results.existing_doc.version_no",
+                      null
+                    ]
+                  },
+                  1
+                ]
+              }
+            ]
+          },
+          "line_count": "$.results.lines_result.inserted"
+        },
+        "created_by": "$.env.user_id",
+        "created_at": {
+          "$function": "NOW"
+        }
+      }
+    },
+    {
+      "step_id": "final_validation",
+      "sequence": 990,
+      "step_type": "RUN_PYTHON",
+      "description": "Quick validation for SAVE  -  uses Python ValidationEngine which correctly treats WARN as non-blocking",
+      "mode": "service",
+      "params": {
+        "service": "validation_engine",
+        "method": "validate_for_orch",
+        "doc_id": "$.variables.effective_doc_id",
+        "mode": "QUICK"
+      },
+      "result_key": "validation"
+    },
+    {
+      "step_id": "check_validation",
+      "sequence": 995,
+      "step_type": "VALIDATE",
+      "description": "Abort if validation failed (skip if SP unavailable  -  validation result is null)",
+      "condition": "$.results.validation == null  or  $.results.validation.is_valid == true",
+      "error_code": "VALIDATION_FAILED",
+      "error_message": "$.results.validation.message"
+    },
+    {
+      "step_id": "reconcile_header_totals_sp",
+      "sequence": 996,
+      "step_type": "CALL_FUNCTION",
+      "description": "Layer 4: Post-save reconciliation — verify header totals match line aggregates (line_count, amounts, taxes)",
+      "function": "uni_app.sp_reconcile_header_totals",
+      "params": {
+        "p_doc_id": "$.variables.effective_doc_id",
+        "p_tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "reconcile_totals"
+    },
+    {
+      "step_id": "check_reconcile_totals",
+      "sequence": 996.1,
+      "step_type": "VALIDATE",
+      "description": "Abort + ROLLBACK if header totals reconciliation failed",
+      "condition": "$.results.reconcile_totals.is_valid == true",
+      "error_code": "RECONCILIATION_FAILED",
+      "error_message": {
+        "$coalesce": [
+          "$.results.reconcile_totals.message",
+          "Header totals reconciliation failed — data corruption detected"
+        ]
+      }
+    },
+    {
+      "step_id": "reconcile_allocations_sp",
+      "sequence": 996.2,
+      "step_type": "CALL_FUNCTION",
+      "description": "Layer 4: Reconcile allocations — SUM(alloc.qty) = line.qty, batch/serial validity",
+      "execute_if": "$.input.allocations != null and $.input.allocations.length > 0",
+      "function": "uni_app.sp_reconcile_allocations",
+      "params": {
+        "p_doc_id": "$.variables.effective_doc_id",
+        "p_tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "reconcile_alloc"
+    },
+    {
+      "step_id": "check_reconcile_allocations",
+      "sequence": 996.3,
+      "step_type": "VALIDATE",
+      "description": "Abort if allocation reconciliation failed",
+      "execute_if": "$.results.reconcile_alloc != null",
+      "condition": "$.results.reconcile_alloc.is_valid == true",
+      "error_code": "ALLOCATION_RECONCILIATION_FAILED",
+      "error_message": {
+        "$coalesce": [
+          "$.results.reconcile_alloc.message",
+          "Allocation reconciliation failed"
+        ]
+      }
+    },
+    {
+      "step_id": "reconcile_fulfillment_links_sp",
+      "sequence": 996.4,
+      "step_type": "CALL_FUNCTION",
+      "description": "Layer 4: Reconcile fulfillment links — source validity, qty tally, over-fulfillment",
+      "execute_if": "$.results.built_links.has_links == true",
+      "function": "uni_app.sp_reconcile_fulfillment_links",
+      "params": {
+        "p_doc_id": "$.variables.effective_doc_id",
+        "p_tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "reconcile_links"
+    },
+    {
+      "step_id": "check_reconcile_fulfillment",
+      "sequence": 996.5,
+      "step_type": "VALIDATE",
+      "description": "Abort if fulfillment link reconciliation failed",
+      "execute_if": "$.results.reconcile_links != null",
+      "condition": "$.results.reconcile_links.is_valid == true",
+      "error_code": "FULFILLMENT_RECONCILIATION_FAILED",
+      "error_message": {
+        "$coalesce": [
+          "$.results.reconcile_links.message",
+          "Fulfillment link reconciliation failed"
+        ]
+      }
+    },
+    {
+      "step_id": "reconcile_extension_tables_sp",
+      "sequence": 996.6,
+      "step_type": "CALL_FUNCTION",
+      "description": "Layer 4: Reconcile extension tables — required present, forbidden absent, line count match",
+      "function": "uni_app.sp_reconcile_extension_tables",
+      "params": {
+        "p_doc_id": "$.variables.effective_doc_id",
+        "p_subtype_code": {
+          "$coalesce": [
+            "$.input.header.doc_subtype",
+            "STANDARD"
+          ]
+        },
+        "p_tenant_id": "$.env.tenant_id"
+      },
+      "result_key": "reconcile_ext"
+    },
+    {
+      "step_id": "check_reconcile_extensions",
+      "sequence": 996.7,
+      "step_type": "VALIDATE",
+      "description": "Abort if extension table reconciliation failed",
+      "execute_if": "$.results.reconcile_ext != null",
+      "condition": "$.results.reconcile_ext.is_valid == true",
+      "error_code": "EXTENSION_RECONCILIATION_FAILED",
+      "error_message": {
+        "$coalesce": [
+          "$.results.reconcile_ext.message",
+          "Extension table reconciliation failed"
+        ]
+      }
+    },
+    {
+      "step_id": "validate_amounts_sub_orch",
+      "sequence": 996.75,
+      "step_type": "SUB_ORCHESTRATION",
+      "description": "Layer 5: Generated amount recalculation validation — verify line amounts, header totals, grand total, BC conversion, allocation/schedule sums",
+      "orchestration_id": "VALIDATE_AMOUNTS_UL_DOC_HEADERS",
+      "input": {
+        "effective_doc_id": "$.variables.effective_doc_id",
+        "tenant_id": "$.env.tenant_id",
+        "subtype_flags": "$.results.subtype_settings"
+      },
+      "result_key": "amounts_validation"
+    },
+    {
+      "step_id": "validate_metadata_rules",
+      "sequence": 996.8,
+      "step_type": "CALL_FUNCTION",
+      "description": "Layer 5: Generated metadata validation — field-level rules (required, min/max, enums, child table gating) per subtype",
+      "function": "uni_app.sp_validate_ul_doc_headers_metadata_rules",
+      "params": {
+        "p_doc_id": "$.variables.effective_doc_id",
+        "p_tenant_id": "$.env.tenant_id",
+        "p_subtype_code": {
+          "$coalesce": [
+            "$.input.header.doc_subtype",
+            "STANDARD"
+          ]
+        }
+      },
+      "result_key": "metadata_validation"
+    },
+    {
+      "step_id": "check_metadata_rules",
+      "sequence": 996.9,
+      "step_type": "VALIDATE",
+      "description": "Abort if metadata field validation failed",
+      "execute_if": "$.results.metadata_validation != null",
+      "condition": "$.results.metadata_validation.is_valid == true",
+      "error_code": "METADATA_VALIDATION_FAILED",
+      "error_message": {
+        "$coalesce": [
+          "$.results.metadata_validation.message",
+          "Metadata field validation failed"
+        ]
+      }
+    },
+    {
+      "step_id": "read_final_version",
+      "sequence": 998,
+      "step_type": "EXECUTE_SQL",
+      "description": "Read final version_no after all cache refreshes (BU trigger increments version on each header UPDATE)",
+      "sql": "SELECT version_no, line_count FROM uni_app.ul_doc_headers WHERE doc_id = :doc_id AND tenant_id = :tenant_id",
+      "single_row": true,
+      "params": {
+        "tenant_id": "$.env.tenant_id",
+        "doc_id": "$.variables.effective_doc_id"
+      },
+      "result_key": "final_version",
+      "output_schema": {
+        "version_no": "number",
+        "line_count": "number"
+      }
+    },
+    {
+      "step_id": "return_result",
+      "sequence": 999,
+      "step_type": "RETURN",
+      "data": {
+        "success": true,
+        "doc_id": "$.variables.effective_doc_id",
+        "doc_no": {
+          "$if": [
+            "$.variables.is_new",
+            {
+              "$coalesce": [
+                "$.results.insert_result.doc_no",
+                null
+              ]
+            },
+            {
+              "$coalesce": [
+                "$.results.update_result.doc_no",
+                null
+              ]
+            }
+          ]
+        },
+        "version_no": "$.results.final_version.version_no",
+        "is_new": "$.variables.is_new",
+        "line_count": "$.results.final_version.line_count",
+        "tax_count": "$.results.taxes_result.inserted"
+      }
+    }
+  ]
+}
