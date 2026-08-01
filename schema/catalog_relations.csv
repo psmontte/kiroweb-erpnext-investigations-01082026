@@ -1,0 +1,2585 @@
+module,from_doctype,fieldname,relation,to_doctype,target_in_app
+Accounts,Account,company,link,Company,1
+Accounts,Account,account_currency,link,Currency,0
+Accounts,Account,parent_account,link,Account,1
+Accounts,Account,account_category,link,Account Category,1
+Accounts,Account Closing Balance,account,link,Account,1
+Accounts,Account Closing Balance,cost_center,link,Cost Center,1
+Accounts,Account Closing Balance,account_currency,link,Currency,0
+Accounts,Account Closing Balance,project,link,Project,1
+Accounts,Account Closing Balance,company,link,Company,1
+Accounts,Account Closing Balance,finance_book,link,Finance Book,1
+Accounts,Account Closing Balance,period_closing_voucher,link,Period Closing Voucher,1
+Accounts,Accounting Dimension,document_type,link,DocType,0
+Accounts,Accounting Dimension,dimension_defaults,child_table,Accounting Dimension Detail,1
+Accounts,Accounting Dimension Detail,company,link,Company,1
+Accounts,Accounting Dimension Detail,reference_document,link,DocType,0
+Accounts,Accounting Dimension Detail,offsetting_account,link,Account,1
+Accounts,Accounting Dimension Detail,default_dimension,dynamic_link,<reference_document>,0
+Accounts,Accounting Dimension Filter,company,link,Company,1
+Accounts,Accounting Dimension Filter,accounts,child_table,Applicable On Account,1
+Accounts,Accounting Dimension Filter,dimensions,child_table,Allowed Dimension,1
+Accounts,Accounting Period,company,link,Company,1
+Accounts,Accounting Period,exempted_role,link,Role,0
+Accounts,Accounting Period,closed_documents,child_table,Closed Document,1
+Accounts,Accounts Settings,credit_controller,link,Role,0
+Accounts,Accounts Settings,role_allowed_to_over_bill,link,Role,0
+Accounts,Accounts Settings,role_allowed_to_bypass_overdue_billing,link,Role,0
+Accounts,Accounts Settings,role_to_override_stop_action,link,Role,0
+Accounts,Accounts Settings,role_to_notify_on_depreciation_failure,link,Role,0
+Accounts,Accounts Settings,repost_allowed_types,child_table,Repost Allowed Types,1
+Accounts,Advance Payment Ledger Entry,voucher_type,link,DocType,0
+Accounts,Advance Payment Ledger Entry,against_voucher_type,link,DocType,0
+Accounts,Advance Payment Ledger Entry,currency,link,Currency,0
+Accounts,Advance Payment Ledger Entry,company,link,Company,1
+Accounts,Advance Payment Ledger Entry,voucher_no,dynamic_link,<voucher_type>,0
+Accounts,Advance Payment Ledger Entry,against_voucher_no,dynamic_link,<against_voucher_type>,0
+Accounts,Advance Taxes and Charges,account_head,link,Account,1
+Accounts,Advance Taxes and Charges,cost_center,link,Cost Center,1
+Accounts,Advance Taxes and Charges,project,link,Project,1
+Accounts,Advance Taxes and Charges,currency,link,Currency,0
+Accounts,Allowed Dimension,accounting_dimension,link,DocType,0
+Accounts,Allowed Dimension,dimension_value,dynamic_link,<accounting_dimension>,0
+Accounts,Allowed To Transact With,company,link,Company,1
+Accounts,Applicable On Account,applicable_on_account,link,Account,1
+Accounts,Bank,bank_transaction_mapping,child_table,Bank Transaction Mapping,1
+Accounts,Bank Account,account,link,Account,1
+Accounts,Bank Account,bank,link,Bank,1
+Accounts,Bank Account,account_type,link,Bank Account Type,1
+Accounts,Bank Account,account_subtype,link,Bank Account Subtype,1
+Accounts,Bank Account,company,link,Company,1
+Accounts,Bank Account,party_type,link,DocType,0
+Accounts,Bank Account,party,dynamic_link,<party_type>,0
+Accounts,Bank Account Balance,bank_account,link,Bank Account,1
+Accounts,Bank Account Balance,company,link,Company,1
+Accounts,Bank Clearance,account,link,Account,1
+Accounts,Bank Clearance,account_currency,link,Currency,0
+Accounts,Bank Clearance,bank_account,link,Bank Account,1
+Accounts,Bank Clearance,payment_entries,child_table,Bank Clearance Detail,1
+Accounts,Bank Clearance Detail,payment_document,link,DocType,0
+Accounts,Bank Clearance Detail,payment_entry,dynamic_link,<payment_document>,0
+Accounts,Bank Guarantee,reference_doctype,link,DocType,0
+Accounts,Bank Guarantee,customer,link,Customer,1
+Accounts,Bank Guarantee,supplier,link,Supplier,1
+Accounts,Bank Guarantee,project,link,Project,1
+Accounts,Bank Guarantee,bank,link,Bank,1
+Accounts,Bank Guarantee,bank_account,link,Bank Account,1
+Accounts,Bank Guarantee,account,link,Account,1
+Accounts,Bank Guarantee,amended_from,link,Bank Guarantee,1
+Accounts,Bank Guarantee,reference_docname,dynamic_link,<reference_doctype>,0
+Accounts,Bank Reconciliation Tool,company,link,Company,1
+Accounts,Bank Reconciliation Tool,bank_account,link,Bank Account,1
+Accounts,Bank Reconciliation Tool,account_currency,link,Currency,0
+Accounts,Bank Statement Import,company,link,Company,1
+Accounts,Bank Statement Import,bank_account,link,Bank Account,1
+Accounts,Bank Statement Import,bank,link,Bank,1
+Accounts,Bank Statement Import,reference_doctype,link,DocType,0
+Accounts,Bank Statement Import Log,bank_account,link,Bank Account,1
+Accounts,Bank Statement Import Log,currency,link,Currency,0
+Accounts,Bank Statement Import Log,column_mapping,child_table,Bank Statement Import Log Column Map,1
+Accounts,Bank Transaction,bank_account,link,Bank Account,1
+Accounts,Bank Transaction,company,link,Company,1
+Accounts,Bank Transaction,currency,link,Currency,0
+Accounts,Bank Transaction,amended_from,link,Bank Transaction,1
+Accounts,Bank Transaction,party_type,link,DocType,0
+Accounts,Bank Transaction,matched_transaction_rule,link,Bank Transaction Rule,1
+Accounts,Bank Transaction,payment_entries,child_table,Bank Transaction Payments,1
+Accounts,Bank Transaction,party,dynamic_link,<party_type>,0
+Accounts,Bank Transaction Payments,payment_document,link,DocType,0
+Accounts,Bank Transaction Payments,payment_entry,dynamic_link,<payment_document>,0
+Accounts,Bank Transaction Rule,account,link,Account,1
+Accounts,Bank Transaction Rule,party_type,link,DocType,0
+Accounts,Bank Transaction Rule,company,link,Company,1
+Accounts,Bank Transaction Rule,description_rules,child_table,Bank Transaction Rule Description Conditions,1
+Accounts,Bank Transaction Rule,accounts,child_table,Bank Transaction Rule Accounts,1
+Accounts,Bank Transaction Rule,party,dynamic_link,<party_type>,0
+Accounts,Bank Transaction Rule Accounts,account,link,Account,1
+Accounts,Bank Transaction Rule Accounts,party_type,link,Party Type,1
+Accounts,Bank Transaction Rule Accounts,party,dynamic_link,<party_type>,0
+Accounts,Bisect Accounting Statements,current_node,link,Bisect Nodes,1
+Accounts,Bisect Accounting Statements,company,link,Company,1
+Accounts,Bisect Nodes,root,link,Bisect Nodes,1
+Accounts,Bisect Nodes,left_child,link,Bisect Nodes,1
+Accounts,Bisect Nodes,right_child,link,Bisect Nodes,1
+Accounts,Budget,company,link,Company,1
+Accounts,Budget,cost_center,link,Cost Center,1
+Accounts,Budget,project,link,Project,1
+Accounts,Budget,amended_from,link,Budget,1
+Accounts,Budget,account,link,Account,1
+Accounts,Budget,from_fiscal_year,link,Fiscal Year,1
+Accounts,Budget,to_fiscal_year,link,Fiscal Year,1
+Accounts,Budget,budget_distribution,child_table,Budget Distribution,1
+Accounts,Budget Account,account,link,Account,1
+Accounts,Campaign Item,campaign,link,UTM Campaign,0
+Accounts,Cashier Closing,user,link,User,0
+Accounts,Cashier Closing,amended_from,link,Cashier Closing,1
+Accounts,Cashier Closing,payments,child_table,Cashier Closing Payments,1
+Accounts,Cashier Closing Payments,mode_of_payment,link,Mode of Payment,1
+Accounts,Chart of Accounts Importer,company,link,Company,1
+Accounts,Closed Document,document_type,link,DocType,0
+Accounts,Cost Center,parent_cost_center,link,Cost Center,1
+Accounts,Cost Center,company,link,Company,1
+Accounts,Cost Center,old_parent,link,Cost Center,1
+Accounts,Cost Center Allocation,main_cost_center,link,Cost Center,1
+Accounts,Cost Center Allocation,company,link,Company,1
+Accounts,Cost Center Allocation,amended_from,link,Cost Center Allocation,1
+Accounts,Cost Center Allocation,allocation_percentages,child_table,Cost Center Allocation Percentage,1
+Accounts,Cost Center Allocation Percentage,cost_center,link,Cost Center,1
+Accounts,Coupon Code,customer,link,Customer,1
+Accounts,Coupon Code,pricing_rule,link,Pricing Rule,1
+Accounts,Coupon Code,amended_from,link,Coupon Code,1
+Accounts,Currency Exchange Settings,req_params,child_table,Currency Exchange Settings Details,1
+Accounts,Currency Exchange Settings,result_key,child_table,Currency Exchange Settings Result,1
+Accounts,Customer Group Item,customer_group,link,Customer Group,1
+Accounts,Customer Item,customer,link,Customer,1
+Accounts,Discounted Invoice,sales_invoice,link,Sales Invoice,1
+Accounts,Discounted Invoice,customer,link,Customer,1
+Accounts,Discounted Invoice,debit_to,link,Account,1
+Accounts,Dunning,company,link,Company,1
+Accounts,Dunning,dunning_type,link,Dunning Type,1
+Accounts,Dunning,language,link,Language,0
+Accounts,Dunning,letter_head,link,Letter Head,0
+Accounts,Dunning,amended_from,link,Dunning,1
+Accounts,Dunning,customer,link,Customer,1
+Accounts,Dunning,income_account,link,Account,1
+Accounts,Dunning,customer_address,link,Address,0
+Accounts,Dunning,contact_person,link,Contact,0
+Accounts,Dunning,cost_center,link,Cost Center,1
+Accounts,Dunning,company_address,link,Address,0
+Accounts,Dunning,currency,link,Currency,0
+Accounts,Dunning,overdue_payments,child_table,Overdue Payment,1
+Accounts,Dunning Letter Text,language,link,Language,0
+Accounts,Dunning Type,income_account,link,Account,1
+Accounts,Dunning Type,cost_center,link,Cost Center,1
+Accounts,Dunning Type,company,link,Company,1
+Accounts,Dunning Type,dunning_letter_text,child_table,Dunning Letter Text,1
+Accounts,Exchange Rate Revaluation,company,link,Company,1
+Accounts,Exchange Rate Revaluation,amended_from,link,Exchange Rate Revaluation,1
+Accounts,Exchange Rate Revaluation,accounts,child_table,Exchange Rate Revaluation Account,1
+Accounts,Exchange Rate Revaluation Account,account,link,Account,1
+Accounts,Exchange Rate Revaluation Account,party_type,link,DocType,0
+Accounts,Exchange Rate Revaluation Account,account_currency,link,Currency,0
+Accounts,Exchange Rate Revaluation Account,party,dynamic_link,<party_type>,0
+Accounts,Financial Report Template,module,link,Module Def,0
+Accounts,Financial Report Template,rows,child_table,Financial Report Row,1
+Accounts,Fiscal Year,companies,child_table,Fiscal Year Company,1
+Accounts,Fiscal Year Company,company,link,Company,1
+Accounts,GL Entry,account,link,Account,1
+Accounts,GL Entry,party_type,link,DocType,0
+Accounts,GL Entry,cost_center,link,Cost Center,1
+Accounts,GL Entry,account_currency,link,Currency,0
+Accounts,GL Entry,against_voucher_type,link,DocType,0
+Accounts,GL Entry,voucher_type,link,DocType,0
+Accounts,GL Entry,project,link,Project,1
+Accounts,GL Entry,fiscal_year,link,Fiscal Year,1
+Accounts,GL Entry,company,link,Company,1
+Accounts,GL Entry,finance_book,link,Finance Book,1
+Accounts,GL Entry,transaction_currency,link,Currency,0
+Accounts,GL Entry,party,dynamic_link,<party_type>,0
+Accounts,GL Entry,against_voucher,dynamic_link,<against_voucher_type>,0
+Accounts,GL Entry,voucher_no,dynamic_link,<voucher_type>,0
+Accounts,Invoice Discounting,company,link,Company,1
+Accounts,Invoice Discounting,short_term_loan,link,Account,1
+Accounts,Invoice Discounting,bank_account,link,Account,1
+Accounts,Invoice Discounting,bank_charges_account,link,Account,1
+Accounts,Invoice Discounting,accounts_receivable_credit,link,Account,1
+Accounts,Invoice Discounting,accounts_receivable_discounted,link,Account,1
+Accounts,Invoice Discounting,accounts_receivable_unpaid,link,Account,1
+Accounts,Invoice Discounting,amended_from,link,Invoice Discounting,1
+Accounts,Invoice Discounting,invoices,child_table,Discounted Invoice,1
+Accounts,Item Tax Template,company,link,Company,1
+Accounts,Item Tax Template,taxes,child_table,Item Tax Template Detail,1
+Accounts,Item Tax Template Detail,tax_type,link,Account,1
+Accounts,Journal Entry,company,link,Company,1
+Accounts,Journal Entry,finance_book,link,Finance Book,1
+Accounts,Journal Entry,total_amount_currency,link,Currency,0
+Accounts,Journal Entry,inter_company_journal_entry_reference,link,Journal Entry,1
+Accounts,Journal Entry,letter_head,link,Letter Head,0
+Accounts,Journal Entry,select_print_heading,link,Print Heading,0
+Accounts,Journal Entry,mode_of_payment,link,Mode of Payment,1
+Accounts,Journal Entry,payment_order,link,Payment Order,1
+Accounts,Journal Entry,stock_entry,link,Stock Entry,1
+Accounts,Journal Entry,auto_repeat,link,Auto Repeat,0
+Accounts,Journal Entry,amended_from,link,Journal Entry,1
+Accounts,Journal Entry,from_template,link,Journal Entry Template,1
+Accounts,Journal Entry,tax_withholding_category,link,Tax Withholding Category,1
+Accounts,Journal Entry,reversal_of,link,Journal Entry,1
+Accounts,Journal Entry,process_deferred_accounting,link,Process Deferred Accounting,1
+Accounts,Journal Entry,periodic_entry_difference_account,link,Account,1
+Accounts,Journal Entry,stock_asset_account,link,Account,1
+Accounts,Journal Entry,tax_withholding_group,link,Tax Withholding Group,1
+Accounts,Journal Entry,accounts,child_table,Journal Entry Account,1
+Accounts,Journal Entry,tax_withholding_entries,child_table,Tax Withholding Entry,1
+Accounts,Journal Entry Account,account,link,Account,1
+Accounts,Journal Entry Account,cost_center,link,Cost Center,1
+Accounts,Journal Entry Account,party_type,link,DocType,0
+Accounts,Journal Entry Account,account_currency,link,Currency,0
+Accounts,Journal Entry Account,project,link,Project,1
+Accounts,Journal Entry Account,bank_account,link,Bank Account,1
+Accounts,Journal Entry Account,advance_voucher_type,link,DocType,0
+Accounts,Journal Entry Account,party,dynamic_link,<party_type>,0
+Accounts,Journal Entry Account,reference_name,dynamic_link,<reference_type>,0
+Accounts,Journal Entry Account,advance_voucher_no,dynamic_link,<advance_voucher_type>,0
+Accounts,Journal Entry Template,company,link,Company,1
+Accounts,Journal Entry Template,accounts,child_table,Journal Entry Template Account,1
+Accounts,Journal Entry Template Account,account,link,Account,1
+Accounts,Journal Entry Template Account,party_type,link,DocType,0
+Accounts,Journal Entry Template Account,cost_center,link,Cost Center,1
+Accounts,Journal Entry Template Account,project,link,Project,1
+Accounts,Journal Entry Template Account,party,dynamic_link,<party_type>,0
+Accounts,Ledger Health Monitor,companies,child_table,Ledger Health Monitor Company,1
+Accounts,Ledger Health Monitor Company,company,link,Company,1
+Accounts,Ledger Merge,account,link,Account,1
+Accounts,Ledger Merge,company,link,Company,1
+Accounts,Ledger Merge,merge_accounts,child_table,Ledger Merge Accounts,1
+Accounts,Ledger Merge Accounts,account,link,Account,1
+Accounts,Loyalty Point Entry,loyalty_program,link,Loyalty Program,1
+Accounts,Loyalty Point Entry,customer,link,Customer,1
+Accounts,Loyalty Point Entry,redeem_against,link,Loyalty Point Entry,1
+Accounts,Loyalty Point Entry,company,link,Company,1
+Accounts,Loyalty Point Entry,invoice_type,link,DocType,0
+Accounts,Loyalty Point Entry,invoice,dynamic_link,<invoice_type>,0
+Accounts,Loyalty Program,customer_group,link,Customer Group,1
+Accounts,Loyalty Program,customer_territory,link,Territory,1
+Accounts,Loyalty Program,expense_account,link,Account,1
+Accounts,Loyalty Program,cost_center,link,Cost Center,1
+Accounts,Loyalty Program,company,link,Company,1
+Accounts,Loyalty Program,project,link,Project,1
+Accounts,Loyalty Program,collection_rules,child_table,Loyalty Program Collection,1
+Accounts,Mode of Payment,accounts,child_table,Mode of Payment Account,1
+Accounts,Mode of Payment Account,company,link,Company,1
+Accounts,Mode of Payment Account,default_account,link,Account,1
+Accounts,Monthly Distribution,fiscal_year,link,Fiscal Year,1
+Accounts,Monthly Distribution,percentages,child_table,Monthly Distribution Percentage,1
+Accounts,Opening Invoice Creation Tool,company,link,Company,1
+Accounts,Opening Invoice Creation Tool,cost_center,link,Cost Center,1
+Accounts,Opening Invoice Creation Tool,project,link,Project,1
+Accounts,Opening Invoice Creation Tool,invoices,child_table,Opening Invoice Creation Tool Item,1
+Accounts,Opening Invoice Creation Tool Item,party_type,link,DocType,0
+Accounts,Opening Invoice Creation Tool Item,temporary_opening_account,link,Account,1
+Accounts,Opening Invoice Creation Tool Item,cost_center,link,Cost Center,1
+Accounts,Opening Invoice Creation Tool Item,project,link,Project,1
+Accounts,Opening Invoice Creation Tool Item,party,dynamic_link,<party_type>,0
+Accounts,Overdue Payment,payment_term,link,Payment Term,1
+Accounts,Overdue Payment,mode_of_payment,link,Mode of Payment,1
+Accounts,Overdue Payment,sales_invoice,link,Sales Invoice,1
+Accounts,POS Closing Entry,company,link,Company,1
+Accounts,POS Closing Entry,pos_profile,link,POS Profile,1
+Accounts,POS Closing Entry,user,link,User,0
+Accounts,POS Closing Entry,amended_from,link,POS Closing Entry,1
+Accounts,POS Closing Entry,pos_opening_entry,link,POS Opening Entry,1
+Accounts,POS Closing Entry,payment_reconciliation,child_table,POS Closing Entry Detail,1
+Accounts,POS Closing Entry,taxes,child_table,POS Closing Entry Taxes,1
+Accounts,POS Closing Entry,pos_invoices,child_table,POS Invoice Reference,1
+Accounts,POS Closing Entry,sales_invoices,child_table,Sales Invoice Reference,1
+Accounts,POS Closing Entry Detail,mode_of_payment,link,Mode of Payment,1
+Accounts,POS Closing Entry Taxes,account_head,link,Account,1
+Accounts,POS Customer Group,customer_group,link,Customer Group,1
+Accounts,POS Invoice,customer,link,Customer,1
+Accounts,POS Invoice,pos_profile,link,POS Profile,1
+Accounts,POS Invoice,company,link,Company,1
+Accounts,POS Invoice,amended_from,link,POS Invoice,1
+Accounts,POS Invoice,return_against,link,POS Invoice,1
+Accounts,POS Invoice,project,link,Project,1
+Accounts,POS Invoice,cost_center,link,Cost Center,1
+Accounts,POS Invoice,customer_address,link,Address,0
+Accounts,POS Invoice,contact_person,link,Contact,0
+Accounts,POS Invoice,territory,link,Territory,1
+Accounts,POS Invoice,shipping_address_name,link,Address,0
+Accounts,POS Invoice,company_address,link,Address,0
+Accounts,POS Invoice,currency,link,Currency,0
+Accounts,POS Invoice,selling_price_list,link,Price List,1
+Accounts,POS Invoice,price_list_currency,link,Currency,0
+Accounts,POS Invoice,set_warehouse,link,Warehouse,1
+Accounts,POS Invoice,taxes_and_charges,link,Sales Taxes and Charges Template,1
+Accounts,POS Invoice,shipping_rule,link,Shipping Rule,1
+Accounts,POS Invoice,tax_category,link,Tax Category,1
+Accounts,POS Invoice,loyalty_program,link,Loyalty Program,1
+Accounts,POS Invoice,loyalty_redemption_account,link,Account,1
+Accounts,POS Invoice,loyalty_redemption_cost_center,link,Cost Center,1
+Accounts,POS Invoice,payment_terms_template,link,Payment Terms Template,1
+Accounts,POS Invoice,cash_bank_account,link,Account,1
+Accounts,POS Invoice,account_for_change_amount,link,Account,1
+Accounts,POS Invoice,write_off_account,link,Account,1
+Accounts,POS Invoice,write_off_cost_center,link,Cost Center,1
+Accounts,POS Invoice,tc_name,link,Terms and Conditions,1
+Accounts,POS Invoice,letter_head,link,Letter Head,0
+Accounts,POS Invoice,select_print_heading,link,Print Heading,0
+Accounts,POS Invoice,inter_company_invoice_reference,link,Purchase Invoice,1
+Accounts,POS Invoice,customer_group,link,Customer Group,1
+Accounts,POS Invoice,debit_to,link,Account,1
+Accounts,POS Invoice,party_account_currency,link,Currency,0
+Accounts,POS Invoice,sales_partner,link,Sales Partner,1
+Accounts,POS Invoice,auto_repeat,link,Auto Repeat,0
+Accounts,POS Invoice,consolidated_invoice,link,Sales Invoice,1
+Accounts,POS Invoice,coupon_code,link,Coupon Code,1
+Accounts,POS Invoice,utm_medium,link,UTM Medium,0
+Accounts,POS Invoice,utm_campaign,link,UTM Campaign,0
+Accounts,POS Invoice,utm_source,link,UTM Source,0
+Accounts,POS Invoice,company_contact_person,link,Contact,0
+Accounts,POS Invoice,items,child_table,POS Invoice Item,1
+Accounts,POS Invoice,pricing_rules,child_table,Pricing Rule Detail,1
+Accounts,POS Invoice,packed_items,child_table,Packed Item,1
+Accounts,POS Invoice,timesheets,child_table,Sales Invoice Timesheet,1
+Accounts,POS Invoice,taxes,child_table,Sales Taxes and Charges,1
+Accounts,POS Invoice,advances,child_table,Sales Invoice Advance,1
+Accounts,POS Invoice,payment_schedule,child_table,Payment Schedule,1
+Accounts,POS Invoice,payments,child_table,Sales Invoice Payment,1
+Accounts,POS Invoice,sales_team,child_table,Sales Team,1
+Accounts,POS Invoice,item_wise_tax_details,child_table,Item Wise Tax Detail,1
+Accounts,POS Invoice Item,item_code,link,Item,1
+Accounts,POS Invoice Item,product_bundle,link,Product Bundle,1
+Accounts,POS Invoice Item,item_group,link,Item Group,1
+Accounts,POS Invoice Item,stock_uom,link,UOM,1
+Accounts,POS Invoice Item,uom,link,UOM,1
+Accounts,POS Invoice Item,item_tax_template,link,Item Tax Template,1
+Accounts,POS Invoice Item,income_account,link,Account,1
+Accounts,POS Invoice Item,asset,link,Asset,1
+Accounts,POS Invoice Item,finance_book,link,Finance Book,1
+Accounts,POS Invoice Item,expense_account,link,Account,1
+Accounts,POS Invoice Item,deferred_revenue_account,link,Account,1
+Accounts,POS Invoice Item,weight_uom,link,UOM,1
+Accounts,POS Invoice Item,warehouse,link,Warehouse,1
+Accounts,POS Invoice Item,target_warehouse,link,Warehouse,1
+Accounts,POS Invoice Item,quality_inspection,link,Quality Inspection,1
+Accounts,POS Invoice Item,batch_no,link,Batch,1
+Accounts,POS Invoice Item,sales_order,link,Sales Order,1
+Accounts,POS Invoice Item,delivery_note,link,Delivery Note,1
+Accounts,POS Invoice Item,cost_center,link,Cost Center,1
+Accounts,POS Invoice Item,project,link,Project,1
+Accounts,POS Invoice Item,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Accounts,POS Invoice Merge Log,customer,link,Customer,1
+Accounts,POS Invoice Merge Log,amended_from,link,POS Invoice Merge Log,1
+Accounts,POS Invoice Merge Log,consolidated_invoice,link,Sales Invoice,1
+Accounts,POS Invoice Merge Log,consolidated_credit_note,link,Sales Invoice,1
+Accounts,POS Invoice Merge Log,pos_closing_entry,link,POS Closing Entry,1
+Accounts,POS Invoice Merge Log,customer_group,link,Customer Group,1
+Accounts,POS Invoice Merge Log,company,link,Company,1
+Accounts,POS Invoice Merge Log,pos_invoices,child_table,POS Invoice Reference,1
+Accounts,POS Invoice Reference,pos_invoice,link,POS Invoice,1
+Accounts,POS Invoice Reference,customer,link,Customer,1
+Accounts,POS Invoice Reference,return_against,link,POS Invoice,1
+Accounts,POS Item Group,item_group,link,Item Group,1
+Accounts,POS Opening Entry,company,link,Company,1
+Accounts,POS Opening Entry,pos_profile,link,POS Profile,1
+Accounts,POS Opening Entry,user,link,User,0
+Accounts,POS Opening Entry,amended_from,link,POS Opening Entry,1
+Accounts,POS Opening Entry,balance_details,child_table,POS Opening Entry Detail,1
+Accounts,POS Opening Entry Detail,mode_of_payment,link,Mode of Payment,1
+Accounts,POS Payment Method,mode_of_payment,link,Mode of Payment,1
+Accounts,POS Profile,customer,link,Customer,1
+Accounts,POS Profile,company,link,Company,1
+Accounts,POS Profile,company_address,link,Address,0
+Accounts,POS Profile,letter_head,link,Letter Head,0
+Accounts,POS Profile,tc_name,link,Terms and Conditions,1
+Accounts,POS Profile,select_print_heading,link,Print Heading,0
+Accounts,POS Profile,selling_price_list,link,Price List,1
+Accounts,POS Profile,currency,link,Currency,0
+Accounts,POS Profile,write_off_account,link,Account,1
+Accounts,POS Profile,write_off_cost_center,link,Cost Center,1
+Accounts,POS Profile,account_for_change_amount,link,Account,1
+Accounts,POS Profile,income_account,link,Account,1
+Accounts,POS Profile,expense_account,link,Account,1
+Accounts,POS Profile,cost_center,link,Cost Center,1
+Accounts,POS Profile,taxes_and_charges,link,Sales Taxes and Charges Template,1
+Accounts,POS Profile,tax_category,link,Tax Category,1
+Accounts,POS Profile,print_format,link,Print Format,0
+Accounts,POS Profile,warehouse,link,Warehouse,1
+Accounts,POS Profile,utm_campaign,link,UTM Campaign,0
+Accounts,POS Profile,utm_source,link,UTM Source,0
+Accounts,POS Profile,utm_medium,link,UTM Campaign,0
+Accounts,POS Profile,project,link,Project,1
+Accounts,POS Profile,applicable_for_users,child_table,POS Profile User,1
+Accounts,POS Profile,payments,child_table,POS Payment Method,1
+Accounts,POS Profile,item_groups,child_table,POS Item Group,1
+Accounts,POS Profile,customer_groups,child_table,POS Customer Group,1
+Accounts,POS Profile User,user,link,User,0
+Accounts,POS Settings,invoice_fields,child_table,POS Field,1
+Accounts,POS Settings,pos_search_fields,child_table,POS Search Fields,1
+Accounts,PSOA Cost Center,cost_center_name,link,Cost Center,1
+Accounts,PSOA Project,project_name,link,Project,1
+Accounts,Party Account,company,link,Company,1
+Accounts,Party Account,account,link,Account,1
+Accounts,Party Account,advance_account,link,Account,1
+Accounts,Party Link,primary_role,link,DocType,0
+Accounts,Party Link,secondary_role,link,DocType,0
+Accounts,Party Link,primary_party,dynamic_link,<primary_role>,0
+Accounts,Party Link,secondary_party,dynamic_link,<secondary_role>,0
+Accounts,Payment Entry,company,link,Company,1
+Accounts,Payment Entry,cost_center,link,Cost Center,1
+Accounts,Payment Entry,mode_of_payment,link,Mode of Payment,1
+Accounts,Payment Entry,party_type,link,DocType,0
+Accounts,Payment Entry,contact_person,link,Contact,0
+Accounts,Payment Entry,paid_from,link,Account,1
+Accounts,Payment Entry,paid_from_account_currency,link,Currency,0
+Accounts,Payment Entry,paid_to,link,Account,1
+Accounts,Payment Entry,paid_to_account_currency,link,Currency,0
+Accounts,Payment Entry,project,link,Project,1
+Accounts,Payment Entry,letter_head,link,Letter Head,0
+Accounts,Payment Entry,print_heading,link,Print Heading,0
+Accounts,Payment Entry,payment_order,link,Payment Order,1
+Accounts,Payment Entry,auto_repeat,link,Auto Repeat,0
+Accounts,Payment Entry,amended_from,link,Payment Entry,1
+Accounts,Payment Entry,bank_account,link,Bank Account,1
+Accounts,Payment Entry,party_bank_account,link,Bank Account,1
+Accounts,Payment Entry,tax_withholding_category,link,Tax Withholding Category,1
+Accounts,Payment Entry,purchase_taxes_and_charges_template,link,Purchase Taxes and Charges Template,1
+Accounts,Payment Entry,sales_taxes_and_charges_template,link,Sales Taxes and Charges Template,1
+Accounts,Payment Entry,tax_withholding_group,link,Tax Withholding Group,1
+Accounts,Payment Entry,references,child_table,Payment Entry Reference,1
+Accounts,Payment Entry,deductions,child_table,Payment Entry Deduction,1
+Accounts,Payment Entry,taxes,child_table,Advance Taxes and Charges,1
+Accounts,Payment Entry,tax_withholding_entries,child_table,Tax Withholding Entry,1
+Accounts,Payment Entry,party,dynamic_link,<party_type>,0
+Accounts,Payment Entry Deduction,account,link,Account,1
+Accounts,Payment Entry Deduction,cost_center,link,Cost Center,1
+Accounts,Payment Entry Reference,reference_doctype,link,DocType,0
+Accounts,Payment Entry Reference,payment_term,link,Payment Term,1
+Accounts,Payment Entry Reference,account,link,Account,1
+Accounts,Payment Entry Reference,payment_request,link,Payment Request,1
+Accounts,Payment Entry Reference,advance_voucher_type,link,DocType,0
+Accounts,Payment Entry Reference,reference_name,dynamic_link,<reference_doctype>,0
+Accounts,Payment Entry Reference,advance_voucher_no,dynamic_link,<advance_voucher_type>,0
+Accounts,Payment Gateway Account,payment_gateway,link,Payment Gateway,0
+Accounts,Payment Gateway Account,payment_account,link,Account,1
+Accounts,Payment Gateway Account,company,link,Company,1
+Accounts,Payment Ledger Entry,account,link,Account,1
+Accounts,Payment Ledger Entry,party_type,link,DocType,0
+Accounts,Payment Ledger Entry,voucher_type,link,DocType,0
+Accounts,Payment Ledger Entry,against_voucher_type,link,DocType,0
+Accounts,Payment Ledger Entry,account_currency,link,Currency,0
+Accounts,Payment Ledger Entry,company,link,Company,1
+Accounts,Payment Ledger Entry,cost_center,link,Cost Center,1
+Accounts,Payment Ledger Entry,project,link,Project,1
+Accounts,Payment Ledger Entry,finance_book,link,Finance Book,1
+Accounts,Payment Ledger Entry,party,dynamic_link,<party_type>,0
+Accounts,Payment Ledger Entry,voucher_no,dynamic_link,<voucher_type>,0
+Accounts,Payment Ledger Entry,against_voucher_no,dynamic_link,<against_voucher_type>,0
+Accounts,Payment Order,company,link,Company,1
+Accounts,Payment Order,party,link,Supplier,1
+Accounts,Payment Order,amended_from,link,Payment Order,1
+Accounts,Payment Order,company_bank_account,link,Bank Account,1
+Accounts,Payment Order,company_bank,link,Bank,1
+Accounts,Payment Order,references,child_table,Payment Order Reference,1
+Accounts,Payment Order Reference,reference_doctype,link,DocType,0
+Accounts,Payment Order Reference,supplier,link,Supplier,1
+Accounts,Payment Order Reference,payment_request,link,Payment Request,1
+Accounts,Payment Order Reference,mode_of_payment,link,Mode of Payment,1
+Accounts,Payment Order Reference,bank_account,link,Bank Account,1
+Accounts,Payment Order Reference,account,link,Account,1
+Accounts,Payment Order Reference,reference_name,dynamic_link,<reference_doctype>,0
+Accounts,Payment Reconciliation,company,link,Company,1
+Accounts,Payment Reconciliation,party_type,link,DocType,0
+Accounts,Payment Reconciliation,receivable_payable_account,link,Account,1
+Accounts,Payment Reconciliation,bank_cash_account,link,Account,1
+Accounts,Payment Reconciliation,cost_center,link,Cost Center,1
+Accounts,Payment Reconciliation,project,link,Project,1
+Accounts,Payment Reconciliation,default_advance_account,link,Account,1
+Accounts,Payment Reconciliation,payments,child_table,Payment Reconciliation Payment,1
+Accounts,Payment Reconciliation,invoices,child_table,Payment Reconciliation Invoice,1
+Accounts,Payment Reconciliation,allocation,child_table,Payment Reconciliation Allocation,1
+Accounts,Payment Reconciliation,party,dynamic_link,<party_type>,0
+Accounts,Payment Reconciliation Allocation,difference_account,link,Account,1
+Accounts,Payment Reconciliation Allocation,reference_type,link,DocType,0
+Accounts,Payment Reconciliation Allocation,invoice_type,link,DocType,0
+Accounts,Payment Reconciliation Allocation,currency,link,Currency,0
+Accounts,Payment Reconciliation Allocation,cost_center,link,Cost Center,1
+Accounts,Payment Reconciliation Allocation,invoice_number,dynamic_link,<invoice_type>,0
+Accounts,Payment Reconciliation Allocation,reference_name,dynamic_link,<reference_type>,0
+Accounts,Payment Reconciliation Invoice,currency,link,Currency,0
+Accounts,Payment Reconciliation Invoice,invoice_number,dynamic_link,<invoice_type>,0
+Accounts,Payment Reconciliation Payment,reference_type,link,DocType,0
+Accounts,Payment Reconciliation Payment,currency,link,Currency,0
+Accounts,Payment Reconciliation Payment,cost_center,link,Cost Center,1
+Accounts,Payment Reconciliation Payment,reference_name,dynamic_link,<reference_type>,0
+Accounts,Payment Reference,payment_term,link,Payment Term,1
+Accounts,Payment Reference,currency,link,Currency,0
+Accounts,Payment Reference,payment_schedule,link,Payment Schedule,1
+Accounts,Payment Request,mode_of_payment,link,Mode of Payment,1
+Accounts,Payment Request,party_type,link,DocType,0
+Accounts,Payment Request,reference_doctype,link,DocType,0
+Accounts,Payment Request,currency,link,Currency,0
+Accounts,Payment Request,bank_account,link,Bank Account,1
+Accounts,Payment Request,bank,link,Bank,1
+Accounts,Payment Request,cost_center,link,Cost Center,1
+Accounts,Payment Request,project,link,Project,1
+Accounts,Payment Request,payment_gateway_account,link,Payment Gateway Account,1
+Accounts,Payment Request,payment_order,link,Payment Order,1
+Accounts,Payment Request,amended_from,link,Payment Request,1
+Accounts,Payment Request,company,link,Company,1
+Accounts,Payment Request,party_account_currency,link,Currency,0
+Accounts,Payment Request,subscription_plans,child_table,Subscription Plan Detail,1
+Accounts,Payment Request,payment_reference,child_table,Payment Reference,1
+Accounts,Payment Request,party,dynamic_link,<party_type>,0
+Accounts,Payment Request,reference_name,dynamic_link,<reference_doctype>,0
+Accounts,Payment Schedule,payment_term,link,Payment Term,1
+Accounts,Payment Schedule,mode_of_payment,link,Mode of Payment,1
+Accounts,Payment Term,mode_of_payment,link,Mode of Payment,1
+Accounts,Payment Terms Template,terms,child_table,Payment Terms Template Detail,1
+Accounts,Payment Terms Template Detail,payment_term,link,Payment Term,1
+Accounts,Payment Terms Template Detail,mode_of_payment,link,Mode of Payment,1
+Accounts,Pegged Currencies,pegged_currency_item,child_table,Pegged Currency Details,1
+Accounts,Pegged Currency Details,source_currency,link,Currency,0
+Accounts,Pegged Currency Details,pegged_against,link,Currency,0
+Accounts,Period Closing Voucher,fiscal_year,link,Fiscal Year,1
+Accounts,Period Closing Voucher,amended_from,link,Period Closing Voucher,1
+Accounts,Period Closing Voucher,company,link,Company,1
+Accounts,Period Closing Voucher,closing_account_head,link,Account,1
+Accounts,Pricing Rule,warehouse,link,Warehouse,1
+Accounts,Pricing Rule,other_item_code,link,Item,1
+Accounts,Pricing Rule,other_item_group,link,Item Group,1
+Accounts,Pricing Rule,other_brand,link,Brand,1
+Accounts,Pricing Rule,customer,link,Customer,1
+Accounts,Pricing Rule,customer_group,link,Customer Group,1
+Accounts,Pricing Rule,territory,link,Territory,1
+Accounts,Pricing Rule,sales_partner,link,Sales Partner,1
+Accounts,Pricing Rule,campaign,link,UTM Campaign,0
+Accounts,Pricing Rule,supplier,link,Supplier,1
+Accounts,Pricing Rule,supplier_group,link,Supplier Group,1
+Accounts,Pricing Rule,company,link,Company,1
+Accounts,Pricing Rule,currency,link,Currency,0
+Accounts,Pricing Rule,for_price_list,link,Price List,1
+Accounts,Pricing Rule,free_item,link,Item,1
+Accounts,Pricing Rule,free_item_uom,link,UOM,1
+Accounts,Pricing Rule,promotional_scheme,link,Promotional Scheme,1
+Accounts,Pricing Rule,items,child_table,Pricing Rule Item Code,1
+Accounts,Pricing Rule,item_groups,child_table,Pricing Rule Item Group,1
+Accounts,Pricing Rule,brands,child_table,Pricing Rule Brand,1
+Accounts,Pricing Rule Brand,brand,link,Brand,1
+Accounts,Pricing Rule Brand,uom,link,UOM,1
+Accounts,Pricing Rule Detail,pricing_rule,link,Pricing Rule,1
+Accounts,Pricing Rule Item Code,item_code,link,Item,1
+Accounts,Pricing Rule Item Code,uom,link,UOM,1
+Accounts,Pricing Rule Item Group,item_group,link,Item Group,1
+Accounts,Pricing Rule Item Group,uom,link,UOM,1
+Accounts,Process Deferred Accounting,amended_from,link,Process Deferred Accounting,1
+Accounts,Process Deferred Accounting,account,link,Account,1
+Accounts,Process Deferred Accounting,company,link,Company,1
+Accounts,Process Payment Reconciliation,company,link,Company,1
+Accounts,Process Payment Reconciliation,party_type,link,DocType,0
+Accounts,Process Payment Reconciliation,receivable_payable_account,link,Account,1
+Accounts,Process Payment Reconciliation,cost_center,link,Cost Center,1
+Accounts,Process Payment Reconciliation,bank_cash_account,link,Account,1
+Accounts,Process Payment Reconciliation,amended_from,link,Process Payment Reconciliation,1
+Accounts,Process Payment Reconciliation,default_advance_account,link,Account,1
+Accounts,Process Payment Reconciliation,party,dynamic_link,<party_type>,0
+Accounts,Process Payment Reconciliation Log,process_pr,link,Process Payment Reconciliation,1
+Accounts,Process Payment Reconciliation Log,allocations,child_table,Process Payment Reconciliation Log Allocations,1
+Accounts,Process Payment Reconciliation Log Allocations,reference_type,link,DocType,0
+Accounts,Process Payment Reconciliation Log Allocations,invoice_type,link,DocType,0
+Accounts,Process Payment Reconciliation Log Allocations,difference_account,link,Account,1
+Accounts,Process Payment Reconciliation Log Allocations,currency,link,Currency,0
+Accounts,Process Payment Reconciliation Log Allocations,reference_name,dynamic_link,<reference_type>,0
+Accounts,Process Payment Reconciliation Log Allocations,invoice_number,dynamic_link,<invoice_type>,0
+Accounts,Process Period Closing Voucher,parent_pcv,link,Period Closing Voucher,1
+Accounts,Process Period Closing Voucher,amended_from,link,Process Period Closing Voucher,1
+Accounts,Process Period Closing Voucher,normal_balances,child_table,Process Period Closing Voucher Detail,1
+Accounts,Process Period Closing Voucher,z_opening_balances,child_table,Process Period Closing Voucher Detail,1
+Accounts,Process Statement Of Accounts,company,link,Company,1
+Accounts,Process Statement Of Accounts,account,link,Account,1
+Accounts,Process Statement Of Accounts,finance_book,link,Finance Book,1
+Accounts,Process Statement Of Accounts,currency,link,Currency,0
+Accounts,Process Statement Of Accounts,letter_head,link,Letter Head,0
+Accounts,Process Statement Of Accounts,terms_and_conditions,link,Terms and Conditions,1
+Accounts,Process Statement Of Accounts,sender,link,Email Account,0
+Accounts,Process Statement Of Accounts,payment_terms_template,link,Payment Terms Template,1
+Accounts,Process Statement Of Accounts,sales_partner,link,Sales Partner,1
+Accounts,Process Statement Of Accounts,sales_person,link,Sales Person,1
+Accounts,Process Statement Of Accounts,territory,link,Territory,1
+Accounts,Process Statement Of Accounts,print_format,link,Print Format,0
+Accounts,Process Statement Of Accounts,cost_center,multiselect,PSOA Cost Center,1
+Accounts,Process Statement Of Accounts,project,multiselect,PSOA Project,1
+Accounts,Process Statement Of Accounts,cc_to,multiselect,Process Statement Of Accounts CC,1
+Accounts,Process Statement Of Accounts,customers,child_table,Process Statement Of Accounts Customer,1
+Accounts,Process Statement Of Accounts,collection_name,dynamic_link,<customer_collection>,0
+Accounts,Process Statement Of Accounts CC,cc,link,User,0
+Accounts,Process Statement Of Accounts Customer,customer,link,Customer,1
+Accounts,Process Subscription,amended_from,link,Process Subscription,1
+Accounts,Process Subscription,subscription,link,Subscription,1
+Accounts,Promotional Scheme,other_item_code,link,Item,1
+Accounts,Promotional Scheme,other_item_group,link,Item Group,1
+Accounts,Promotional Scheme,other_brand,link,Brand,1
+Accounts,Promotional Scheme,company,link,Company,1
+Accounts,Promotional Scheme,currency,link,Currency,0
+Accounts,Promotional Scheme,items,child_table,Pricing Rule Item Code,1
+Accounts,Promotional Scheme,item_groups,child_table,Pricing Rule Item Group,1
+Accounts,Promotional Scheme,brands,child_table,Pricing Rule Brand,1
+Accounts,Promotional Scheme,customer,multiselect,Customer Item,1
+Accounts,Promotional Scheme,customer_group,multiselect,Customer Group Item,1
+Accounts,Promotional Scheme,territory,multiselect,Territory Item,1
+Accounts,Promotional Scheme,sales_partner,multiselect,Sales Partner Item,1
+Accounts,Promotional Scheme,campaign,multiselect,Campaign Item,1
+Accounts,Promotional Scheme,supplier,multiselect,Supplier Item,1
+Accounts,Promotional Scheme,supplier_group,multiselect,Supplier Group Item,1
+Accounts,Promotional Scheme,price_discount_slabs,child_table,Promotional Scheme Price Discount,1
+Accounts,Promotional Scheme,product_discount_slabs,child_table,Promotional Scheme Product Discount,1
+Accounts,Promotional Scheme Price Discount,for_price_list,link,Price List,1
+Accounts,Promotional Scheme Price Discount,warehouse,link,Warehouse,1
+Accounts,Promotional Scheme Product Discount,free_item,link,Item,1
+Accounts,Promotional Scheme Product Discount,free_item_uom,link,UOM,1
+Accounts,Promotional Scheme Product Discount,warehouse,link,Warehouse,1
+Accounts,Purchase Invoice,supplier,link,Supplier,1
+Accounts,Purchase Invoice,company,link,Company,1
+Accounts,Purchase Invoice,cost_center,link,Cost Center,1
+Accounts,Purchase Invoice,amended_from,link,Purchase Invoice,1
+Accounts,Purchase Invoice,return_against,link,Purchase Invoice,1
+Accounts,Purchase Invoice,supplier_address,link,Address,0
+Accounts,Purchase Invoice,contact_person,link,Contact,0
+Accounts,Purchase Invoice,shipping_address,link,Address,0
+Accounts,Purchase Invoice,currency,link,Currency,0
+Accounts,Purchase Invoice,buying_price_list,link,Price List,1
+Accounts,Purchase Invoice,price_list_currency,link,Currency,0
+Accounts,Purchase Invoice,set_warehouse,link,Warehouse,1
+Accounts,Purchase Invoice,rejected_warehouse,link,Warehouse,1
+Accounts,Purchase Invoice,tax_category,link,Tax Category,1
+Accounts,Purchase Invoice,shipping_rule,link,Shipping Rule,1
+Accounts,Purchase Invoice,taxes_and_charges,link,Purchase Taxes and Charges Template,1
+Accounts,Purchase Invoice,mode_of_payment,link,Mode of Payment,1
+Accounts,Purchase Invoice,cash_bank_account,link,Account,1
+Accounts,Purchase Invoice,write_off_account,link,Account,1
+Accounts,Purchase Invoice,write_off_cost_center,link,Cost Center,1
+Accounts,Purchase Invoice,payment_terms_template,link,Payment Terms Template,1
+Accounts,Purchase Invoice,tc_name,link,Terms and Conditions,1
+Accounts,Purchase Invoice,letter_head,link,Letter Head,0
+Accounts,Purchase Invoice,select_print_heading,link,Print Heading,0
+Accounts,Purchase Invoice,credit_to,link,Account,1
+Accounts,Purchase Invoice,party_account_currency,link,Currency,0
+Accounts,Purchase Invoice,inter_company_invoice_reference,link,Sales Invoice,1
+Accounts,Purchase Invoice,auto_repeat,link,Auto Repeat,0
+Accounts,Purchase Invoice,billing_address,link,Address,0
+Accounts,Purchase Invoice,project,link,Project,1
+Accounts,Purchase Invoice,unrealized_profit_loss_account,link,Account,1
+Accounts,Purchase Invoice,represents_company,link,Company,1
+Accounts,Purchase Invoice,set_from_warehouse,link,Warehouse,1
+Accounts,Purchase Invoice,supplier_warehouse,link,Warehouse,1
+Accounts,Purchase Invoice,subscription,link,Subscription,1
+Accounts,Purchase Invoice,incoterm,link,Incoterm,1
+Accounts,Purchase Invoice,supplier_group,link,Supplier Group,1
+Accounts,Purchase Invoice,dispatch_address,link,Address,0
+Accounts,Purchase Invoice,tax_withholding_group,link,Tax Withholding Group,1
+Accounts,Purchase Invoice,items,child_table,Purchase Invoice Item,1
+Accounts,Purchase Invoice,pricing_rules,child_table,Pricing Rule Detail,1
+Accounts,Purchase Invoice,supplied_items,child_table,Purchase Receipt Item Supplied,1
+Accounts,Purchase Invoice,taxes,child_table,Purchase Taxes and Charges,1
+Accounts,Purchase Invoice,advances,child_table,Purchase Invoice Advance,1
+Accounts,Purchase Invoice,payment_schedule,child_table,Payment Schedule,1
+Accounts,Purchase Invoice,item_wise_tax_details,child_table,Item Wise Tax Detail,1
+Accounts,Purchase Invoice,tax_withholding_entries,child_table,Tax Withholding Entry,1
+Accounts,Purchase Invoice Advance,reference_type,link,DocType,0
+Accounts,Purchase Invoice Advance,reference_name,dynamic_link,<reference_type>,0
+Accounts,Purchase Invoice Item,item_code,link,Item,1
+Accounts,Purchase Invoice Item,stock_uom,link,UOM,1
+Accounts,Purchase Invoice Item,uom,link,UOM,1
+Accounts,Purchase Invoice Item,weight_uom,link,UOM,1
+Accounts,Purchase Invoice Item,warehouse,link,Warehouse,1
+Accounts,Purchase Invoice Item,rejected_warehouse,link,Warehouse,1
+Accounts,Purchase Invoice Item,quality_inspection,link,Quality Inspection,1
+Accounts,Purchase Invoice Item,batch_no,link,Batch,1
+Accounts,Purchase Invoice Item,expense_account,link,Account,1
+Accounts,Purchase Invoice Item,item_tax_template,link,Item Tax Template,1
+Accounts,Purchase Invoice Item,project,link,Project,1
+Accounts,Purchase Invoice Item,cost_center,link,Cost Center,1
+Accounts,Purchase Invoice Item,deferred_expense_account,link,Account,1
+Accounts,Purchase Invoice Item,brand,link,Brand,1
+Accounts,Purchase Invoice Item,item_group,link,Item Group,1
+Accounts,Purchase Invoice Item,purchase_order,link,Purchase Order,1
+Accounts,Purchase Invoice Item,asset_location,link,Location,1
+Accounts,Purchase Invoice Item,purchase_receipt,link,Purchase Receipt,1
+Accounts,Purchase Invoice Item,manufacturer,link,Manufacturer,1
+Accounts,Purchase Invoice Item,asset_category,link,Asset Category,1
+Accounts,Purchase Invoice Item,from_warehouse,link,Warehouse,1
+Accounts,Purchase Invoice Item,product_bundle,link,Product Bundle,1
+Accounts,Purchase Invoice Item,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Accounts,Purchase Invoice Item,rejected_serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Accounts,Purchase Invoice Item,wip_composite_asset,link,Asset,1
+Accounts,Purchase Invoice Item,material_request,link,Material Request,1
+Accounts,Purchase Invoice Item,tax_withholding_category,link,Tax Withholding Category,1
+Accounts,Purchase Taxes and Charges,account_head,link,Account,1
+Accounts,Purchase Taxes and Charges,cost_center,link,Cost Center,1
+Accounts,Purchase Taxes and Charges,project,link,Project,1
+Accounts,Purchase Taxes and Charges,account_currency,link,Currency,0
+Accounts,Purchase Taxes and Charges Template,company,link,Company,1
+Accounts,Purchase Taxes and Charges Template,tax_category,link,Tax Category,1
+Accounts,Purchase Taxes and Charges Template,taxes,child_table,Purchase Taxes and Charges,1
+Accounts,Repost Accounting Ledger,company,link,Company,1
+Accounts,Repost Accounting Ledger,amended_from,link,Repost Accounting Ledger,1
+Accounts,Repost Accounting Ledger,scheduled_job,link,RQ Job,0
+Accounts,Repost Accounting Ledger,vouchers,child_table,Repost Accounting Ledger Items,1
+Accounts,Repost Accounting Ledger Items,voucher_type,link,DocType,0
+Accounts,Repost Accounting Ledger Items,voucher_no,dynamic_link,<voucher_type>,0
+Accounts,Repost Allowed Types,document_type,link,DocType,0
+Accounts,Repost Payment Ledger,voucher_type,link,DocType,0
+Accounts,Repost Payment Ledger,amended_from,link,Repost Payment Ledger,1
+Accounts,Repost Payment Ledger,company,link,Company,1
+Accounts,Repost Payment Ledger,repost_vouchers,child_table,Repost Payment Ledger Items,1
+Accounts,Repost Payment Ledger Items,voucher_type,link,DocType,0
+Accounts,Repost Payment Ledger Items,voucher_no,dynamic_link,<voucher_type>,0
+Accounts,Sales Invoice,customer,link,Customer,1
+Accounts,Sales Invoice,project,link,Project,1
+Accounts,Sales Invoice,pos_profile,link,POS Profile,1
+Accounts,Sales Invoice,company,link,Company,1
+Accounts,Sales Invoice,cost_center,link,Cost Center,1
+Accounts,Sales Invoice,amended_from,link,Sales Invoice,1
+Accounts,Sales Invoice,return_against,link,Sales Invoice,1
+Accounts,Sales Invoice,customer_address,link,Address,0
+Accounts,Sales Invoice,contact_person,link,Contact,0
+Accounts,Sales Invoice,territory,link,Territory,1
+Accounts,Sales Invoice,shipping_address_name,link,Address,0
+Accounts,Sales Invoice,company_address,link,Address,0
+Accounts,Sales Invoice,currency,link,Currency,0
+Accounts,Sales Invoice,selling_price_list,link,Price List,1
+Accounts,Sales Invoice,price_list_currency,link,Currency,0
+Accounts,Sales Invoice,set_warehouse,link,Warehouse,1
+Accounts,Sales Invoice,taxes_and_charges,link,Sales Taxes and Charges Template,1
+Accounts,Sales Invoice,shipping_rule,link,Shipping Rule,1
+Accounts,Sales Invoice,tax_category,link,Tax Category,1
+Accounts,Sales Invoice,loyalty_program,link,Loyalty Program,1
+Accounts,Sales Invoice,loyalty_redemption_account,link,Account,1
+Accounts,Sales Invoice,loyalty_redemption_cost_center,link,Cost Center,1
+Accounts,Sales Invoice,payment_terms_template,link,Payment Terms Template,1
+Accounts,Sales Invoice,cash_bank_account,link,Account,1
+Accounts,Sales Invoice,account_for_change_amount,link,Account,1
+Accounts,Sales Invoice,write_off_account,link,Account,1
+Accounts,Sales Invoice,write_off_cost_center,link,Cost Center,1
+Accounts,Sales Invoice,tc_name,link,Terms and Conditions,1
+Accounts,Sales Invoice,letter_head,link,Letter Head,0
+Accounts,Sales Invoice,language,link,Language,0
+Accounts,Sales Invoice,select_print_heading,link,Print Heading,0
+Accounts,Sales Invoice,inter_company_invoice_reference,link,Purchase Invoice,1
+Accounts,Sales Invoice,customer_group,link,Customer Group,1
+Accounts,Sales Invoice,debit_to,link,Account,1
+Accounts,Sales Invoice,party_account_currency,link,Currency,0
+Accounts,Sales Invoice,sales_partner,link,Sales Partner,1
+Accounts,Sales Invoice,auto_repeat,link,Auto Repeat,0
+Accounts,Sales Invoice,unrealized_profit_loss_account,link,Account,1
+Accounts,Sales Invoice,represents_company,link,Company,1
+Accounts,Sales Invoice,set_target_warehouse,link,Warehouse,1
+Accounts,Sales Invoice,additional_discount_account,link,Account,1
+Accounts,Sales Invoice,dispatch_address_name,link,Address,0
+Accounts,Sales Invoice,subscription,link,Subscription,1
+Accounts,Sales Invoice,incoterm,link,Incoterm,1
+Accounts,Sales Invoice,coupon_code,link,Coupon Code,1
+Accounts,Sales Invoice,utm_medium,link,UTM Medium,0
+Accounts,Sales Invoice,utm_campaign,link,UTM Campaign,0
+Accounts,Sales Invoice,utm_source,link,UTM Source,0
+Accounts,Sales Invoice,company_contact_person,link,Contact,0
+Accounts,Sales Invoice,pos_closing_entry,link,POS Closing Entry,1
+Accounts,Sales Invoice,tax_withholding_group,link,Tax Withholding Group,1
+Accounts,Sales Invoice,items,child_table,Sales Invoice Item,1
+Accounts,Sales Invoice,pricing_rules,child_table,Pricing Rule Detail,1
+Accounts,Sales Invoice,packed_items,child_table,Packed Item,1
+Accounts,Sales Invoice,timesheets,child_table,Sales Invoice Timesheet,1
+Accounts,Sales Invoice,taxes,child_table,Sales Taxes and Charges,1
+Accounts,Sales Invoice,advances,child_table,Sales Invoice Advance,1
+Accounts,Sales Invoice,payment_schedule,child_table,Payment Schedule,1
+Accounts,Sales Invoice,payments,child_table,Sales Invoice Payment,1
+Accounts,Sales Invoice,sales_team,child_table,Sales Team,1
+Accounts,Sales Invoice,item_wise_tax_details,child_table,Item Wise Tax Detail,1
+Accounts,Sales Invoice,tax_withholding_entries,child_table,Tax Withholding Entry,1
+Accounts,Sales Invoice Advance,reference_type,link,DocType,0
+Accounts,Sales Invoice Advance,reference_name,dynamic_link,<reference_type>,0
+Accounts,Sales Invoice Item,item_code,link,Item,1
+Accounts,Sales Invoice Item,product_bundle,link,Product Bundle,1
+Accounts,Sales Invoice Item,stock_uom,link,UOM,1
+Accounts,Sales Invoice Item,uom,link,UOM,1
+Accounts,Sales Invoice Item,income_account,link,Account,1
+Accounts,Sales Invoice Item,expense_account,link,Account,1
+Accounts,Sales Invoice Item,item_tax_template,link,Item Tax Template,1
+Accounts,Sales Invoice Item,cost_center,link,Cost Center,1
+Accounts,Sales Invoice Item,deferred_revenue_account,link,Account,1
+Accounts,Sales Invoice Item,weight_uom,link,UOM,1
+Accounts,Sales Invoice Item,warehouse,link,Warehouse,1
+Accounts,Sales Invoice Item,target_warehouse,link,Warehouse,1
+Accounts,Sales Invoice Item,quality_inspection,link,Quality Inspection,1
+Accounts,Sales Invoice Item,batch_no,link,Batch,1
+Accounts,Sales Invoice Item,item_group,link,Item Group,1
+Accounts,Sales Invoice Item,sales_order,link,Sales Order,1
+Accounts,Sales Invoice Item,delivery_note,link,Delivery Note,1
+Accounts,Sales Invoice Item,asset,link,Asset,1
+Accounts,Sales Invoice Item,finance_book,link,Finance Book,1
+Accounts,Sales Invoice Item,project,link,Project,1
+Accounts,Sales Invoice Item,discount_account,link,Account,1
+Accounts,Sales Invoice Item,purchase_order,link,Purchase Order,1
+Accounts,Sales Invoice Item,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Accounts,Sales Invoice Item,pos_invoice,link,POS Invoice,1
+Accounts,Sales Invoice Item,tax_withholding_category,link,Tax Withholding Category,1
+Accounts,Sales Invoice Item,against_pick_list,link,Pick List,1
+Accounts,Sales Invoice Payment,mode_of_payment,link,Mode of Payment,1
+Accounts,Sales Invoice Payment,account,link,Account,1
+Accounts,Sales Invoice Reference,sales_invoice,link,Sales Invoice,1
+Accounts,Sales Invoice Reference,customer,link,Customer,1
+Accounts,Sales Invoice Reference,return_against,link,Sales Invoice,1
+Accounts,Sales Invoice Timesheet,time_sheet,link,Timesheet,1
+Accounts,Sales Invoice Timesheet,activity_type,link,Activity Type,1
+Accounts,Sales Partner Item,sales_partner,link,Sales Partner,1
+Accounts,Sales Taxes and Charges,account_head,link,Account,1
+Accounts,Sales Taxes and Charges,cost_center,link,Cost Center,1
+Accounts,Sales Taxes and Charges,project,link,Project,1
+Accounts,Sales Taxes and Charges,account_currency,link,Currency,0
+Accounts,Sales Taxes and Charges Template,company,link,Company,1
+Accounts,Sales Taxes and Charges Template,tax_category,link,Tax Category,1
+Accounts,Sales Taxes and Charges Template,taxes,child_table,Sales Taxes and Charges,1
+Accounts,Share Balance,share_type,link,Share Type,1
+Accounts,Share Transfer,from_shareholder,link,Shareholder,1
+Accounts,Share Transfer,equity_or_liability_account,link,Account,1
+Accounts,Share Transfer,asset_account,link,Account,1
+Accounts,Share Transfer,to_shareholder,link,Shareholder,1
+Accounts,Share Transfer,share_type,link,Share Type,1
+Accounts,Share Transfer,company,link,Company,1
+Accounts,Share Transfer,amended_from,link,Share Transfer,1
+Accounts,Shareholder,company,link,Company,1
+Accounts,Shareholder,share_balance,child_table,Share Balance,1
+Accounts,Shipping Rule,company,link,Company,1
+Accounts,Shipping Rule,account,link,Account,1
+Accounts,Shipping Rule,cost_center,link,Cost Center,1
+Accounts,Shipping Rule,project,link,Project,1
+Accounts,Shipping Rule,conditions,child_table,Shipping Rule Condition,1
+Accounts,Shipping Rule,countries,child_table,Shipping Rule Country,1
+Accounts,Shipping Rule Country,country,link,Country,0
+Accounts,South Africa VAT Account,account,link,Account,1
+Accounts,Subscription,party_type,link,DocType,0
+Accounts,Subscription,sales_tax_template,link,Sales Taxes and Charges Template,1
+Accounts,Subscription,purchase_tax_template,link,Purchase Taxes and Charges Template,1
+Accounts,Subscription,cost_center,link,Cost Center,1
+Accounts,Subscription,company,link,Company,1
+Accounts,Subscription,plans,child_table,Subscription Plan Detail,1
+Accounts,Subscription,party,dynamic_link,<party_type>,0
+Accounts,Subscription Invoice,document_type,link,DocType,0
+Accounts,Subscription Invoice,invoice,dynamic_link,<document_type>,0
+Accounts,Subscription Plan,currency,link,Currency,0
+Accounts,Subscription Plan,item,link,Item,1
+Accounts,Subscription Plan,price_list,link,Price List,1
+Accounts,Subscription Plan,payment_gateway,link,Payment Gateway Account,1
+Accounts,Subscription Plan,cost_center,link,Cost Center,1
+Accounts,Subscription Plan Detail,plan,link,Subscription Plan,1
+Accounts,Supplier Group Item,supplier_group,link,Supplier Group,1
+Accounts,Supplier Item,supplier,link,Supplier,1
+Accounts,Tax Rule,sales_tax_template,link,Sales Taxes and Charges Template,1
+Accounts,Tax Rule,purchase_tax_template,link,Purchase Taxes and Charges Template,1
+Accounts,Tax Rule,customer,link,Customer,1
+Accounts,Tax Rule,supplier,link,Supplier,1
+Accounts,Tax Rule,item,link,Item,1
+Accounts,Tax Rule,billing_country,link,Country,0
+Accounts,Tax Rule,tax_category,link,Tax Category,1
+Accounts,Tax Rule,customer_group,link,Customer Group,1
+Accounts,Tax Rule,supplier_group,link,Supplier Group,1
+Accounts,Tax Rule,item_group,link,Item Group,1
+Accounts,Tax Rule,shipping_country,link,Country,0
+Accounts,Tax Rule,company,link,Company,1
+Accounts,Tax Withholding Account,company,link,Company,1
+Accounts,Tax Withholding Account,account,link,Account,1
+Accounts,Tax Withholding Category,rates,child_table,Tax Withholding Rate,1
+Accounts,Tax Withholding Category,accounts,child_table,Tax Withholding Account,1
+Accounts,Tax Withholding Entry,party_type,link,DocType,0
+Accounts,Tax Withholding Entry,tax_withholding_category,link,Tax Withholding Category,1
+Accounts,Tax Withholding Entry,lower_deduction_certificate,link,Lower Deduction Certificate,1
+Accounts,Tax Withholding Entry,currency,link,Currency,0
+Accounts,Tax Withholding Entry,withholding_doctype,link,DocType,0
+Accounts,Tax Withholding Entry,taxable_doctype,link,DocType,0
+Accounts,Tax Withholding Entry,tax_withholding_group,link,Tax Withholding Group,1
+Accounts,Tax Withholding Entry,company,link,Company,1
+Accounts,Tax Withholding Entry,party,dynamic_link,<party_type>,0
+Accounts,Tax Withholding Entry,withholding_name,dynamic_link,<withholding_doctype>,0
+Accounts,Tax Withholding Entry,taxable_name,dynamic_link,<taxable_doctype>,0
+Accounts,Tax Withholding Rate,tax_withholding_group,link,Tax Withholding Group,1
+Accounts,Territory Item,territory,link,Territory,1
+Accounts,Transaction Deletion Record Details,doctype_name,link,DocType,0
+Accounts,Unreconcile Payment,amended_from,link,Unreconcile Payment,1
+Accounts,Unreconcile Payment,company,link,Company,1
+Accounts,Unreconcile Payment,voucher_type,link,DocType,0
+Accounts,Unreconcile Payment,allocations,child_table,Unreconcile Payment Entries,1
+Accounts,Unreconcile Payment,voucher_no,dynamic_link,<voucher_type>,0
+Accounts,Unreconcile Payment Entries,reference_doctype,link,DocType,0
+Accounts,Unreconcile Payment Entries,account_currency,link,Currency,0
+Accounts,Unreconcile Payment Entries,reference_name,dynamic_link,<reference_doctype>,0
+Assets,Asset,item_code,link,Item,1
+Assets,Asset,asset_category,link,Asset Category,1
+Assets,Asset,asset_owner_company,link,Company,1
+Assets,Asset,supplier,link,Supplier,1
+Assets,Asset,customer,link,Customer,1
+Assets,Asset,company,link,Company,1
+Assets,Asset,location,link,Location,1
+Assets,Asset,custodian,link,Employee,1
+Assets,Asset,cost_center,link,Cost Center,1
+Assets,Asset,department,link,Department,1
+Assets,Asset,journal_entry_for_scrap,link,Journal Entry,1
+Assets,Asset,purchase_receipt,link,Purchase Receipt,1
+Assets,Asset,purchase_invoice,link,Purchase Invoice,1
+Assets,Asset,default_finance_book,link,Finance Book,1
+Assets,Asset,amended_from,link,Asset,1
+Assets,Asset,split_from,link,Asset,1
+Assets,Asset,finance_books,child_table,Asset Finance Book,1
+Assets,Asset Activity,asset,link,Asset,1
+Assets,Asset Activity,user,link,User,0
+Assets,Asset Capitalization,target_item_code,link,Item,1
+Assets,Asset Capitalization,target_asset,link,Asset,1
+Assets,Asset Capitalization,company,link,Company,1
+Assets,Asset Capitalization,amended_from,link,Asset Capitalization,1
+Assets,Asset Capitalization,finance_book,link,Finance Book,1
+Assets,Asset Capitalization,cost_center,link,Cost Center,1
+Assets,Asset Capitalization,project,link,Project,1
+Assets,Asset Capitalization,target_fixed_asset_account,link,Account,1
+Assets,Asset Capitalization,stock_items,child_table,Asset Capitalization Stock Item,1
+Assets,Asset Capitalization,asset_items,child_table,Asset Capitalization Asset Item,1
+Assets,Asset Capitalization,service_items,child_table,Asset Capitalization Service Item,1
+Assets,Asset Capitalization Asset Item,asset,link,Asset,1
+Assets,Asset Capitalization Asset Item,item_code,link,Item,1
+Assets,Asset Capitalization Asset Item,fixed_asset_account,link,Account,1
+Assets,Asset Capitalization Asset Item,cost_center,link,Cost Center,1
+Assets,Asset Capitalization Asset Item,project,link,Project,1
+Assets,Asset Capitalization Asset Item,finance_book,link,Finance Book,1
+Assets,Asset Capitalization Service Item,item_code,link,Item,1
+Assets,Asset Capitalization Service Item,expense_account,link,Account,1
+Assets,Asset Capitalization Service Item,uom,link,UOM,1
+Assets,Asset Capitalization Service Item,cost_center,link,Cost Center,1
+Assets,Asset Capitalization Stock Item,warehouse,link,Warehouse,1
+Assets,Asset Capitalization Stock Item,batch_no,link,Batch,1
+Assets,Asset Capitalization Stock Item,stock_uom,link,UOM,1
+Assets,Asset Capitalization Stock Item,item_code,link,Item,1
+Assets,Asset Capitalization Stock Item,cost_center,link,Cost Center,1
+Assets,Asset Capitalization Stock Item,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Assets,Asset Category,finance_books,child_table,Asset Finance Book,1
+Assets,Asset Category,accounts,child_table,Asset Category Account,1
+Assets,Asset Category Account,company_name,link,Company,1
+Assets,Asset Category Account,fixed_asset_account,link,Account,1
+Assets,Asset Category Account,accumulated_depreciation_account,link,Account,1
+Assets,Asset Category Account,depreciation_expense_account,link,Account,1
+Assets,Asset Category Account,capital_work_in_progress_account,link,Account,1
+Assets,Asset Depreciation Schedule,asset,link,Asset,1
+Assets,Asset Depreciation Schedule,amended_from,link,Asset Depreciation Schedule,1
+Assets,Asset Depreciation Schedule,finance_book,link,Finance Book,1
+Assets,Asset Depreciation Schedule,company,link,Company,1
+Assets,Asset Depreciation Schedule,depreciation_schedule,child_table,Depreciation Schedule,1
+Assets,Asset Finance Book,finance_book,link,Finance Book,1
+Assets,Asset Maintenance,asset_name,link,Asset,1
+Assets,Asset Maintenance,company,link,Company,1
+Assets,Asset Maintenance,maintenance_team,link,Asset Maintenance Team,1
+Assets,Asset Maintenance,asset_maintenance_tasks,child_table,Asset Maintenance Task,1
+Assets,Asset Maintenance Log,asset_maintenance,link,Asset Maintenance,1
+Assets,Asset Maintenance Log,task,link,Asset Maintenance Task,1
+Assets,Asset Maintenance Log,amended_from,link,Asset Maintenance Log,1
+Assets,Asset Maintenance Task,assign_to,link,User,0
+Assets,Asset Maintenance Team,maintenance_manager,link,User,0
+Assets,Asset Maintenance Team,company,link,Company,1
+Assets,Asset Maintenance Team,maintenance_team_members,child_table,Maintenance Team Member,1
+Assets,Asset Movement,company,link,Company,1
+Assets,Asset Movement,reference_doctype,link,DocType,0
+Assets,Asset Movement,amended_from,link,Asset Movement,1
+Assets,Asset Movement,assets,child_table,Asset Movement Item,1
+Assets,Asset Movement,reference_name,dynamic_link,<reference_doctype>,0
+Assets,Asset Movement Item,asset,link,Asset,1
+Assets,Asset Movement Item,source_location,link,Location,1
+Assets,Asset Movement Item,target_location,link,Location,1
+Assets,Asset Movement Item,from_employee,link,Employee,1
+Assets,Asset Movement Item,to_employee,link,Employee,1
+Assets,Asset Movement Item,company,link,Company,1
+Assets,Asset Repair,amended_from,link,Asset Repair,1
+Assets,Asset Repair,asset,link,Asset,1
+Assets,Asset Repair,cost_center,link,Cost Center,1
+Assets,Asset Repair,project,link,Project,1
+Assets,Asset Repair,company,link,Company,1
+Assets,Asset Repair,stock_items,child_table,Asset Repair Consumed Item,1
+Assets,Asset Repair,invoices,child_table,Asset Repair Purchase Invoice,1
+Assets,Asset Repair Consumed Item,item_code,link,Item,1
+Assets,Asset Repair Consumed Item,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Assets,Asset Repair Consumed Item,warehouse,link,Warehouse,1
+Assets,Asset Repair Purchase Invoice,purchase_invoice,link,Purchase Invoice,1
+Assets,Asset Repair Purchase Invoice,expense_account,link,Account,1
+Assets,Asset Shift Allocation,amended_from,link,Asset Shift Allocation,1
+Assets,Asset Shift Allocation,asset,link,Asset,1
+Assets,Asset Shift Allocation,finance_book,link,Finance Book,1
+Assets,Asset Shift Allocation,depreciation_schedule,child_table,Depreciation Schedule,1
+Assets,Asset Value Adjustment,company,link,Company,1
+Assets,Asset Value Adjustment,asset,link,Asset,1
+Assets,Asset Value Adjustment,finance_book,link,Finance Book,1
+Assets,Asset Value Adjustment,journal_entry,link,Journal Entry,1
+Assets,Asset Value Adjustment,cost_center,link,Cost Center,1
+Assets,Asset Value Adjustment,amended_from,link,Asset Value Adjustment,1
+Assets,Asset Value Adjustment,difference_account,link,Account,1
+Assets,Depreciation Schedule,journal_entry,link,Journal Entry,1
+Assets,Depreciation Schedule,shift,link,Asset Shift Factor,1
+Assets,Linked Location,location,link,Location,1
+Assets,Location,parent_location,link,Location,1
+Assets,Location,area_uom,link,UOM,1
+Assets,Maintenance Team Member,team_member,link,User,0
+Assets,Maintenance Team Member,maintenance_role,link,Role,0
+Bulk Transaction,Bulk Transaction Log Detail,from_doctype,link,DocType,0
+Bulk Transaction,Bulk Transaction Log Detail,to_doctype,link,DocType,0
+Bulk Transaction,Bulk Transaction Log Detail,transaction_name,dynamic_link,<from_doctype>,0
+Buying,Buying Settings,supplier_group,link,Supplier Group,1
+Buying,Buying Settings,buying_price_list,link,Price List,1
+Buying,Buying Settings,role_to_override_stop_action,link,Role,0
+Buying,Buying Settings,fixed_email,link,Email Account,0
+Buying,Customer Number At Supplier,company,link,Company,1
+Buying,Purchase Order,supplier,link,Supplier,1
+Buying,Purchase Order,company,link,Company,1
+Buying,Purchase Order,amended_from,link,Purchase Order,1
+Buying,Purchase Order,customer,link,Customer,1
+Buying,Purchase Order,customer_contact_person,link,Contact,0
+Buying,Purchase Order,supplier_address,link,Address,0
+Buying,Purchase Order,contact_person,link,Contact,0
+Buying,Purchase Order,shipping_address,link,Address,0
+Buying,Purchase Order,currency,link,Currency,0
+Buying,Purchase Order,buying_price_list,link,Price List,1
+Buying,Purchase Order,price_list_currency,link,Currency,0
+Buying,Purchase Order,set_warehouse,link,Warehouse,1
+Buying,Purchase Order,supplier_warehouse,link,Warehouse,1
+Buying,Purchase Order,taxes_and_charges,link,Purchase Taxes and Charges Template,1
+Buying,Purchase Order,shipping_rule,link,Shipping Rule,1
+Buying,Purchase Order,payment_terms_template,link,Payment Terms Template,1
+Buying,Purchase Order,tc_name,link,Terms and Conditions,1
+Buying,Purchase Order,ref_sq,link,Supplier Quotation,1
+Buying,Purchase Order,party_account_currency,link,Currency,0
+Buying,Purchase Order,inter_company_order_reference,link,Sales Order,1
+Buying,Purchase Order,letter_head,link,Letter Head,0
+Buying,Purchase Order,select_print_heading,link,Print Heading,0
+Buying,Purchase Order,auto_repeat,link,Auto Repeat,0
+Buying,Purchase Order,tax_category,link,Tax Category,1
+Buying,Purchase Order,set_reserve_warehouse,link,Warehouse,1
+Buying,Purchase Order,billing_address,link,Address,0
+Buying,Purchase Order,represents_company,link,Company,1
+Buying,Purchase Order,cost_center,link,Cost Center,1
+Buying,Purchase Order,project,link,Project,1
+Buying,Purchase Order,set_from_warehouse,link,Warehouse,1
+Buying,Purchase Order,incoterm,link,Incoterm,1
+Buying,Purchase Order,dispatch_address,link,Address,0
+Buying,Purchase Order,supplier_group,link,Supplier Group,1
+Buying,Purchase Order,mps,link,Master Production Schedule,1
+Buying,Purchase Order,items,child_table,Purchase Order Item,1
+Buying,Purchase Order,pricing_rules,child_table,Pricing Rule Detail,1
+Buying,Purchase Order,taxes,child_table,Purchase Taxes and Charges,1
+Buying,Purchase Order,payment_schedule,child_table,Payment Schedule,1
+Buying,Purchase Order,item_wise_tax_details,child_table,Item Wise Tax Detail,1
+Buying,Purchase Order Item,item_code,link,Item,1
+Buying,Purchase Order Item,stock_uom,link,UOM,1
+Buying,Purchase Order Item,uom,link,UOM,1
+Buying,Purchase Order Item,weight_uom,link,UOM,1
+Buying,Purchase Order Item,warehouse,link,Warehouse,1
+Buying,Purchase Order Item,project,link,Project,1
+Buying,Purchase Order Item,material_request,link,Material Request,1
+Buying,Purchase Order Item,sales_order,link,Sales Order,1
+Buying,Purchase Order Item,supplier_quotation,link,Supplier Quotation,1
+Buying,Purchase Order Item,supplier_quotation_item,link,Supplier Quotation Item,1
+Buying,Purchase Order Item,blanket_order,link,Blanket Order,1
+Buying,Purchase Order Item,item_group,link,Item Group,1
+Buying,Purchase Order Item,brand,link,Brand,1
+Buying,Purchase Order Item,bom,link,BOM,1
+Buying,Purchase Order Item,expense_account,link,Account,1
+Buying,Purchase Order Item,cost_center,link,Cost Center,1
+Buying,Purchase Order Item,item_tax_template,link,Item Tax Template,1
+Buying,Purchase Order Item,manufacturer,link,Manufacturer,1
+Buying,Purchase Order Item,production_plan,link,Production Plan,1
+Buying,Purchase Order Item,product_bundle,link,Product Bundle,1
+Buying,Purchase Order Item,fg_item,link,Item,1
+Buying,Purchase Order Item,from_warehouse,link,Warehouse,1
+Buying,Purchase Order Item,wip_composite_asset,link,Asset,1
+Buying,Purchase Order Item,job_card,link,Job Card,1
+Buying,Purchase Receipt Item Supplied,main_item_code,link,Item,1
+Buying,Purchase Receipt Item Supplied,rm_item_code,link,Item,1
+Buying,Purchase Receipt Item Supplied,batch_no,link,Batch,1
+Buying,Purchase Receipt Item Supplied,stock_uom,link,UOM,1
+Buying,Purchase Receipt Item Supplied,purchase_order,link,Purchase Order,1
+Buying,Request for Quotation,company,link,Company,1
+Buying,Request for Quotation,vendor,link,Supplier,1
+Buying,Request for Quotation,email_template,link,Email Template,0
+Buying,Request for Quotation,tc_name,link,Terms and Conditions,1
+Buying,Request for Quotation,select_print_heading,link,Print Heading,0
+Buying,Request for Quotation,letter_head,link,Letter Head,0
+Buying,Request for Quotation,opportunity,link,Opportunity,1
+Buying,Request for Quotation,amended_from,link,Request for Quotation,1
+Buying,Request for Quotation,incoterm,link,Incoterm,1
+Buying,Request for Quotation,billing_address,link,Address,0
+Buying,Request for Quotation,shipping_address,link,Address,0
+Buying,Request for Quotation,suppliers,child_table,Request for Quotation Supplier,1
+Buying,Request for Quotation,items,child_table,Request for Quotation Item,1
+Buying,Request for Quotation Item,item_code,link,Item,1
+Buying,Request for Quotation Item,uom,link,UOM,1
+Buying,Request for Quotation Item,warehouse,link,Warehouse,1
+Buying,Request for Quotation Item,project_name,link,Project,1
+Buying,Request for Quotation Item,material_request,link,Material Request,1
+Buying,Request for Quotation Item,brand,link,Brand,1
+Buying,Request for Quotation Item,item_group,link,Item Group,1
+Buying,Request for Quotation Item,stock_uom,link,UOM,1
+Buying,Request for Quotation Item,cost_center,link,Cost Center,1
+Buying,Request for Quotation Supplier,supplier,link,Supplier,1
+Buying,Request for Quotation Supplier,contact,link,Contact,0
+Buying,Supplier,country,link,Country,0
+Buying,Supplier,default_bank_account,link,Bank Account,1
+Buying,Supplier,tax_category,link,Tax Category,1
+Buying,Supplier,tax_withholding_category,link,Tax Withholding Category,1
+Buying,Supplier,represents_company,link,Company,1
+Buying,Supplier,supplier_group,link,Supplier Group,1
+Buying,Supplier,language,link,Language,0
+Buying,Supplier,default_currency,link,Currency,0
+Buying,Supplier,default_price_list,link,Price List,1
+Buying,Supplier,payment_terms,link,Payment Terms Template,1
+Buying,Supplier,supplier_primary_contact,link,Contact,0
+Buying,Supplier,supplier_primary_address,link,Address,0
+Buying,Supplier,tax_withholding_group,link,Tax Withholding Group,1
+Buying,Supplier,gender,link,Gender,0
+Buying,Supplier,companies,child_table,Allowed To Transact With,1
+Buying,Supplier,accounts,child_table,Party Account,1
+Buying,Supplier,allowed_companies,multiselect,Company Restriction,1
+Buying,Supplier,portal_users,child_table,Portal User,1
+Buying,Supplier,customer_numbers,child_table,Customer Number At Supplier,1
+Buying,Supplier Quotation,supplier,link,Supplier,1
+Buying,Supplier Quotation,amended_from,link,Supplier Quotation,1
+Buying,Supplier Quotation,company,link,Company,1
+Buying,Supplier Quotation,supplier_address,link,Address,0
+Buying,Supplier Quotation,contact_person,link,Contact,0
+Buying,Supplier Quotation,currency,link,Currency,0
+Buying,Supplier Quotation,buying_price_list,link,Price List,1
+Buying,Supplier Quotation,price_list_currency,link,Currency,0
+Buying,Supplier Quotation,tax_category,link,Tax Category,1
+Buying,Supplier Quotation,shipping_rule,link,Shipping Rule,1
+Buying,Supplier Quotation,taxes_and_charges,link,Purchase Taxes and Charges Template,1
+Buying,Supplier Quotation,tc_name,link,Terms and Conditions,1
+Buying,Supplier Quotation,select_print_heading,link,Print Heading,0
+Buying,Supplier Quotation,letter_head,link,Letter Head,0
+Buying,Supplier Quotation,auto_repeat,link,Auto Repeat,0
+Buying,Supplier Quotation,opportunity,link,Opportunity,1
+Buying,Supplier Quotation,incoterm,link,Incoterm,1
+Buying,Supplier Quotation,shipping_address,link,Address,0
+Buying,Supplier Quotation,billing_address,link,Address,0
+Buying,Supplier Quotation,cost_center,link,Cost Center,1
+Buying,Supplier Quotation,project,link,Project,1
+Buying,Supplier Quotation,items,child_table,Supplier Quotation Item,1
+Buying,Supplier Quotation,pricing_rules,child_table,Pricing Rule Detail,1
+Buying,Supplier Quotation,taxes,child_table,Purchase Taxes and Charges,1
+Buying,Supplier Quotation,item_wise_tax_details,child_table,Item Wise Tax Detail,1
+Buying,Supplier Quotation Item,item_code,link,Item,1
+Buying,Supplier Quotation Item,stock_uom,link,UOM,1
+Buying,Supplier Quotation Item,uom,link,UOM,1
+Buying,Supplier Quotation Item,weight_uom,link,UOM,1
+Buying,Supplier Quotation Item,warehouse,link,Warehouse,1
+Buying,Supplier Quotation Item,project,link,Project,1
+Buying,Supplier Quotation Item,material_request,link,Material Request,1
+Buying,Supplier Quotation Item,sales_order,link,Sales Order,1
+Buying,Supplier Quotation Item,request_for_quotation,link,Request for Quotation,1
+Buying,Supplier Quotation Item,item_tax_template,link,Item Tax Template,1
+Buying,Supplier Quotation Item,brand,link,Brand,1
+Buying,Supplier Quotation Item,item_group,link,Item Group,1
+Buying,Supplier Quotation Item,manufacturer,link,Manufacturer,1
+Buying,Supplier Quotation Item,cost_center,link,Cost Center,1
+Buying,Supplier Scorecard,supplier,link,Supplier,1
+Buying,Supplier Scorecard,employee,link,Employee,1
+Buying,Supplier Scorecard,standings,child_table,Supplier Scorecard Scoring Standing,1
+Buying,Supplier Scorecard,criteria,child_table,Supplier Scorecard Scoring Criteria,1
+Buying,Supplier Scorecard Period,supplier,link,Supplier,1
+Buying,Supplier Scorecard Period,scorecard,link,Supplier Scorecard,1
+Buying,Supplier Scorecard Period,amended_from,link,Supplier Scorecard Period,1
+Buying,Supplier Scorecard Period,criteria,child_table,Supplier Scorecard Scoring Criteria,1
+Buying,Supplier Scorecard Period,variables,child_table,Supplier Scorecard Scoring Variable,1
+Buying,Supplier Scorecard Scoring Criteria,criteria_name,link,Supplier Scorecard Criteria,1
+Buying,Supplier Scorecard Scoring Standing,standing_name,link,Supplier Scorecard Standing,1
+Buying,Supplier Scorecard Scoring Standing,employee_link,link,Employee,1
+Buying,Supplier Scorecard Scoring Variable,variable_label,link,Supplier Scorecard Variable,1
+Buying,Supplier Scorecard Standing,employee_link,link,Employee,1
+CRM,Appointment,calendar_event,link,Event,0
+CRM,Appointment,appointment_with,link,DocType,0
+CRM,Appointment,party,dynamic_link,<appointment_with>,0
+CRM,Appointment Booking Settings,holiday_list,link,Holiday List,1
+CRM,Appointment Booking Settings,availability_of_slots,child_table,Appointment Booking Slots,1
+CRM,Appointment Booking Settings,agent_list,multiselect,Assignment Rule User,0
+CRM,CRM Note,added_by,link,User,0
+CRM,CRM Settings,allowed_users,multiselect,Frappe CRM Allowed User,1
+CRM,Campaign,campaign_schedules,child_table,Campaign Email Schedule,1
+CRM,Campaign Email Schedule,email_template,link,Email Template,0
+CRM,Competitor Detail,competitor,link,Competitor,1
+CRM,Contract,party_user,link,User,0
+CRM,Contract,contract_template,link,Contract Template,1
+CRM,Contract,amended_from,link,Contract,1
+CRM,Contract,signed_by_company,link,User,0
+CRM,Contract,fulfilment_terms,child_table,Contract Fulfilment Checklist,1
+CRM,Contract,party_name,dynamic_link,<party_type>,0
+CRM,Contract,document_name,dynamic_link,<document_type>,0
+CRM,Contract Fulfilment Checklist,amended_from,link,Contract Fulfilment Checklist,1
+CRM,Contract Template,fulfilment_terms,child_table,Contract Template Fulfilment Terms,1
+CRM,Email Campaign,campaign_name,link,Campaign,1
+CRM,Email Campaign,sender,link,User,0
+CRM,Email Campaign,recipient,dynamic_link,<email_campaign_for>,0
+CRM,Frappe CRM Allowed User,user,link,User,0
+CRM,Lead,lead_owner,link,User,0
+CRM,Lead,salutation,link,Salutation,0
+CRM,Lead,gender,link,Gender,0
+CRM,Lead,customer,link,Customer,1
+CRM,Lead,market_segment,link,Market Segment,1
+CRM,Lead,industry,link,Industry Type,1
+CRM,Lead,company,link,Company,1
+CRM,Lead,territory,link,Territory,1
+CRM,Lead,language,link,Language,0
+CRM,Lead,qualified_by,link,User,0
+CRM,Lead,country,link,Country,0
+CRM,Lead,utm_source,link,UTM Source,0
+CRM,Lead,utm_medium,link,UTM Medium,0
+CRM,Lead,utm_campaign,link,UTM Campaign,0
+CRM,Lead,notes,child_table,CRM Note,1
+CRM,Lost Reason Detail,lost_reason,link,Opportunity Lost Reason,1
+CRM,Opportunity,opportunity_from,link,DocType,0
+CRM,Opportunity,opportunity_type,link,Opportunity Type,1
+CRM,Opportunity,currency,link,Currency,0
+CRM,Opportunity,sales_stage,link,Sales Stage,1
+CRM,Opportunity,customer_address,link,Address,0
+CRM,Opportunity,territory,link,Territory,1
+CRM,Opportunity,customer_group,link,Customer Group,1
+CRM,Opportunity,contact_person,link,Contact,0
+CRM,Opportunity,company,link,Company,1
+CRM,Opportunity,amended_from,link,Opportunity,1
+CRM,Opportunity,language,link,Language,0
+CRM,Opportunity,industry,link,Industry Type,1
+CRM,Opportunity,market_segment,link,Market Segment,1
+CRM,Opportunity,opportunity_owner,link,User,0
+CRM,Opportunity,country,link,Country,0
+CRM,Opportunity,utm_source,link,UTM Source,0
+CRM,Opportunity,utm_campaign,link,UTM Campaign,0
+CRM,Opportunity,utm_medium,link,UTM Medium,0
+CRM,Opportunity,items,child_table,Opportunity Item,1
+CRM,Opportunity,lost_reasons,multiselect,Opportunity Lost Reason Detail,1
+CRM,Opportunity,competitors,multiselect,Competitor Detail,1
+CRM,Opportunity,notes,child_table,CRM Note,1
+CRM,Opportunity,party_name,dynamic_link,<opportunity_from>,0
+CRM,Opportunity Item,item_code,link,Item,1
+CRM,Opportunity Item,item_group,link,Item Group,1
+CRM,Opportunity Item,brand,link,Brand,1
+CRM,Opportunity Item,uom,link,UOM,1
+CRM,Opportunity Lost Reason Detail,lost_reason,link,Opportunity Lost Reason,1
+CRM,Prospect,industry,link,Industry Type,1
+CRM,Prospect,market_segment,link,Market Segment,1
+CRM,Prospect,customer_group,link,Customer Group,1
+CRM,Prospect,territory,link,Territory,1
+CRM,Prospect,prospect_owner,link,User,0
+CRM,Prospect,company,link,Company,1
+CRM,Prospect,opportunities,child_table,Prospect Opportunity,1
+CRM,Prospect,leads,child_table,Prospect Lead,1
+CRM,Prospect,notes,child_table,CRM Note,1
+CRM,Prospect Lead,lead,link,Lead,1
+CRM,Prospect Opportunity,opportunity,link,Opportunity,1
+CRM,Prospect Opportunity,currency,link,Currency,0
+CRM,Prospect Opportunity,contact_person,link,Contact,0
+Communication,Communication Medium,catch_all,link,Employee Group,1
+Communication,Communication Medium,provider,link,Supplier,1
+Communication,Communication Medium,timeslots,child_table,Communication Medium Timeslot,1
+Communication,Communication Medium Timeslot,employee_group,link,Employee Group,1
+EDI,Code List,default_common_code,link,Common Code,1
+EDI,Common Code,code_list,link,Code List,1
+EDI,Common Code,applies_to,child_table,Dynamic Link,0
+Maintenance,Maintenance Schedule,customer,link,Customer,1
+Maintenance,Maintenance Schedule,contact_person,link,Contact,0
+Maintenance,Maintenance Schedule,customer_address,link,Address,0
+Maintenance,Maintenance Schedule,territory,link,Territory,1
+Maintenance,Maintenance Schedule,customer_group,link,Customer Group,1
+Maintenance,Maintenance Schedule,company,link,Company,1
+Maintenance,Maintenance Schedule,amended_from,link,Maintenance Schedule,1
+Maintenance,Maintenance Schedule,items,child_table,Maintenance Schedule Item,1
+Maintenance,Maintenance Schedule,schedules,child_table,Maintenance Schedule Detail,1
+Maintenance,Maintenance Schedule Detail,item_code,link,Item,1
+Maintenance,Maintenance Schedule Detail,sales_person,link,Sales Person,1
+Maintenance,Maintenance Schedule Detail,item_reference,link,Maintenance Schedule Item,1
+Maintenance,Maintenance Schedule Item,item_code,link,Item,1
+Maintenance,Maintenance Schedule Item,sales_person,link,Sales Person,1
+Maintenance,Maintenance Schedule Item,sales_order,link,Sales Order,1
+Maintenance,Maintenance Schedule Item,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Maintenance,Maintenance Visit,customer,link,Customer,1
+Maintenance,Maintenance Visit,amended_from,link,Maintenance Visit,1
+Maintenance,Maintenance Visit,company,link,Company,1
+Maintenance,Maintenance Visit,customer_address,link,Address,0
+Maintenance,Maintenance Visit,contact_person,link,Contact,0
+Maintenance,Maintenance Visit,territory,link,Territory,1
+Maintenance,Maintenance Visit,customer_group,link,Customer Group,1
+Maintenance,Maintenance Visit,maintenance_schedule,link,Maintenance Schedule,1
+Maintenance,Maintenance Visit,maintenance_schedule_detail,link,Maintenance Schedule Detail,1
+Maintenance,Maintenance Visit,purposes,child_table,Maintenance Visit Purpose,1
+Maintenance,Maintenance Visit Purpose,item_code,link,Item,1
+Maintenance,Maintenance Visit Purpose,serial_no,link,Serial No,1
+Maintenance,Maintenance Visit Purpose,service_person,link,Sales Person,1
+Maintenance,Maintenance Visit Purpose,prevdoc_doctype,link,DocType,0
+Maintenance,Maintenance Visit Purpose,prevdoc_docname,dynamic_link,<prevdoc_doctype>,0
+Manufacturing,BOM,item,link,Item,1
+Manufacturing,BOM,uom,link,UOM,1
+Manufacturing,BOM,quality_inspection_template,link,Quality Inspection Template,1
+Manufacturing,BOM,company,link,Company,1
+Manufacturing,BOM,currency,link,Currency,0
+Manufacturing,BOM,buying_price_list,link,Price List,1
+Manufacturing,BOM,routing,link,Routing,1
+Manufacturing,BOM,project,link,Project,1
+Manufacturing,BOM,amended_from,link,BOM,1
+Manufacturing,BOM,price_list_currency,link,Currency,0
+Manufacturing,BOM,bom_creator,link,BOM Creator,1
+Manufacturing,BOM,default_source_warehouse,link,Warehouse,1
+Manufacturing,BOM,default_target_warehouse,link,Warehouse,1
+Manufacturing,BOM,operations,child_table,BOM Operation,1
+Manufacturing,BOM,items,child_table,BOM Item,1
+Manufacturing,BOM,exploded_items,child_table,BOM Explosion Item,1
+Manufacturing,BOM,secondary_items,child_table,BOM Secondary Item,1
+Manufacturing,BOM Creator,company,link,Company,1
+Manufacturing,BOM Creator,buying_price_list,link,Price List,1
+Manufacturing,BOM Creator,price_list_currency,link,Currency,0
+Manufacturing,BOM Creator,currency,link,Currency,0
+Manufacturing,BOM Creator,project,link,Project,1
+Manufacturing,BOM Creator,item_code,link,Item,1
+Manufacturing,BOM Creator,uom,link,UOM,1
+Manufacturing,BOM Creator,item_group,link,Item Group,1
+Manufacturing,BOM Creator,amended_from,link,BOM Creator,1
+Manufacturing,BOM Creator,default_warehouse,link,Warehouse,1
+Manufacturing,BOM Creator,routing,link,Routing,1
+Manufacturing,BOM Creator,items,child_table,BOM Creator Item,1
+Manufacturing,BOM Creator Item,item_code,link,Item,1
+Manufacturing,BOM Creator Item,item_group,link,Item Group,1
+Manufacturing,BOM Creator Item,fg_item,link,Item,1
+Manufacturing,BOM Creator Item,uom,link,UOM,1
+Manufacturing,BOM Creator Item,stock_uom,link,UOM,1
+Manufacturing,BOM Creator Item,operation,link,Operation,1
+Manufacturing,BOM Explosion Item,item_code,link,Item,1
+Manufacturing,BOM Explosion Item,source_warehouse,link,Warehouse,1
+Manufacturing,BOM Explosion Item,operation,link,Operation,1
+Manufacturing,BOM Explosion Item,stock_uom,link,UOM,1
+Manufacturing,BOM Item,item_code,link,Item,1
+Manufacturing,BOM Item,operation,link,Operation,1
+Manufacturing,BOM Item,bom_no,link,BOM,1
+Manufacturing,BOM Item,source_warehouse,link,Warehouse,1
+Manufacturing,BOM Item,uom,link,UOM,1
+Manufacturing,BOM Item,stock_uom,link,UOM,1
+Manufacturing,BOM Item,original_item,link,Item,1
+Manufacturing,BOM Operation,operation,link,Operation,1
+Manufacturing,BOM Operation,workstation,link,Workstation,1
+Manufacturing,BOM Operation,workstation_type,link,Workstation Type,1
+Manufacturing,BOM Operation,finished_good,link,Item,1
+Manufacturing,BOM Operation,bom_no,link,BOM,1
+Manufacturing,BOM Operation,wip_warehouse,link,Warehouse,1
+Manufacturing,BOM Operation,fg_warehouse,link,Warehouse,1
+Manufacturing,BOM Operation,source_warehouse,link,Warehouse,1
+Manufacturing,BOM Secondary Item,item_code,link,Item,1
+Manufacturing,BOM Secondary Item,stock_uom,link,UOM,1
+Manufacturing,BOM Secondary Item,uom,link,UOM,1
+Manufacturing,BOM Update Log,current_bom,link,BOM,1
+Manufacturing,BOM Update Log,new_bom,link,BOM,1
+Manufacturing,BOM Update Log,amended_from,link,BOM Update Log,1
+Manufacturing,BOM Update Log,error_log,link,Error Log,0
+Manufacturing,BOM Update Log,bom_batches,child_table,BOM Update Batch,1
+Manufacturing,BOM Update Tool,current_bom,link,BOM,1
+Manufacturing,BOM Update Tool,new_bom,link,BOM,1
+Manufacturing,BOM Website Item,item_code,link,Item,1
+Manufacturing,BOM Website Operation,operation,link,Operation,1
+Manufacturing,BOM Website Operation,workstation,link,Workstation,1
+Manufacturing,Blanket Order,customer,link,Customer,1
+Manufacturing,Blanket Order,supplier,link,Supplier,1
+Manufacturing,Blanket Order,company,link,Company,1
+Manufacturing,Blanket Order,amended_from,link,Blanket Order,1
+Manufacturing,Blanket Order,tc_name,link,Terms and Conditions,1
+Manufacturing,Blanket Order,items,child_table,Blanket Order Item,1
+Manufacturing,Blanket Order Item,item_code,link,Item,1
+Manufacturing,Downtime Entry,workstation,link,Workstation,1
+Manufacturing,Downtime Entry,operator,link,Employee,1
+Manufacturing,Job Card,work_order,link,Work Order,1
+Manufacturing,Job Card,bom_no,link,BOM,1
+Manufacturing,Job Card,workstation,link,Workstation,1
+Manufacturing,Job Card,operation,link,Operation,1
+Manufacturing,Job Card,company,link,Company,1
+Manufacturing,Job Card,wip_warehouse,link,Warehouse,1
+Manufacturing,Job Card,project,link,Project,1
+Manufacturing,Job Card,amended_from,link,Job Card,1
+Manufacturing,Job Card,production_item,link,Item,1
+Manufacturing,Job Card,quality_inspection,link,Quality Inspection,1
+Manufacturing,Job Card,for_job_card,link,Job Card,1
+Manufacturing,Job Card,for_operation,link,Operation,1
+Manufacturing,Job Card,batch_no,link,Batch,1
+Manufacturing,Job Card,quality_inspection_template,link,Quality Inspection Template,1
+Manufacturing,Job Card,workstation_type,link,Workstation Type,1
+Manufacturing,Job Card,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Manufacturing,Job Card,finished_good,link,Item,1
+Manufacturing,Job Card,target_warehouse,link,Warehouse,1
+Manufacturing,Job Card,source_warehouse,link,Warehouse,1
+Manufacturing,Job Card,semi_fg_bom,link,BOM,1
+Manufacturing,Job Card,time_logs,child_table,Job Card Time Log,1
+Manufacturing,Job Card,items,child_table,Job Card Item,1
+Manufacturing,Job Card,sub_operations,child_table,Job Card Operation,1
+Manufacturing,Job Card,employee,multiselect,Job Card Time Log,1
+Manufacturing,Job Card,scheduled_time_logs,child_table,Job Card Scheduled Time,1
+Manufacturing,Job Card,secondary_items,child_table,Job Card Secondary Item,1
+Manufacturing,Job Card Item,item_code,link,Item,1
+Manufacturing,Job Card Item,source_warehouse,link,Warehouse,1
+Manufacturing,Job Card Item,uom,link,UOM,1
+Manufacturing,Job Card Item,item_group,link,Item Group,1
+Manufacturing,Job Card Item,stock_uom,link,UOM,1
+Manufacturing,Job Card Operation,sub_operation,link,Operation,1
+Manufacturing,Job Card Secondary Item,item_code,link,Item,1
+Manufacturing,Job Card Secondary Item,stock_uom,link,UOM,1
+Manufacturing,Job Card Time Log,employee,link,Employee,1
+Manufacturing,Job Card Time Log,operation,link,Operation,1
+Manufacturing,Master Production Schedule,company,link,Company,1
+Manufacturing,Master Production Schedule,parent_warehouse,link,Warehouse,1
+Manufacturing,Master Production Schedule,amended_from,link,Master Production Schedule,1
+Manufacturing,Master Production Schedule,sales_forecast,link,Sales Forecast,1
+Manufacturing,Master Production Schedule,items,child_table,Master Production Schedule Item,1
+Manufacturing,Master Production Schedule,sales_orders,child_table,Production Plan Sales Order,1
+Manufacturing,Master Production Schedule,material_requests,child_table,Production Plan Material Request,1
+Manufacturing,Master Production Schedule,select_items,multiselect,Master Production Schedule Item,1
+Manufacturing,Master Production Schedule Item,item_code,link,Item,1
+Manufacturing,Master Production Schedule Item,warehouse,link,Warehouse,1
+Manufacturing,Master Production Schedule Item,bom_no,link,BOM,1
+Manufacturing,Master Production Schedule Item,uom,link,UOM,1
+Manufacturing,Material Request Plan Item,item_code,link,Item,1
+Manufacturing,Material Request Plan Item,warehouse,link,Warehouse,1
+Manufacturing,Material Request Plan Item,sales_order,link,Sales Order,1
+Manufacturing,Material Request Plan Item,uom,link,UOM,1
+Manufacturing,Material Request Plan Item,from_warehouse,link,Warehouse,1
+Manufacturing,Material Request Plan Item,from_bom,link,BOM,1
+Manufacturing,Material Request Plan Item,main_item_code,link,Item,1
+Manufacturing,Operation,workstation,link,Workstation,1
+Manufacturing,Operation,quality_inspection_template,link,Quality Inspection Template,1
+Manufacturing,Operation,sub_operations,child_table,Sub Operation,1
+Manufacturing,Plant Floor,warehouse,link,Warehouse,1
+Manufacturing,Plant Floor,company,link,Company,1
+Manufacturing,Production Plan,company,link,Company,1
+Manufacturing,Production Plan,item_code,link,Item,1
+Manufacturing,Production Plan,customer,link,Customer,1
+Manufacturing,Production Plan,warehouse,link,Warehouse,1
+Manufacturing,Production Plan,project,link,Project,1
+Manufacturing,Production Plan,amended_from,link,Production Plan,1
+Manufacturing,Production Plan,for_warehouse,link,Warehouse,1
+Manufacturing,Production Plan,raw_material_group_warehouse,link,Warehouse,1
+Manufacturing,Production Plan,sub_assembly_warehouse,link,Warehouse,1
+Manufacturing,Production Plan,sales_orders,child_table,Production Plan Sales Order,1
+Manufacturing,Production Plan,material_requests,child_table,Production Plan Material Request,1
+Manufacturing,Production Plan,po_items,child_table,Production Plan Item,1
+Manufacturing,Production Plan,mr_items,child_table,Material Request Plan Item,1
+Manufacturing,Production Plan,warehouses,multiselect,Production Plan Material Request Warehouse,1
+Manufacturing,Production Plan,prod_plan_references,child_table,Production Plan Item Reference,1
+Manufacturing,Production Plan,sub_assembly_items,child_table,Production Plan Sub Assembly Item,1
+Manufacturing,Production Plan Item,item_code,link,Item,1
+Manufacturing,Production Plan Item,bom_no,link,BOM,1
+Manufacturing,Production Plan Item,warehouse,link,Warehouse,1
+Manufacturing,Production Plan Item,stock_uom,link,UOM,1
+Manufacturing,Production Plan Item,sales_order,link,Sales Order,1
+Manufacturing,Production Plan Item,material_request,link,Material Request,1
+Manufacturing,Production Plan Item,product_bundle_item,link,Item,1
+Manufacturing,Production Plan Item Reference,sales_order,link,Sales Order,1
+Manufacturing,Production Plan Material Request,material_request,link,Material Request,1
+Manufacturing,Production Plan Material Request Warehouse,warehouse,link,Warehouse,1
+Manufacturing,Production Plan Sales Order,sales_order,link,Sales Order,1
+Manufacturing,Production Plan Sales Order,customer,link,Customer,1
+Manufacturing,Production Plan Sub Assembly Item,purchase_order,link,Purchase Order,1
+Manufacturing,Production Plan Sub Assembly Item,bom_no,link,BOM,1
+Manufacturing,Production Plan Sub Assembly Item,parent_item_code,link,Item,1
+Manufacturing,Production Plan Sub Assembly Item,uom,link,UOM,1
+Manufacturing,Production Plan Sub Assembly Item,stock_uom,link,UOM,1
+Manufacturing,Production Plan Sub Assembly Item,production_item,link,Item,1
+Manufacturing,Production Plan Sub Assembly Item,fg_warehouse,link,Warehouse,1
+Manufacturing,Production Plan Sub Assembly Item,supplier,link,Supplier,1
+Manufacturing,Production Plan Sub Assembly Item,sales_order,link,Sales Order,1
+Manufacturing,Routing,operations,child_table,BOM Operation,1
+Manufacturing,Sales Forecast,company,link,Company,1
+Manufacturing,Sales Forecast,parent_warehouse,link,Warehouse,1
+Manufacturing,Sales Forecast,amended_from,link,Sales Forecast,1
+Manufacturing,Sales Forecast,selected_items,multiselect,Sales Forecast Item,1
+Manufacturing,Sales Forecast,items,child_table,Sales Forecast Item,1
+Manufacturing,Sales Forecast Item,item_code,link,Item,1
+Manufacturing,Sales Forecast Item,uom,link,UOM,1
+Manufacturing,Sales Forecast Item,warehouse,link,Warehouse,1
+Manufacturing,Sub Operation,operation,link,Operation,1
+Manufacturing,Work Order,production_item,link,Item,1
+Manufacturing,Work Order,bom_no,link,BOM,1
+Manufacturing,Work Order,company,link,Company,1
+Manufacturing,Work Order,sales_order,link,Sales Order,1
+Manufacturing,Work Order,project,link,Project,1
+Manufacturing,Work Order,wip_warehouse,link,Warehouse,1
+Manufacturing,Work Order,fg_warehouse,link,Warehouse,1
+Manufacturing,Work Order,scrap_warehouse,link,Warehouse,1
+Manufacturing,Work Order,stock_uom,link,UOM,1
+Manufacturing,Work Order,material_request,link,Material Request,1
+Manufacturing,Work Order,production_plan,link,Production Plan,1
+Manufacturing,Work Order,product_bundle_item,link,Item,1
+Manufacturing,Work Order,amended_from,link,Work Order,1
+Manufacturing,Work Order,source_warehouse,link,Warehouse,1
+Manufacturing,Work Order,mps,link,Master Production Schedule,1
+Manufacturing,Work Order,subcontracting_inward_order,link,Subcontracting Inward Order,1
+Manufacturing,Work Order,required_items,child_table,Work Order Item,1
+Manufacturing,Work Order,operations,child_table,Work Order Operation,1
+Manufacturing,Work Order,non_stock_items,child_table,Work Order Additional Item,1
+Manufacturing,Work Order,secondary_items,child_table,Work Order Additional Item,1
+Manufacturing,Work Order Additional Item,item_code,link,Item,1
+Manufacturing,Work Order Additional Item,uom,link,UOM,1
+Manufacturing,Work Order Item,operation,link,Operation,1
+Manufacturing,Work Order Item,item_code,link,Item,1
+Manufacturing,Work Order Item,source_warehouse,link,Warehouse,1
+Manufacturing,Work Order Item,stock_uom,link,UOM,1
+Manufacturing,Work Order Operation,operation,link,Operation,1
+Manufacturing,Work Order Operation,bom,link,BOM,1
+Manufacturing,Work Order Operation,workstation,link,Workstation,1
+Manufacturing,Work Order Operation,workstation_type,link,Workstation Type,1
+Manufacturing,Work Order Operation,bom_no,link,BOM,1
+Manufacturing,Work Order Operation,finished_good,link,Item,1
+Manufacturing,Work Order Operation,wip_warehouse,link,Warehouse,1
+Manufacturing,Work Order Operation,fg_warehouse,link,Warehouse,1
+Manufacturing,Work Order Operation,source_warehouse,link,Warehouse,1
+Manufacturing,Workstation,holiday_list,link,Holiday List,1
+Manufacturing,Workstation,workstation_type,link,Workstation Type,1
+Manufacturing,Workstation,plant_floor,link,Plant Floor,1
+Manufacturing,Workstation,warehouse,link,Warehouse,1
+Manufacturing,Workstation,working_hours,child_table,Workstation Working Hour,1
+Manufacturing,Workstation,workstation_costs,child_table,Workstation Cost,1
+Manufacturing,Workstation Cost,operating_component,link,Workstation Operating Component,1
+Manufacturing,Workstation Operating Component,accounts,child_table,Workstation Operating Component Account,1
+Manufacturing,Workstation Operating Component Account,company,link,Company,1
+Manufacturing,Workstation Operating Component Account,expense_account,link,Account,1
+Manufacturing,Workstation Type,workstation_costs,child_table,Workstation Cost,1
+Portal,Website Attribute,attribute,link,Item Attribute,1
+Projects,Activity Cost,activity_type,link,Activity Type,1
+Projects,Activity Cost,employee,link,Employee,1
+Projects,Activity Cost,department,link,Department,1
+Projects,Dependent Task,task,link,Task,1
+Projects,Project,project_type,link,Project Type,1
+Projects,Project,project_template,link,Project Template,1
+Projects,Project,department,link,Department,1
+Projects,Project,customer,link,Customer,1
+Projects,Project,sales_order,link,Sales Order,1
+Projects,Project,company,link,Company,1
+Projects,Project,cost_center,link,Cost Center,1
+Projects,Project,holiday_list,link,Holiday List,1
+Projects,Project,users,child_table,Project User,1
+Projects,Project Template,project_type,link,Project Type,1
+Projects,Project Template,tasks,child_table,Project Template Task,1
+Projects,Project Template Task,task,link,Task,1
+Projects,Project Update,project,link,Project,1
+Projects,Project Update,amended_from,link,Project Update,1
+Projects,Project Update,users,child_table,Project User,1
+Projects,Project User,user,link,User,0
+Projects,Task,project,link,Project,1
+Projects,Task,issue,link,Issue,1
+Projects,Task,type,link,Task Type,1
+Projects,Task,parent_task,link,Task,1
+Projects,Task,department,link,Department,1
+Projects,Task,company,link,Company,1
+Projects,Task,completed_by,link,User,0
+Projects,Task,depends_on,child_table,Task Depends On,1
+Projects,Task Depends On,task,link,Task,1
+Projects,Timesheet,company,link,Company,1
+Projects,Timesheet,sales_invoice,link,Sales Invoice,1
+Projects,Timesheet,employee,link,Employee,1
+Projects,Timesheet,department,link,Department,1
+Projects,Timesheet,user,link,User,0
+Projects,Timesheet,amended_from,link,Timesheet,1
+Projects,Timesheet,parent_project,link,Project,1
+Projects,Timesheet,customer,link,Customer,1
+Projects,Timesheet,currency,link,Currency,0
+Projects,Timesheet,time_logs,child_table,Timesheet Detail,1
+Projects,Timesheet Detail,activity_type,link,Activity Type,1
+Projects,Timesheet Detail,project,link,Project,1
+Projects,Timesheet Detail,task,link,Task,1
+Projects,Timesheet Detail,sales_invoice,link,Sales Invoice,1
+Quality Management,Non Conformance,procedure,link,Quality Procedure,1
+Quality Management,Quality Action,goal,link,Quality Goal,1
+Quality Management,Quality Action,procedure,link,Quality Procedure,1
+Quality Management,Quality Action,review,link,Quality Review,1
+Quality Management,Quality Action,feedback,link,Quality Feedback,1
+Quality Management,Quality Action,resolutions,child_table,Quality Action Resolution,1
+Quality Management,Quality Action Resolution,responsible,link,User,0
+Quality Management,Quality Feedback,template,link,Quality Feedback Template,1
+Quality Management,Quality Feedback,parameters,child_table,Quality Feedback Parameter,1
+Quality Management,Quality Feedback,document_name,dynamic_link,<document_type>,0
+Quality Management,Quality Feedback Template,parameters,child_table,Quality Feedback Template Parameter,1
+Quality Management,Quality Goal,procedure,link,Quality Procedure,1
+Quality Management,Quality Goal,objectives,child_table,Quality Goal Objective,1
+Quality Management,Quality Goal Objective,uom,link,UOM,1
+Quality Management,Quality Meeting,minutes,child_table,Quality Meeting Minutes,1
+Quality Management,Quality Meeting,agenda,child_table,Quality Meeting Agenda,1
+Quality Management,Quality Meeting Minutes,document_name,dynamic_link,<document_type>,0
+Quality Management,Quality Procedure,parent_quality_procedure,link,Quality Procedure,1
+Quality Management,Quality Procedure,process_owner,link,User,0
+Quality Management,Quality Procedure,processes,child_table,Quality Procedure Process,1
+Quality Management,Quality Procedure Process,procedure,link,Quality Procedure,1
+Quality Management,Quality Review,procedure,link,Quality Procedure,1
+Quality Management,Quality Review,goal,link,Quality Goal,1
+Quality Management,Quality Review,reviews,child_table,Quality Review Objective,1
+Quality Management,Quality Review Objective,uom,link,UOM,1
+Regional,Import Supplier Invoice,company,link,Company,1
+Regional,Import Supplier Invoice,item_code,link,Item,1
+Regional,Import Supplier Invoice,supplier_group,link,Supplier Group,1
+Regional,Import Supplier Invoice,tax_account,link,Account,1
+Regional,Import Supplier Invoice,default_buying_price_list,link,Price List,1
+Regional,Lower Deduction Certificate,supplier,link,Supplier,1
+Regional,Lower Deduction Certificate,fiscal_year,link,Fiscal Year,1
+Regional,Lower Deduction Certificate,tax_withholding_category,link,Tax Withholding Category,1
+Regional,Lower Deduction Certificate,company,link,Company,1
+Regional,South Africa VAT Settings,company,link,Company,1
+Regional,South Africa VAT Settings,vat_accounts,child_table,South Africa VAT Account,1
+Regional,UAE VAT Account,account,link,Account,1
+Regional,UAE VAT Settings,company,link,Company,1
+Regional,UAE VAT Settings,uae_vat_accounts,child_table,UAE VAT Account,1
+Selling,Customer,gender,link,Gender,0
+Selling,Customer,default_bank_account,link,Bank Account,1
+Selling,Customer,lead_name,link,Lead,1
+Selling,Customer,account_manager,link,User,0
+Selling,Customer,customer_group,link,Customer Group,1
+Selling,Customer,territory,link,Territory,1
+Selling,Customer,tax_category,link,Tax Category,1
+Selling,Customer,represents_company,link,Company,1
+Selling,Customer,default_currency,link,Currency,0
+Selling,Customer,default_price_list,link,Price List,1
+Selling,Customer,language,link,Language,0
+Selling,Customer,customer_primary_contact,link,Contact,0
+Selling,Customer,customer_primary_address,link,Address,0
+Selling,Customer,payment_terms,link,Payment Terms Template,1
+Selling,Customer,market_segment,link,Market Segment,1
+Selling,Customer,industry,link,Industry Type,1
+Selling,Customer,loyalty_program,link,Loyalty Program,1
+Selling,Customer,default_sales_partner,link,Sales Partner,1
+Selling,Customer,tax_withholding_category,link,Tax Withholding Category,1
+Selling,Customer,opportunity_name,link,Opportunity,1
+Selling,Customer,prospect_name,link,Prospect,1
+Selling,Customer,tax_withholding_group,link,Tax Withholding Group,1
+Selling,Customer,companies,child_table,Allowed To Transact With,1
+Selling,Customer,accounts,child_table,Party Account,1
+Selling,Customer,sales_team,child_table,Sales Team,1
+Selling,Customer,credit_limits,child_table,Customer Credit Limit,1
+Selling,Customer,allowed_companies,multiselect,Company Restriction,1
+Selling,Customer,portal_users,child_table,Portal User,1
+Selling,Customer,supplier_numbers,child_table,Supplier Number At Customer,1
+Selling,Customer Credit Limit,company,link,Company,1
+Selling,Delivery Schedule Item,item_code,link,Item,1
+Selling,Delivery Schedule Item,sales_order,link,Sales Order,1
+Selling,Delivery Schedule Item,warehouse,link,Warehouse,1
+Selling,Delivery Schedule Item,uom,link,UOM,1
+Selling,Delivery Schedule Item,stock_uom,link,UOM,1
+Selling,Installation Note,customer,link,Customer,1
+Selling,Installation Note,customer_address,link,Address,0
+Selling,Installation Note,contact_person,link,Contact,0
+Selling,Installation Note,territory,link,Territory,1
+Selling,Installation Note,customer_group,link,Customer Group,1
+Selling,Installation Note,company,link,Company,1
+Selling,Installation Note,amended_from,link,Installation Note,1
+Selling,Installation Note,project,link,Project,1
+Selling,Installation Note,items,child_table,Installation Note Item,1
+Selling,Installation Note Item,item_code,link,Item,1
+Selling,Installation Note Item,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Selling,Party Specific Item,party,dynamic_link,<party_type>,0
+Selling,Party Specific Item,based_on_value,dynamic_link,<restrict_based_on>,0
+Selling,Product Bundle,new_item_code,link,Item,1
+Selling,Product Bundle,amended_from,link,Product Bundle,1
+Selling,Product Bundle,items,child_table,Product Bundle Item,1
+Selling,Product Bundle Item,item_code,link,Item,1
+Selling,Product Bundle Item,uom,link,UOM,1
+Selling,Proforma Invoice,sales_order,link,Sales Order,1
+Selling,Proforma Invoice,customer,link,Customer,1
+Selling,Proforma Invoice,company,link,Company,1
+Selling,Proforma Invoice,currency,link,Currency,0
+Selling,Proforma Invoice,print_format,link,Print Format,0
+Selling,Proforma Invoice,letter_head,link,Letter Head,0
+Selling,Proforma Invoice,amended_from,link,Proforma Invoice,1
+Selling,Proforma Invoice,items,child_table,Proforma Invoice Item,1
+Selling,Proforma Invoice Item,item_code,link,Item,1
+Selling,Proforma Invoice Item,uom,link,UOM,1
+Selling,Quotation,quotation_to,link,DocType,0
+Selling,Quotation,amended_from,link,Quotation,1
+Selling,Quotation,company,link,Company,1
+Selling,Quotation,customer_address,link,Address,0
+Selling,Quotation,contact_person,link,Contact,0
+Selling,Quotation,shipping_address_name,link,Address,0
+Selling,Quotation,customer_group,link,Customer Group,1
+Selling,Quotation,territory,link,Territory,1
+Selling,Quotation,currency,link,Currency,0
+Selling,Quotation,selling_price_list,link,Price List,1
+Selling,Quotation,price_list_currency,link,Currency,0
+Selling,Quotation,tax_category,link,Tax Category,1
+Selling,Quotation,shipping_rule,link,Shipping Rule,1
+Selling,Quotation,taxes_and_charges,link,Sales Taxes and Charges Template,1
+Selling,Quotation,coupon_code,link,Coupon Code,1
+Selling,Quotation,referral_sales_partner,link,Sales Partner,1
+Selling,Quotation,payment_terms_template,link,Payment Terms Template,1
+Selling,Quotation,tc_name,link,Terms and Conditions,1
+Selling,Quotation,letter_head,link,Letter Head,0
+Selling,Quotation,select_print_heading,link,Print Heading,0
+Selling,Quotation,language,link,Language,0
+Selling,Quotation,auto_repeat,link,Auto Repeat,0
+Selling,Quotation,supplier_quotation,link,Supplier Quotation,1
+Selling,Quotation,opportunity,link,Opportunity,1
+Selling,Quotation,company_address,link,Address,0
+Selling,Quotation,incoterm,link,Incoterm,1
+Selling,Quotation,utm_campaign,link,UTM Campaign,0
+Selling,Quotation,utm_source,link,UTM Source,0
+Selling,Quotation,utm_medium,link,UTM Medium,0
+Selling,Quotation,company_contact_person,link,Contact,0
+Selling,Quotation,items,child_table,Quotation Item,1
+Selling,Quotation,pricing_rules,child_table,Pricing Rule Detail,1
+Selling,Quotation,taxes,child_table,Sales Taxes and Charges,1
+Selling,Quotation,payment_schedule,child_table,Payment Schedule,1
+Selling,Quotation,lost_reasons,multiselect,Quotation Lost Reason Detail,1
+Selling,Quotation,packed_items,child_table,Packed Item,1
+Selling,Quotation,competitors,multiselect,Competitor Detail,1
+Selling,Quotation,item_wise_tax_details,child_table,Item Wise Tax Detail,1
+Selling,Quotation,party_name,dynamic_link,<quotation_to>,0
+Selling,Quotation Item,item_code,link,Item,1
+Selling,Quotation Item,product_bundle,link,Product Bundle,1
+Selling,Quotation Item,stock_uom,link,UOM,1
+Selling,Quotation Item,uom,link,UOM,1
+Selling,Quotation Item,weight_uom,link,UOM,1
+Selling,Quotation Item,warehouse,link,Warehouse,1
+Selling,Quotation Item,prevdoc_doctype,link,DocType,0
+Selling,Quotation Item,item_tax_template,link,Item Tax Template,1
+Selling,Quotation Item,item_group,link,Item Group,1
+Selling,Quotation Item,brand,link,Brand,1
+Selling,Quotation Item,blanket_order,link,Blanket Order,1
+Selling,Quotation Item,prevdoc_docname,dynamic_link,<prevdoc_doctype>,0
+Selling,SMS Center,customer,link,Customer,1
+Selling,SMS Center,supplier,link,Supplier,1
+Selling,SMS Center,sales_partner,link,Sales Partner,1
+Selling,SMS Center,department,link,Department,1
+Selling,SMS Center,branch,link,Branch,1
+Selling,Sales Order,customer,link,Customer,1
+Selling,Sales Order,amended_from,link,Sales Order,1
+Selling,Sales Order,company,link,Company,1
+Selling,Sales Order,customer_address,link,Address,0
+Selling,Sales Order,contact_person,link,Contact,0
+Selling,Sales Order,company_address,link,Address,0
+Selling,Sales Order,shipping_address_name,link,Address,0
+Selling,Sales Order,customer_group,link,Customer Group,1
+Selling,Sales Order,territory,link,Territory,1
+Selling,Sales Order,currency,link,Currency,0
+Selling,Sales Order,selling_price_list,link,Price List,1
+Selling,Sales Order,price_list_currency,link,Currency,0
+Selling,Sales Order,set_warehouse,link,Warehouse,1
+Selling,Sales Order,tax_category,link,Tax Category,1
+Selling,Sales Order,shipping_rule,link,Shipping Rule,1
+Selling,Sales Order,taxes_and_charges,link,Sales Taxes and Charges Template,1
+Selling,Sales Order,coupon_code,link,Coupon Code,1
+Selling,Sales Order,payment_terms_template,link,Payment Terms Template,1
+Selling,Sales Order,tc_name,link,Terms and Conditions,1
+Selling,Sales Order,inter_company_order_reference,link,Purchase Order,1
+Selling,Sales Order,project,link,Project,1
+Selling,Sales Order,party_account_currency,link,Currency,0
+Selling,Sales Order,language,link,Language,0
+Selling,Sales Order,letter_head,link,Letter Head,0
+Selling,Sales Order,select_print_heading,link,Print Heading,0
+Selling,Sales Order,sales_partner,link,Sales Partner,1
+Selling,Sales Order,auto_repeat,link,Auto Repeat,0
+Selling,Sales Order,represents_company,link,Company,1
+Selling,Sales Order,dispatch_address_name,link,Address,0
+Selling,Sales Order,cost_center,link,Cost Center,1
+Selling,Sales Order,incoterm,link,Incoterm,1
+Selling,Sales Order,utm_medium,link,UTM Medium,0
+Selling,Sales Order,utm_source,link,UTM Source,0
+Selling,Sales Order,utm_campaign,link,UTM Campaign,0
+Selling,Sales Order,company_contact_person,link,Contact,0
+Selling,Sales Order,items,child_table,Sales Order Item,1
+Selling,Sales Order,pricing_rules,child_table,Pricing Rule Detail,1
+Selling,Sales Order,taxes,child_table,Sales Taxes and Charges,1
+Selling,Sales Order,packed_items,child_table,Packed Item,1
+Selling,Sales Order,payment_schedule,child_table,Payment Schedule,1
+Selling,Sales Order,sales_team,child_table,Sales Team,1
+Selling,Sales Order,item_wise_tax_details,child_table,Item Wise Tax Detail,1
+Selling,Sales Order Item,item_code,link,Item,1
+Selling,Sales Order Item,product_bundle,link,Product Bundle,1
+Selling,Sales Order Item,stock_uom,link,UOM,1
+Selling,Sales Order Item,uom,link,UOM,1
+Selling,Sales Order Item,supplier,link,Supplier,1
+Selling,Sales Order Item,weight_uom,link,UOM,1
+Selling,Sales Order Item,warehouse,link,Warehouse,1
+Selling,Sales Order Item,target_warehouse,link,Warehouse,1
+Selling,Sales Order Item,prevdoc_docname,link,Quotation,1
+Selling,Sales Order Item,brand,link,Brand,1
+Selling,Sales Order Item,item_group,link,Item Group,1
+Selling,Sales Order Item,blanket_order,link,Blanket Order,1
+Selling,Sales Order Item,item_tax_template,link,Item Tax Template,1
+Selling,Sales Order Item,bom_no,link,BOM,1
+Selling,Sales Order Item,purchase_order,link,Purchase Order,1
+Selling,Sales Order Item,material_request,link,Material Request,1
+Selling,Sales Order Item,cost_center,link,Cost Center,1
+Selling,Sales Order Item,project,link,Project,1
+Selling,Sales Order Item,fg_item,link,Item,1
+Selling,Sales Team,sales_person,link,Sales Person,1
+Selling,Selling Settings,customer_group,link,Customer Group,1
+Selling,Selling Settings,territory,link,Territory,1
+Selling,Selling Settings,selling_price_list,link,Price List,1
+Selling,Selling Settings,role_to_override_stop_action,link,Role,0
+Selling,Selling Settings,default_proforma_print_format,link,Print Format,0
+Selling,Supplier Number At Customer,company,link,Company,1
+Setup,Authorization Rule,company,link,Company,1
+Setup,Authorization Rule,system_role,link,Role,0
+Setup,Authorization Rule,to_emp,link,Employee,1
+Setup,Authorization Rule,system_user,link,User,0
+Setup,Authorization Rule,to_designation,link,Designation,1
+Setup,Authorization Rule,approving_role,link,Role,0
+Setup,Authorization Rule,approving_user,link,User,0
+Setup,Authorization Rule,master_name,dynamic_link,<customer_or_item>,0
+Setup,Brand,brand_defaults,child_table,Item Default,1
+Setup,Company,default_finance_book,link,Finance Book,1
+Setup,Company,parent_company,link,Company,1
+Setup,Company,default_currency,link,Currency,0
+Setup,Company,default_letter_head,link,Letter Head,0
+Setup,Company,default_holiday_list,link,Holiday List,1
+Setup,Company,default_warehouse_for_sales_return,link,Warehouse,1
+Setup,Company,country,link,Country,0
+Setup,Company,existing_company,link,Company,1
+Setup,Company,default_bank_account,link,Account,1
+Setup,Company,default_cash_account,link,Account,1
+Setup,Company,default_receivable_account,link,Account,1
+Setup,Company,round_off_account,link,Account,1
+Setup,Company,round_off_cost_center,link,Cost Center,1
+Setup,Company,write_off_account,link,Account,1
+Setup,Company,exchange_gain_loss_account,link,Account,1
+Setup,Company,unrealized_exchange_gain_loss_account,link,Account,1
+Setup,Company,default_payable_account,link,Account,1
+Setup,Company,default_expense_account,link,Account,1
+Setup,Company,default_income_account,link,Account,1
+Setup,Company,default_deferred_revenue_account,link,Account,1
+Setup,Company,default_deferred_expense_account,link,Account,1
+Setup,Company,cost_center,link,Cost Center,1
+Setup,Company,payment_terms,link,Payment Terms Template,1
+Setup,Company,default_inventory_account,link,Account,1
+Setup,Company,stock_adjustment_account,link,Account,1
+Setup,Company,default_purchase_price_variance_account,link,Account,1
+Setup,Company,default_manufacturing_variance_account,link,Account,1
+Setup,Company,stock_received_but_not_billed,link,Account,1
+Setup,Company,accumulated_depreciation_account,link,Account,1
+Setup,Company,depreciation_expense_account,link,Account,1
+Setup,Company,disposal_account,link,Account,1
+Setup,Company,depreciation_cost_center,link,Cost Center,1
+Setup,Company,capital_work_in_progress_account,link,Account,1
+Setup,Company,asset_received_but_not_billed,link,Account,1
+Setup,Company,exception_budget_approver_role,link,Role,0
+Setup,Company,default_selling_terms,link,Terms and Conditions,1
+Setup,Company,default_buying_terms,link,Terms and Conditions,1
+Setup,Company,default_in_transit_warehouse,link,Warehouse,1
+Setup,Company,default_warehouse,link,Warehouse,1
+Setup,Company,sample_retention_warehouse,link,Warehouse,1
+Setup,Company,unrealized_profit_loss_account,link,Account,1
+Setup,Company,default_discount_account,link,Account,1
+Setup,Company,default_provisional_account,link,Account,1
+Setup,Company,default_advance_received_account,link,Account,1
+Setup,Company,default_advance_paid_account,link,Account,1
+Setup,Company,default_operating_cost_account,link,Account,1
+Setup,Company,round_off_for_opening,link,Account,1
+Setup,Company,reporting_currency,link,Currency,0
+Setup,Company,purchase_expense_account,link,Account,1
+Setup,Company,purchase_expense_contra_account,link,Account,1
+Setup,Company,service_expense_account,link,Account,1
+Setup,Company,expenses_added_to_stock_account,link,Account,1
+Setup,Company,expenses_added_to_stock_contra_account,link,Account,1
+Setup,Company,default_wip_warehouse,link,Warehouse,1
+Setup,Company,default_fg_warehouse,link,Warehouse,1
+Setup,Company,default_scrap_warehouse,link,Warehouse,1
+Setup,Company,default_sales_contact,link,Contact,0
+Setup,Company,role_allowed_for_frozen_entries,link,Role,0
+Setup,Company,default_letter_head_report,link,Letter Head,0
+Setup,Company,stock_delivered_but_not_billed,link,Account,1
+Setup,Currency Exchange,from_currency,link,Currency,0
+Setup,Currency Exchange,to_currency,link,Currency,0
+Setup,Customer Group,parent_customer_group,link,Customer Group,1
+Setup,Customer Group,default_price_list,link,Price List,1
+Setup,Customer Group,payment_terms,link,Payment Terms Template,1
+Setup,Customer Group,old_parent,link,Customer Group,1
+Setup,Customer Group,accounts,child_table,Party Account,1
+Setup,Customer Group,credit_limits,child_table,Customer Credit Limit,1
+Setup,Department,parent_department,link,Department,1
+Setup,Department,company,link,Company,1
+Setup,Driver,transporter,link,Supplier,1
+Setup,Driver,employee,link,Employee,1
+Setup,Driver,address,link,Address,0
+Setup,Driver,user,link,User,0
+Setup,Driver,driving_license_category,child_table,Driving License Category,1
+Setup,Email Digest,company,link,Company,1
+Setup,Email Digest,recipients,multiselect,Email Digest Recipient,1
+Setup,Email Digest Recipient,recipient,link,User,0
+Setup,Employee,salutation,link,Salutation,0
+Setup,Employee,company,link,Company,1
+Setup,Employee,gender,link,Gender,0
+Setup,Employee,user_id,link,User,0
+Setup,Employee,department,link,Department,1
+Setup,Employee,designation,link,Designation,1
+Setup,Employee,reports_to,link,Employee,1
+Setup,Employee,branch,link,Branch,1
+Setup,Employee,holiday_list,link,Holiday List,1
+Setup,Employee,salary_currency,link,Currency,0
+Setup,Employee,education,child_table,Employee Education,1
+Setup,Employee,external_work_history,child_table,Employee External Work History,1
+Setup,Employee,internal_work_history,child_table,Employee Internal Work History,1
+Setup,Employee Group,employee_list,child_table,Employee Group Table,1
+Setup,Employee Group Table,employee,link,Employee,1
+Setup,Employee Internal Work History,branch,link,Branch,1
+Setup,Employee Internal Work History,department,link,Department,1
+Setup,Employee Internal Work History,designation,link,Designation,1
+Setup,Global Defaults,default_company,link,Company,1
+Setup,Global Defaults,country,link,Country,0
+Setup,Global Defaults,default_distance_unit,link,UOM,1
+Setup,Global Defaults,default_currency,link,Currency,0
+Setup,Global Defaults,demo_company,link,Company,1
+Setup,Holiday List,holidays,child_table,Holiday,1
+Setup,Item Group,parent_item_group,link,Item Group,1
+Setup,Item Group,old_parent,link,Item Group,1
+Setup,Item Group,item_group_defaults,child_table,Item Default,1
+Setup,Item Group,taxes,child_table,Item Tax,1
+Setup,Party Type,party_type,link,DocType,0
+Setup,Quotation Lost Reason Detail,lost_reason,link,Quotation Lost Reason,1
+Setup,Sales Partner,partner_type,link,Sales Partner Type,1
+Setup,Sales Partner,territory,link,Territory,1
+Setup,Sales Partner,targets,child_table,Target Detail,1
+Setup,Sales Person,parent_sales_person,link,Sales Person,1
+Setup,Sales Person,employee,link,Employee,1
+Setup,Sales Person,department,link,Department,1
+Setup,Sales Person,targets,child_table,Target Detail,1
+Setup,Supplier Group,parent_supplier_group,link,Supplier Group,1
+Setup,Supplier Group,payment_terms,link,Payment Terms Template,1
+Setup,Supplier Group,old_parent,link,Supplier Group,1
+Setup,Supplier Group,accounts,child_table,Party Account,1
+Setup,Target Detail,item_group,link,Item Group,1
+Setup,Target Detail,fiscal_year,link,Fiscal Year,1
+Setup,Target Detail,distribution_id,link,Monthly Distribution,1
+Setup,Territory,parent_territory,link,Territory,1
+Setup,Territory,territory_manager,link,Sales Person,1
+Setup,Territory,old_parent,link,Territory,1
+Setup,Territory,targets,child_table,Target Detail,1
+Setup,Transaction Deletion Record,company,link,Company,1
+Setup,Transaction Deletion Record,amended_from,link,Transaction Deletion Record,1
+Setup,Transaction Deletion Record,doctypes,child_table,Transaction Deletion Record Details,1
+Setup,Transaction Deletion Record,doctypes_to_delete,child_table,Transaction Deletion Record To Delete,1
+Setup,Transaction Deletion Record,doctypes_to_be_ignored,child_table,Transaction Deletion Record Item,1
+Setup,Transaction Deletion Record Item,doctype_name,link,DocType,0
+Setup,Transaction Deletion Record To Delete,doctype_name,link,DocType,0
+Setup,UOM,category,link,UOM Category,1
+Setup,UOM Conversion Factor,category,link,UOM Category,1
+Setup,UOM Conversion Factor,from_uom,link,UOM,1
+Setup,UOM Conversion Factor,to_uom,link,UOM,1
+Setup,Vehicle,employee,link,Employee,1
+Setup,Vehicle,uom,link,UOM,1
+Setup,Vehicle,amended_from,link,Vehicle,1
+Setup,Vehicle,company,link,Company,1
+Setup,Website Item Group,item_group,link,Item Group,1
+Stock,Batch,item,link,Item,1
+Stock,Batch,parent_batch,link,Batch,1
+Stock,Batch,supplier,link,Supplier,1
+Stock,Batch,reference_doctype,link,DocType,0
+Stock,Batch,stock_uom,link,UOM,1
+Stock,Batch,reference_name,dynamic_link,<reference_doctype>,0
+Stock,Bin,warehouse,link,Warehouse,1
+Stock,Bin,item_code,link,Item,1
+Stock,Bin,stock_uom,link,UOM,1
+Stock,Bin,company,link,Company,1
+Stock,Company Restriction,company,link,Company,1
+Stock,Delivery Note,customer,link,Customer,1
+Stock,Delivery Note,amended_from,link,Delivery Note,1
+Stock,Delivery Note,company,link,Company,1
+Stock,Delivery Note,return_against,link,Delivery Note,1
+Stock,Delivery Note,shipping_address_name,link,Address,0
+Stock,Delivery Note,contact_person,link,Contact,0
+Stock,Delivery Note,customer_address,link,Address,0
+Stock,Delivery Note,company_address,link,Address,0
+Stock,Delivery Note,currency,link,Currency,0
+Stock,Delivery Note,selling_price_list,link,Price List,1
+Stock,Delivery Note,price_list_currency,link,Currency,0
+Stock,Delivery Note,set_warehouse,link,Warehouse,1
+Stock,Delivery Note,tax_category,link,Tax Category,1
+Stock,Delivery Note,shipping_rule,link,Shipping Rule,1
+Stock,Delivery Note,taxes_and_charges,link,Sales Taxes and Charges Template,1
+Stock,Delivery Note,tc_name,link,Terms and Conditions,1
+Stock,Delivery Note,transporter,link,Supplier,1
+Stock,Delivery Note,driver,link,Driver,1
+Stock,Delivery Note,project,link,Project,1
+Stock,Delivery Note,customer_group,link,Customer Group,1
+Stock,Delivery Note,territory,link,Territory,1
+Stock,Delivery Note,letter_head,link,Letter Head,0
+Stock,Delivery Note,select_print_heading,link,Print Heading,0
+Stock,Delivery Note,language,link,Language,0
+Stock,Delivery Note,auto_repeat,link,Auto Repeat,0
+Stock,Delivery Note,sales_partner,link,Sales Partner,1
+Stock,Delivery Note,inter_company_reference,link,Purchase Receipt,1
+Stock,Delivery Note,set_target_warehouse,link,Warehouse,1
+Stock,Delivery Note,represents_company,link,Company,1
+Stock,Delivery Note,dispatch_address_name,link,Address,0
+Stock,Delivery Note,cost_center,link,Cost Center,1
+Stock,Delivery Note,incoterm,link,Incoterm,1
+Stock,Delivery Note,delivery_trip,link,Delivery Trip,1
+Stock,Delivery Note,utm_medium,link,UTM Medium,0
+Stock,Delivery Note,utm_source,link,UTM Source,0
+Stock,Delivery Note,utm_campaign,link,UTM Campaign,0
+Stock,Delivery Note,company_contact_person,link,Contact,0
+Stock,Delivery Note,items,child_table,Delivery Note Item,1
+Stock,Delivery Note,pricing_rules,child_table,Pricing Rule Detail,1
+Stock,Delivery Note,packed_items,child_table,Packed Item,1
+Stock,Delivery Note,taxes,child_table,Sales Taxes and Charges,1
+Stock,Delivery Note,sales_team,child_table,Sales Team,1
+Stock,Delivery Note,item_wise_tax_details,child_table,Item Wise Tax Detail,1
+Stock,Delivery Note Item,item_code,link,Item,1
+Stock,Delivery Note Item,product_bundle,link,Product Bundle,1
+Stock,Delivery Note Item,stock_uom,link,UOM,1
+Stock,Delivery Note Item,uom,link,UOM,1
+Stock,Delivery Note Item,weight_uom,link,UOM,1
+Stock,Delivery Note Item,warehouse,link,Warehouse,1
+Stock,Delivery Note Item,target_warehouse,link,Warehouse,1
+Stock,Delivery Note Item,quality_inspection,link,Quality Inspection,1
+Stock,Delivery Note Item,item_group,link,Item Group,1
+Stock,Delivery Note Item,brand,link,Brand,1
+Stock,Delivery Note Item,expense_account,link,Account,1
+Stock,Delivery Note Item,item_tax_template,link,Item Tax Template,1
+Stock,Delivery Note Item,cost_center,link,Cost Center,1
+Stock,Delivery Note Item,against_sales_order,link,Sales Order,1
+Stock,Delivery Note Item,against_sales_invoice,link,Sales Invoice,1
+Stock,Delivery Note Item,project,link,Project,1
+Stock,Delivery Note Item,purchase_order,link,Purchase Order,1
+Stock,Delivery Note Item,material_request,link,Material Request,1
+Stock,Delivery Note Item,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Stock,Delivery Note Item,batch_no,link,Batch,1
+Stock,Delivery Note Item,against_pick_list,link,Pick List,1
+Stock,Delivery Settings,dispatch_template,link,Email Template,0
+Stock,Delivery Settings,dispatch_attachment,link,Print Format,0
+Stock,Delivery Stop,customer,link,Customer,1
+Stock,Delivery Stop,address,link,Address,0
+Stock,Delivery Stop,delivery_note,link,Delivery Note,1
+Stock,Delivery Stop,contact,link,Contact,0
+Stock,Delivery Stop,uom,link,UOM,1
+Stock,Delivery Trip,company,link,Company,1
+Stock,Delivery Trip,driver,link,Driver,1
+Stock,Delivery Trip,uom,link,UOM,1
+Stock,Delivery Trip,vehicle,link,Vehicle,1
+Stock,Delivery Trip,amended_from,link,Delivery Trip,1
+Stock,Delivery Trip,driver_address,link,Address,0
+Stock,Delivery Trip,employee,link,Employee,1
+Stock,Delivery Trip,delivery_stops,child_table,Delivery Stop,1
+Stock,Inventory Dimension,reference_document,link,DocType,0
+Stock,Inventory Dimension,document_type,link,DocType,0
+Stock,Item,variant_of,link,Item,1
+Stock,Item,item_group,link,Item Group,1
+Stock,Item,stock_uom,link,UOM,1
+Stock,Item,asset_category,link,Asset Category,1
+Stock,Item,brand,link,Brand,1
+Stock,Item,weight_uom,link,UOM,1
+Stock,Item,purchase_uom,link,UOM,1
+Stock,Item,country_of_origin,link,Country,0
+Stock,Item,customs_tariff_number,link,Customs Tariff Number,1
+Stock,Item,sales_uom,link,UOM,1
+Stock,Item,quality_inspection_template,link,Quality Inspection Template,1
+Stock,Item,default_bom,link,BOM,1
+Stock,Item,default_item_manufacturer,link,Manufacturer,1
+Stock,Item,purchase_tax_withholding_category,link,Tax Withholding Category,1
+Stock,Item,sales_tax_withholding_category,link,Tax Withholding Category,1
+Stock,Item,barcodes,child_table,Item Barcode,1
+Stock,Item,reorder_levels,child_table,Item Reorder,1
+Stock,Item,uoms,child_table,UOM Conversion Detail,1
+Stock,Item,attributes,child_table,Item Variant Attribute,1
+Stock,Item,item_defaults,child_table,Item Default,1
+Stock,Item,supplier_items,child_table,Item Supplier,1
+Stock,Item,customer_items,child_table,Item Customer Detail,1
+Stock,Item,taxes,child_table,Item Tax,1
+Stock,Item,allowed_companies,multiselect,Company Restriction,1
+Stock,Item Alternative,item_code,link,Item,1
+Stock,Item Alternative,alternative_item_code,link,Item,1
+Stock,Item Attribute,item_attribute_values,child_table,Item Attribute Value,1
+Stock,Item Barcode,uom,link,UOM,1
+Stock,Item Customer Detail,customer_name,link,Customer,1
+Stock,Item Customer Detail,customer_group,link,Customer Group,1
+Stock,Item Default,company,link,Company,1
+Stock,Item Default,default_warehouse,link,Warehouse,1
+Stock,Item Default,default_price_list,link,Price List,1
+Stock,Item Default,default_discount_account,link,Account,1
+Stock,Item Default,default_inventory_account,link,Account,1
+Stock,Item Default,inventory_account_currency,link,Currency,0
+Stock,Item Default,buying_cost_center,link,Cost Center,1
+Stock,Item Default,default_supplier,link,Supplier,1
+Stock,Item Default,expense_account,link,Account,1
+Stock,Item Default,default_provisional_account,link,Account,1
+Stock,Item Default,purchase_expense_account,link,Account,1
+Stock,Item Default,purchase_expense_contra_account,link,Account,1
+Stock,Item Default,expenses_added_to_stock_account,link,Account,1
+Stock,Item Default,expenses_added_to_stock_contra_account,link,Account,1
+Stock,Item Default,purchase_price_variance_account,link,Account,1
+Stock,Item Default,manufacturing_variance_account,link,Account,1
+Stock,Item Default,selling_cost_center,link,Cost Center,1
+Stock,Item Default,income_account,link,Account,1
+Stock,Item Default,default_cogs_account,link,Account,1
+Stock,Item Default,deferred_expense_account,link,Account,1
+Stock,Item Default,deferred_revenue_account,link,Account,1
+Stock,Item Lead Time,item_code,link,Item,1
+Stock,Item Lead Time,stock_uom,link,UOM,1
+Stock,Item Manufacturer,manufacturer,link,Manufacturer,1
+Stock,Item Manufacturer,item_code,link,Item,1
+Stock,Item Price,item_code,link,Item,1
+Stock,Item Price,uom,link,UOM,1
+Stock,Item Price,brand,link,Brand,1
+Stock,Item Price,price_list,link,Price List,1
+Stock,Item Price,customer,link,Customer,1
+Stock,Item Price,supplier,link,Supplier,1
+Stock,Item Price,currency,link,Currency,0
+Stock,Item Price,batch_no,link,Batch,1
+Stock,Item Quality Inspection Parameter,specification,link,Quality Inspection Parameter,1
+Stock,Item Quality Inspection Parameter,parameter_group,link,Quality Inspection Parameter Group,1
+Stock,Item Reorder,warehouse_group,link,Warehouse,1
+Stock,Item Reorder,warehouse,link,Warehouse,1
+Stock,Item Standard Cost,item_code,link,Item,1
+Stock,Item Standard Cost,company,link,Company,1
+Stock,Item Standard Cost,revaluation_entry,link,Stock Reconciliation,1
+Stock,Item Standard Cost,amended_from,link,Item Standard Cost,1
+Stock,Item Supplier,supplier,link,Supplier,1
+Stock,Item Tax,item_tax_template,link,Item Tax Template,1
+Stock,Item Tax,tax_category,link,Tax Category,1
+Stock,Item Variant,item_attribute,link,Item Attribute,1
+Stock,Item Variant Attribute,variant_of,link,Item,1
+Stock,Item Variant Attribute,attribute,link,Item Attribute,1
+Stock,Item Variant Settings,fields,child_table,Variant Field,1
+Stock,Landed Cost Item,item_code,link,Item,1
+Stock,Landed Cost Item,cost_center,link,Cost Center,1
+Stock,Landed Cost Item,receipt_document,dynamic_link,<receipt_document_type>,0
+Stock,Landed Cost Purchase Receipt,supplier,link,Supplier,1
+Stock,Landed Cost Purchase Receipt,receipt_document,dynamic_link,<receipt_document_type>,0
+Stock,Landed Cost Taxes and Charges,expense_account,link,Account,1
+Stock,Landed Cost Taxes and Charges,account_currency,link,Currency,0
+Stock,Landed Cost Vendor Invoice,vendor_invoice,link,Purchase Invoice,1
+Stock,Landed Cost Voucher,company,link,Company,1
+Stock,Landed Cost Voucher,amended_from,link,Landed Cost Voucher,1
+Stock,Landed Cost Voucher,purchase_receipts,child_table,Landed Cost Purchase Receipt,1
+Stock,Landed Cost Voucher,items,child_table,Landed Cost Item,1
+Stock,Landed Cost Voucher,taxes,child_table,Landed Cost Taxes and Charges,1
+Stock,Landed Cost Voucher,vendor_invoices,child_table,Landed Cost Vendor Invoice,1
+Stock,Manufacturer,country,link,Country,0
+Stock,Material Request,customer,link,Customer,1
+Stock,Material Request,company,link,Company,1
+Stock,Material Request,amended_from,link,Material Request,1
+Stock,Material Request,letter_head,link,Letter Head,0
+Stock,Material Request,select_print_heading,link,Print Heading,0
+Stock,Material Request,tc_name,link,Terms and Conditions,1
+Stock,Material Request,job_card,link,Job Card,1
+Stock,Material Request,set_warehouse,link,Warehouse,1
+Stock,Material Request,set_from_warehouse,link,Warehouse,1
+Stock,Material Request,work_order,link,Work Order,1
+Stock,Material Request,buying_price_list,link,Price List,1
+Stock,Material Request,items,child_table,Material Request Item,1
+Stock,Material Request Item,item_code,link,Item,1
+Stock,Material Request Item,uom,link,UOM,1
+Stock,Material Request Item,stock_uom,link,UOM,1
+Stock,Material Request Item,warehouse,link,Warehouse,1
+Stock,Material Request Item,item_group,link,Item Group,1
+Stock,Material Request Item,brand,link,Brand,1
+Stock,Material Request Item,sales_order,link,Sales Order,1
+Stock,Material Request Item,project,link,Project,1
+Stock,Material Request Item,production_plan,link,Production Plan,1
+Stock,Material Request Item,expense_account,link,Account,1
+Stock,Material Request Item,cost_center,link,Cost Center,1
+Stock,Material Request Item,manufacturer,link,Manufacturer,1
+Stock,Material Request Item,from_warehouse,link,Warehouse,1
+Stock,Material Request Item,bom_no,link,BOM,1
+Stock,Material Request Item,wip_composite_asset,link,Asset,1
+Stock,Packed Item,parent_item,link,Item,1
+Stock,Packed Item,item_code,link,Item,1
+Stock,Packed Item,product_bundle,link,Product Bundle,1
+Stock,Packed Item,warehouse,link,Warehouse,1
+Stock,Packed Item,target_warehouse,link,Warehouse,1
+Stock,Packed Item,batch_no,link,Batch,1
+Stock,Packed Item,uom,link,UOM,1
+Stock,Packed Item,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Stock,Packing Slip,delivery_note,link,Delivery Note,1
+Stock,Packing Slip,net_weight_uom,link,UOM,1
+Stock,Packing Slip,gross_weight_uom,link,UOM,1
+Stock,Packing Slip,letter_head,link,Letter Head,0
+Stock,Packing Slip,amended_from,link,Packing Slip,1
+Stock,Packing Slip,items,child_table,Packing Slip Item,1
+Stock,Packing Slip Item,item_code,link,Item,1
+Stock,Packing Slip Item,batch_no,link,Batch,1
+Stock,Packing Slip Item,stock_uom,link,UOM,1
+Stock,Packing Slip Item,weight_uom,link,UOM,1
+Stock,Pick List,company,link,Company,1
+Stock,Pick List,parent_warehouse,link,Warehouse,1
+Stock,Pick List,customer,link,Customer,1
+Stock,Pick List,work_order,link,Work Order,1
+Stock,Pick List,amended_from,link,Pick List,1
+Stock,Pick List,material_request,link,Material Request,1
+Stock,Pick List,locations,child_table,Pick List Item,1
+Stock,Pick List Item,warehouse,link,Warehouse,1
+Stock,Pick List Item,batch_no,link,Batch,1
+Stock,Pick List Item,stock_uom,link,UOM,1
+Stock,Pick List Item,uom,link,UOM,1
+Stock,Pick List Item,item_code,link,Item,1
+Stock,Pick List Item,sales_order,link,Sales Order,1
+Stock,Pick List Item,material_request,link,Material Request,1
+Stock,Pick List Item,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Stock,Price List,currency,link,Currency,0
+Stock,Price List,countries,child_table,Price List Country,1
+Stock,Price List Country,country,link,Country,0
+Stock,Purchase Receipt,supplier,link,Supplier,1
+Stock,Purchase Receipt,company,link,Company,1
+Stock,Purchase Receipt,return_against,link,Purchase Receipt,1
+Stock,Purchase Receipt,supplier_address,link,Address,0
+Stock,Purchase Receipt,contact_person,link,Contact,0
+Stock,Purchase Receipt,shipping_address,link,Address,0
+Stock,Purchase Receipt,currency,link,Currency,0
+Stock,Purchase Receipt,buying_price_list,link,Price List,1
+Stock,Purchase Receipt,price_list_currency,link,Currency,0
+Stock,Purchase Receipt,set_warehouse,link,Warehouse,1
+Stock,Purchase Receipt,rejected_warehouse,link,Warehouse,1
+Stock,Purchase Receipt,supplier_warehouse,link,Warehouse,1
+Stock,Purchase Receipt,tax_category,link,Tax Category,1
+Stock,Purchase Receipt,shipping_rule,link,Shipping Rule,1
+Stock,Purchase Receipt,taxes_and_charges,link,Purchase Taxes and Charges Template,1
+Stock,Purchase Receipt,tc_name,link,Terms and Conditions,1
+Stock,Purchase Receipt,amended_from,link,Purchase Receipt,1
+Stock,Purchase Receipt,project,link,Project,1
+Stock,Purchase Receipt,auto_repeat,link,Auto Repeat,0
+Stock,Purchase Receipt,letter_head,link,Letter Head,0
+Stock,Purchase Receipt,select_print_heading,link,Print Heading,0
+Stock,Purchase Receipt,inter_company_reference,link,Delivery Note,1
+Stock,Purchase Receipt,billing_address,link,Address,0
+Stock,Purchase Receipt,set_from_warehouse,link,Warehouse,1
+Stock,Purchase Receipt,represents_company,link,Company,1
+Stock,Purchase Receipt,cost_center,link,Cost Center,1
+Stock,Purchase Receipt,incoterm,link,Incoterm,1
+Stock,Purchase Receipt,subcontracting_receipt,link,Subcontracting Receipt,1
+Stock,Purchase Receipt,dispatch_address,link,Address,0
+Stock,Purchase Receipt,items,child_table,Purchase Receipt Item,1
+Stock,Purchase Receipt,pricing_rules,child_table,Pricing Rule Detail,1
+Stock,Purchase Receipt,supplied_items,child_table,Purchase Receipt Item Supplied,1
+Stock,Purchase Receipt,taxes,child_table,Purchase Taxes and Charges,1
+Stock,Purchase Receipt,item_wise_tax_details,child_table,Item Wise Tax Detail,1
+Stock,Purchase Receipt Item,item_code,link,Item,1
+Stock,Purchase Receipt Item,uom,link,UOM,1
+Stock,Purchase Receipt Item,stock_uom,link,UOM,1
+Stock,Purchase Receipt Item,weight_uom,link,UOM,1
+Stock,Purchase Receipt Item,warehouse,link,Warehouse,1
+Stock,Purchase Receipt Item,rejected_warehouse,link,Warehouse,1
+Stock,Purchase Receipt Item,quality_inspection,link,Quality Inspection,1
+Stock,Purchase Receipt Item,purchase_order,link,Purchase Order,1
+Stock,Purchase Receipt Item,item_tax_template,link,Item Tax Template,1
+Stock,Purchase Receipt Item,project,link,Project,1
+Stock,Purchase Receipt Item,cost_center,link,Cost Center,1
+Stock,Purchase Receipt Item,brand,link,Brand,1
+Stock,Purchase Receipt Item,item_group,link,Item Group,1
+Stock,Purchase Receipt Item,material_request,link,Material Request,1
+Stock,Purchase Receipt Item,expense_account,link,Account,1
+Stock,Purchase Receipt Item,manufacturer,link,Manufacturer,1
+Stock,Purchase Receipt Item,asset_location,link,Location,1
+Stock,Purchase Receipt Item,asset_category,link,Asset Category,1
+Stock,Purchase Receipt Item,from_warehouse,link,Warehouse,1
+Stock,Purchase Receipt Item,putaway_rule,link,Putaway Rule,1
+Stock,Purchase Receipt Item,purchase_invoice,link,Purchase Invoice,1
+Stock,Purchase Receipt Item,product_bundle,link,Product Bundle,1
+Stock,Purchase Receipt Item,provisional_expense_account,link,Account,1
+Stock,Purchase Receipt Item,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Stock,Purchase Receipt Item,batch_no,link,Batch,1
+Stock,Purchase Receipt Item,rejected_serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Stock,Purchase Receipt Item,wip_composite_asset,link,Asset,1
+Stock,Purchase Receipt Item,sales_order,link,Sales Order,1
+Stock,Putaway Rule,item_code,link,Item,1
+Stock,Putaway Rule,warehouse,link,Warehouse,1
+Stock,Putaway Rule,stock_uom,link,UOM,1
+Stock,Putaway Rule,company,link,Company,1
+Stock,Putaway Rule,uom,link,UOM,1
+Stock,Quality Inspection,item_code,link,Item,1
+Stock,Quality Inspection,item_serial_no,link,Serial No,1
+Stock,Quality Inspection,batch_no,link,Batch,1
+Stock,Quality Inspection,inspected_by,link,User,0
+Stock,Quality Inspection,bom_no,link,BOM,1
+Stock,Quality Inspection,amended_from,link,Quality Inspection,1
+Stock,Quality Inspection,quality_inspection_template,link,Quality Inspection Template,1
+Stock,Quality Inspection,company,link,Company,1
+Stock,Quality Inspection,letter_head,link,Letter Head,0
+Stock,Quality Inspection,readings,child_table,Quality Inspection Reading,1
+Stock,Quality Inspection,reference_name,dynamic_link,<reference_type>,0
+Stock,Quality Inspection Parameter,parameter_group,link,Quality Inspection Parameter Group,1
+Stock,Quality Inspection Reading,specification,link,Quality Inspection Parameter,1
+Stock,Quality Inspection Reading,parameter_group,link,Quality Inspection Parameter Group,1
+Stock,Quality Inspection Template,item_quality_inspection_parameter,child_table,Item Quality Inspection Parameter,1
+Stock,Quick Stock Balance,warehouse,link,Warehouse,1
+Stock,Quick Stock Balance,item,link,Item,1
+Stock,Repost Item Valuation,item_code,link,Item,1
+Stock,Repost Item Valuation,warehouse,link,Warehouse,1
+Stock,Repost Item Valuation,amended_from,link,Repost Item Valuation,1
+Stock,Repost Item Valuation,company,link,Company,1
+Stock,Repost Item Valuation,voucher_type,link,DocType,0
+Stock,Repost Item Valuation,voucher_no,dynamic_link,<voucher_type>,0
+Stock,Serial No,item_code,link,Item,1
+Stock,Serial No,item_group,link,Item Group,1
+Stock,Serial No,brand,link,Brand,1
+Stock,Serial No,asset,link,Asset,1
+Stock,Serial No,location,link,Location,1
+Stock,Serial No,employee,link,Employee,1
+Stock,Serial No,company,link,Company,1
+Stock,Serial No,work_order,link,Work Order,1
+Stock,Serial No,warehouse,link,Warehouse,1
+Stock,Serial No,batch_no,link,Batch,1
+Stock,Serial No,customer,link,Customer,1
+Stock,Serial No,reference_doctype,link,DocType,0
+Stock,Serial No,reference_name,dynamic_link,<reference_doctype>,0
+Stock,Serial and Batch Bundle,company,link,Company,1
+Stock,Serial and Batch Bundle,item_group,link,Item Group,1
+Stock,Serial and Batch Bundle,item_code,link,Item,1
+Stock,Serial and Batch Bundle,voucher_type,link,DocType,0
+Stock,Serial and Batch Bundle,amended_from,link,Serial and Batch Bundle,1
+Stock,Serial and Batch Bundle,warehouse,link,Warehouse,1
+Stock,Serial and Batch Bundle,entries,child_table,Serial and Batch Entry,1
+Stock,Serial and Batch Bundle,voucher_no,dynamic_link,<voucher_type>,0
+Stock,Serial and Batch Entry,serial_no,link,Serial No,1
+Stock,Serial and Batch Entry,batch_no,link,Batch,1
+Stock,Serial and Batch Entry,warehouse,link,Warehouse,1
+Stock,Serial and Batch Entry,item_code,link,Item,1
+Stock,Shipment,pickup_company,link,Company,1
+Stock,Shipment,pickup_customer,link,Customer,1
+Stock,Shipment,pickup_supplier,link,Supplier,1
+Stock,Shipment,pickup_address_name,link,Address,0
+Stock,Shipment,pickup_contact_name,link,Contact,0
+Stock,Shipment,delivery_company,link,Company,1
+Stock,Shipment,delivery_customer,link,Customer,1
+Stock,Shipment,delivery_supplier,link,Supplier,1
+Stock,Shipment,delivery_address_name,link,Address,0
+Stock,Shipment,delivery_contact_name,link,Contact,0
+Stock,Shipment,parcel_template,link,Shipment Parcel Template,1
+Stock,Shipment,amended_from,link,Shipment,1
+Stock,Shipment,incoterm,link,Incoterm,1
+Stock,Shipment,pickup_contact_person,link,User,0
+Stock,Shipment,shipment_parcel,child_table,Shipment Parcel,1
+Stock,Shipment,shipment_delivery_note,child_table,Shipment Delivery Note,1
+Stock,Shipment Delivery Note,delivery_note,link,Delivery Note,1
+Stock,Stock Closing Balance,item_code,link,Item,1
+Stock,Stock Closing Balance,warehouse,link,Warehouse,1
+Stock,Stock Closing Balance,company,link,Company,1
+Stock,Stock Closing Balance,stock_uom,link,UOM,1
+Stock,Stock Closing Balance,item_group,link,Item Group,1
+Stock,Stock Closing Balance,stock_closing_entry,link,Stock Closing Entry,1
+Stock,Stock Closing Balance,batch_no,link,Batch,1
+Stock,Stock Closing Entry,company,link,Company,1
+Stock,Stock Closing Entry,amended_from,link,Stock Closing Entry,1
+Stock,Stock Entry,stock_entry_type,link,Stock Entry Type,1
+Stock,Stock Entry,outgoing_stock_entry,link,Stock Entry,1
+Stock,Stock Entry,source_stock_entry,link,Stock Entry,1
+Stock,Stock Entry,company,link,Company,1
+Stock,Stock Entry,work_order,link,Work Order,1
+Stock,Stock Entry,purchase_order,link,Purchase Order,1
+Stock,Stock Entry,subcontracting_order,link,Subcontracting Order,1
+Stock,Stock Entry,delivery_note_no,link,Delivery Note,1
+Stock,Stock Entry,sales_invoice_no,link,Sales Invoice,1
+Stock,Stock Entry,purchase_receipt_no,link,Purchase Receipt,1
+Stock,Stock Entry,bom_no,link,BOM,1
+Stock,Stock Entry,from_warehouse,link,Warehouse,1
+Stock,Stock Entry,source_warehouse_address,link,Address,0
+Stock,Stock Entry,to_warehouse,link,Warehouse,1
+Stock,Stock Entry,target_warehouse_address,link,Address,0
+Stock,Stock Entry,supplier,link,Supplier,1
+Stock,Stock Entry,supplier_address,link,Address,0
+Stock,Stock Entry,select_print_heading,link,Print Heading,0
+Stock,Stock Entry,letter_head,link,Letter Head,0
+Stock,Stock Entry,project,link,Project,1
+Stock,Stock Entry,job_card,link,Job Card,1
+Stock,Stock Entry,amended_from,link,Stock Entry,1
+Stock,Stock Entry,credit_note,link,Journal Entry,1
+Stock,Stock Entry,pick_list,link,Pick List,1
+Stock,Stock Entry,asset_repair,link,Asset Repair,1
+Stock,Stock Entry,subcontracting_inward_order,link,Subcontracting Inward Order,1
+Stock,Stock Entry,cost_center,link,Cost Center,1
+Stock,Stock Entry,items,child_table,Stock Entry Detail,1
+Stock,Stock Entry,additional_costs,child_table,Landed Cost Taxes and Charges,1
+Stock,Stock Entry Detail,s_warehouse,link,Warehouse,1
+Stock,Stock Entry Detail,t_warehouse,link,Warehouse,1
+Stock,Stock Entry Detail,item_code,link,Item,1
+Stock,Stock Entry Detail,uom,link,UOM,1
+Stock,Stock Entry Detail,stock_uom,link,UOM,1
+Stock,Stock Entry Detail,batch_no,link,Batch,1
+Stock,Stock Entry Detail,quality_inspection,link,Quality Inspection,1
+Stock,Stock Entry Detail,expense_account,link,Account,1
+Stock,Stock Entry Detail,cost_center,link,Cost Center,1
+Stock,Stock Entry Detail,bom_no,link,BOM,1
+Stock,Stock Entry Detail,material_request,link,Material Request,1
+Stock,Stock Entry Detail,material_request_item,link,Material Request Item,1
+Stock,Stock Entry Detail,pick_list_item,link,Pick List Item,1
+Stock,Stock Entry Detail,original_item,link,Item,1
+Stock,Stock Entry Detail,subcontracted_item,link,Item,1
+Stock,Stock Entry Detail,against_stock_entry,link,Stock Entry,1
+Stock,Stock Entry Detail,reference_purchase_receipt,link,Purchase Receipt,1
+Stock,Stock Entry Detail,project,link,Project,1
+Stock,Stock Entry Detail,putaway_rule,link,Putaway Rule,1
+Stock,Stock Entry Detail,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Stock,Stock Entry Detail,against_fg,link,Subcontracting Inward Order Item,1
+Stock,Stock Ledger Entry,item_code,link,Item,1
+Stock,Stock Ledger Entry,warehouse,link,Warehouse,1
+Stock,Stock Ledger Entry,voucher_type,link,DocType,0
+Stock,Stock Ledger Entry,stock_uom,link,UOM,1
+Stock,Stock Ledger Entry,project,link,Project,1
+Stock,Stock Ledger Entry,company,link,Company,1
+Stock,Stock Ledger Entry,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Stock,Stock Ledger Entry,voucher_no,dynamic_link,<voucher_type>,0
+Stock,Stock Reconciliation,company,link,Company,1
+Stock,Stock Reconciliation,expense_account,link,Account,1
+Stock,Stock Reconciliation,cost_center,link,Cost Center,1
+Stock,Stock Reconciliation,amended_from,link,Stock Reconciliation,1
+Stock,Stock Reconciliation,set_warehouse,link,Warehouse,1
+Stock,Stock Reconciliation,items,child_table,Stock Reconciliation Item,1
+Stock,Stock Reconciliation Item,item_code,link,Item,1
+Stock,Stock Reconciliation Item,warehouse,link,Warehouse,1
+Stock,Stock Reconciliation Item,stock_uom,link,UOM,1
+Stock,Stock Reconciliation Item,batch_no,link,Batch,1
+Stock,Stock Reconciliation Item,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Stock,Stock Reconciliation Item,current_serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Stock,Stock Reconciliation Item,item_group,link,Item Group,1
+Stock,Stock Reposting Settings,notify_reposting_error_to_role,link,Role,0
+Stock,Stock Reservation Entry,item_code,link,Item,1
+Stock,Stock Reservation Entry,warehouse,link,Warehouse,1
+Stock,Stock Reservation Entry,stock_uom,link,UOM,1
+Stock,Stock Reservation Entry,project,link,Project,1
+Stock,Stock Reservation Entry,company,link,Company,1
+Stock,Stock Reservation Entry,amended_from,link,Stock Reservation Entry,1
+Stock,Stock Reservation Entry,sb_entries,child_table,Serial and Batch Entry,1
+Stock,Stock Reservation Entry,voucher_no,dynamic_link,<voucher_type>,0
+Stock,Stock Reservation Entry,from_voucher_no,dynamic_link,<from_voucher_type>,0
+Stock,Stock Settings,item_group,link,Item Group,1
+Stock,Stock Settings,stock_uom,link,UOM,1
+Stock,Stock Settings,stock_auth_role,link,Role,0
+Stock,Stock Settings,role_allowed_to_create_edit_back_dated_transactions,link,Role,0
+Stock,Stock Settings,role_allowed_to_over_deliver_receive,link,Role,0
+Stock,UOM Conversion Detail,uom,link,UOM,1
+Stock,Warehouse,company,link,Company,1
+Stock,Warehouse,account,link,Account,1
+Stock,Warehouse,parent_warehouse,link,Warehouse,1
+Stock,Warehouse,old_parent,link,Warehouse,1
+Stock,Warehouse,warehouse_type,link,Warehouse Type,1
+Stock,Warehouse,default_in_transit_warehouse,link,Warehouse,1
+Stock,Warehouse,customer,link,Customer,1
+Subcontracting,Subcontracting BOM,finished_good,link,Item,1
+Subcontracting,Subcontracting BOM,finished_good_bom,link,BOM,1
+Subcontracting,Subcontracting BOM,service_item,link,Item,1
+Subcontracting,Subcontracting BOM,service_item_uom,link,UOM,1
+Subcontracting,Subcontracting BOM,finished_good_uom,link,UOM,1
+Subcontracting,Subcontracting Inward Order,sales_order,link,Sales Order,1
+Subcontracting,Subcontracting Inward Order,customer,link,Customer,1
+Subcontracting,Subcontracting Inward Order,company,link,Company,1
+Subcontracting,Subcontracting Inward Order,amended_from,link,Subcontracting Inward Order,1
+Subcontracting,Subcontracting Inward Order,set_delivery_warehouse,link,Warehouse,1
+Subcontracting,Subcontracting Inward Order,customer_warehouse,link,Warehouse,1
+Subcontracting,Subcontracting Inward Order,currency,link,Currency,0
+Subcontracting,Subcontracting Inward Order,items,child_table,Subcontracting Inward Order Item,1
+Subcontracting,Subcontracting Inward Order,service_items,child_table,Subcontracting Inward Order Service Item,1
+Subcontracting,Subcontracting Inward Order,received_items,child_table,Subcontracting Inward Order Received Item,1
+Subcontracting,Subcontracting Inward Order,secondary_items,child_table,Subcontracting Inward Order Secondary Item,1
+Subcontracting,Subcontracting Inward Order Item,item_code,link,Item,1
+Subcontracting,Subcontracting Inward Order Item,stock_uom,link,UOM,1
+Subcontracting,Subcontracting Inward Order Item,bom,link,BOM,1
+Subcontracting,Subcontracting Inward Order Item,delivery_warehouse,link,Warehouse,1
+Subcontracting,Subcontracting Inward Order Received Item,main_item_code,link,Item,1
+Subcontracting,Subcontracting Inward Order Received Item,rm_item_code,link,Item,1
+Subcontracting,Subcontracting Inward Order Received Item,stock_uom,link,UOM,1
+Subcontracting,Subcontracting Inward Order Received Item,warehouse,link,Warehouse,1
+Subcontracting,Subcontracting Inward Order Secondary Item,item_code,link,Item,1
+Subcontracting,Subcontracting Inward Order Secondary Item,stock_uom,link,UOM,1
+Subcontracting,Subcontracting Inward Order Secondary Item,fg_item_code,link,Item,1
+Subcontracting,Subcontracting Inward Order Secondary Item,warehouse,link,Warehouse,1
+Subcontracting,Subcontracting Inward Order Service Item,item_code,link,Item,1
+Subcontracting,Subcontracting Inward Order Service Item,fg_item,link,Item,1
+Subcontracting,Subcontracting Inward Order Service Item,uom,link,UOM,1
+Subcontracting,Subcontracting Order,purchase_order,link,Purchase Order,1
+Subcontracting,Subcontracting Order,supplier,link,Supplier,1
+Subcontracting,Subcontracting Order,supplier_warehouse,link,Warehouse,1
+Subcontracting,Subcontracting Order,company,link,Company,1
+Subcontracting,Subcontracting Order,amended_from,link,Subcontracting Order,1
+Subcontracting,Subcontracting Order,supplier_address,link,Address,0
+Subcontracting,Subcontracting Order,contact_person,link,Contact,0
+Subcontracting,Subcontracting Order,shipping_address,link,Address,0
+Subcontracting,Subcontracting Order,billing_address,link,Address,0
+Subcontracting,Subcontracting Order,set_warehouse,link,Warehouse,1
+Subcontracting,Subcontracting Order,set_reserve_warehouse,link,Warehouse,1
+Subcontracting,Subcontracting Order,select_print_heading,link,Print Heading,0
+Subcontracting,Subcontracting Order,letter_head,link,Letter Head,0
+Subcontracting,Subcontracting Order,cost_center,link,Cost Center,1
+Subcontracting,Subcontracting Order,project,link,Project,1
+Subcontracting,Subcontracting Order,supplier_currency,link,Currency,0
+Subcontracting,Subcontracting Order,items,child_table,Subcontracting Order Item,1
+Subcontracting,Subcontracting Order,service_items,child_table,Subcontracting Order Service Item,1
+Subcontracting,Subcontracting Order,supplied_items,child_table,Subcontracting Order Supplied Item,1
+Subcontracting,Subcontracting Order,additional_costs,child_table,Landed Cost Taxes and Charges,1
+Subcontracting,Subcontracting Order Item,item_code,link,Item,1
+Subcontracting,Subcontracting Order Item,stock_uom,link,UOM,1
+Subcontracting,Subcontracting Order Item,warehouse,link,Warehouse,1
+Subcontracting,Subcontracting Order Item,expense_account,link,Account,1
+Subcontracting,Subcontracting Order Item,manufacturer,link,Manufacturer,1
+Subcontracting,Subcontracting Order Item,bom,link,BOM,1
+Subcontracting,Subcontracting Order Item,cost_center,link,Cost Center,1
+Subcontracting,Subcontracting Order Item,project,link,Project,1
+Subcontracting,Subcontracting Order Item,material_request,link,Material Request,1
+Subcontracting,Subcontracting Order Item,job_card,link,Job Card,1
+Subcontracting,Subcontracting Order Service Item,item_code,link,Item,1
+Subcontracting,Subcontracting Order Service Item,fg_item,link,Item,1
+Subcontracting,Subcontracting Order Service Item,material_request,link,Material Request,1
+Subcontracting,Subcontracting Order Supplied Item,main_item_code,link,Item,1
+Subcontracting,Subcontracting Order Supplied Item,rm_item_code,link,Item,1
+Subcontracting,Subcontracting Order Supplied Item,stock_uom,link,UOM,1
+Subcontracting,Subcontracting Order Supplied Item,reserve_warehouse,link,Warehouse,1
+Subcontracting,Subcontracting Receipt,supplier,link,Supplier,1
+Subcontracting,Subcontracting Receipt,company,link,Company,1
+Subcontracting,Subcontracting Receipt,supplier_address,link,Address,0
+Subcontracting,Subcontracting Receipt,contact_person,link,Contact,0
+Subcontracting,Subcontracting Receipt,shipping_address,link,Address,0
+Subcontracting,Subcontracting Receipt,set_warehouse,link,Warehouse,1
+Subcontracting,Subcontracting Receipt,rejected_warehouse,link,Warehouse,1
+Subcontracting,Subcontracting Receipt,supplier_warehouse,link,Warehouse,1
+Subcontracting,Subcontracting Receipt,amended_from,link,Subcontracting Receipt,1
+Subcontracting,Subcontracting Receipt,auto_repeat,link,Auto Repeat,0
+Subcontracting,Subcontracting Receipt,letter_head,link,Letter Head,0
+Subcontracting,Subcontracting Receipt,select_print_heading,link,Print Heading,0
+Subcontracting,Subcontracting Receipt,billing_address,link,Address,0
+Subcontracting,Subcontracting Receipt,represents_company,link,Company,1
+Subcontracting,Subcontracting Receipt,return_against,link,Subcontracting Receipt,1
+Subcontracting,Subcontracting Receipt,cost_center,link,Cost Center,1
+Subcontracting,Subcontracting Receipt,project,link,Project,1
+Subcontracting,Subcontracting Receipt,items,child_table,Subcontracting Receipt Item,1
+Subcontracting,Subcontracting Receipt,supplied_items,child_table,Subcontracting Receipt Supplied Item,1
+Subcontracting,Subcontracting Receipt,additional_costs,child_table,Landed Cost Taxes and Charges,1
+Subcontracting,Subcontracting Receipt Item,item_code,link,Item,1
+Subcontracting,Subcontracting Receipt Item,stock_uom,link,UOM,1
+Subcontracting,Subcontracting Receipt Item,warehouse,link,Warehouse,1
+Subcontracting,Subcontracting Receipt Item,rejected_warehouse,link,Warehouse,1
+Subcontracting,Subcontracting Receipt Item,quality_inspection,link,Quality Inspection,1
+Subcontracting,Subcontracting Receipt Item,subcontracting_order,link,Subcontracting Order,1
+Subcontracting,Subcontracting Receipt Item,batch_no,link,Batch,1
+Subcontracting,Subcontracting Receipt Item,bom,link,BOM,1
+Subcontracting,Subcontracting Receipt Item,brand,link,Brand,1
+Subcontracting,Subcontracting Receipt Item,expense_account,link,Account,1
+Subcontracting,Subcontracting Receipt Item,manufacturer,link,Manufacturer,1
+Subcontracting,Subcontracting Receipt Item,project,link,Project,1
+Subcontracting,Subcontracting Receipt Item,cost_center,link,Cost Center,1
+Subcontracting,Subcontracting Receipt Item,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Subcontracting,Subcontracting Receipt Item,rejected_serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Subcontracting,Subcontracting Receipt Item,purchase_order,link,Purchase Order,1
+Subcontracting,Subcontracting Receipt Item,job_card,link,Job Card,1
+Subcontracting,Subcontracting Receipt Item,service_expense_account,link,Account,1
+Subcontracting,Subcontracting Receipt Supplied Item,main_item_code,link,Item,1
+Subcontracting,Subcontracting Receipt Supplied Item,rm_item_code,link,Item,1
+Subcontracting,Subcontracting Receipt Supplied Item,batch_no,link,Batch,1
+Subcontracting,Subcontracting Receipt Supplied Item,stock_uom,link,UOM,1
+Subcontracting,Subcontracting Receipt Supplied Item,subcontracting_order,link,Subcontracting Order,1
+Subcontracting,Subcontracting Receipt Supplied Item,serial_and_batch_bundle,link,Serial and Batch Bundle,1
+Subcontracting,Subcontracting Receipt Supplied Item,expense_account,link,Account,1
+Subcontracting,Subcontracting Receipt Supplied Item,cost_center,link,Cost Center,1
+Support,Issue,customer,link,Customer,1
+Support,Issue,priority,link,Issue Priority,1
+Support,Issue,issue_type,link,Issue Type,1
+Support,Issue,service_level_agreement,link,Service Level Agreement,1
+Support,Issue,lead,link,Lead,1
+Support,Issue,contact,link,Contact,0
+Support,Issue,email_account,link,Email Account,0
+Support,Issue,project,link,Project,1
+Support,Issue,company,link,Company,1
+Support,Issue,issue_split_from,link,Issue,1
+Support,Service Level Agreement,holiday_list,link,Holiday List,1
+Support,Service Level Agreement,default_priority,link,Issue Priority,1
+Support,Service Level Agreement,document_type,link,DocType,0
+Support,Service Level Agreement,support_and_resolution,child_table,Service Day,1
+Support,Service Level Agreement,priorities,child_table,Service Level Priority,1
+Support,Service Level Agreement,pause_sla_on,child_table,Pause SLA On Status,1
+Support,Service Level Agreement,sla_fulfilled_on,child_table,SLA Fulfilled On Status,1
+Support,Service Level Agreement,entity,dynamic_link,<entity_type>,0
+Support,Service Level Priority,priority,link,Issue Priority,1
+Support,Support Search Source,source_doctype,link,DocType,0
+Support,Support Settings,search_apis,child_table,Support Search Source,1
+Support,Warranty Claim,serial_no,link,Serial No,1
+Support,Warranty Claim,customer,link,Customer,1
+Support,Warranty Claim,item_code,link,Item,1
+Support,Warranty Claim,resolved_by,link,User,0
+Support,Warranty Claim,contact_person,link,Contact,0
+Support,Warranty Claim,territory,link,Territory,1
+Support,Warranty Claim,customer_group,link,Customer Group,1
+Support,Warranty Claim,customer_address,link,Address,0
+Support,Warranty Claim,company,link,Company,1
+Support,Warranty Claim,amended_from,link,Warranty Claim,1
+Telephony,Call Log,customer,link,Customer,1
+Telephony,Call Log,employee_user_id,link,User,0
+Telephony,Call Log,type_of_call,link,Telephony Call Type,1
+Telephony,Call Log,call_received_by,link,Employee,1
+Telephony,Call Log,links,child_table,Dynamic Link,0
+Telephony,Incoming Call Handling Schedule,agent_group,link,Employee Group,1
+Telephony,Incoming Call Settings,call_handling_schedule,child_table,Incoming Call Handling Schedule,1
+Telephony,Telephony Call Type,amended_from,link,Telephony Call Type,1
+Telephony,Voice Call Settings,user,link,User,0
+Utilities,Portal User,user,link,User,0
+Utilities,Rename Tool,select_doctype,link,DocType,0

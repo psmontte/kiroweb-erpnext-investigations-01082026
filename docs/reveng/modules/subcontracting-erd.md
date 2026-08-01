@@ -1,0 +1,75 @@
+# Subcontracting: relationship diagrams
+
+### Subcontracting: entity dependency graph
+
+Child tables are collapsed into their parent document. Rounded nodes are external
+masters owned by other modules. `[[ ]]` = submittable transaction.
+
+```mermaid
+flowchart LR
+  subgraph SUBCONTRACTING["Subcontracting"]
+    SUBCONTRACTING_BOM["Subcontracting BOM"]
+    SUBCONTRACTING_INWARD_ORDER[["Subcontracting Inward Order"]]
+    SUBCONTRACTING_ORDER[["Subcontracting Order"]]
+    SUBCONTRACTING_RECEIPT[["Subcontracting Receipt"]]
+  end
+  ACCOUNT("Account<br/><i>Accounts</i>")
+  BOM("BOM<br/><i>Manufacturing</i>")
+  BATCH("Batch<br/><i>Stock</i>")
+  BRAND("Brand<br/><i>Setup</i>")
+  COMPANY("Company<br/><i>Setup</i>")
+  COST_CENTER("Cost Center<br/><i>Accounts</i>")
+  CUSTOMER("Customer<br/><i>Selling</i>")
+  ITEM("Item<br/><i>Stock</i>")
+  JOB_CARD("Job Card<br/><i>Manufacturing</i>")
+  MANUFACTURER("Manufacturer<br/><i>Stock</i>")
+  MATERIAL_REQUEST("Material Request<br/><i>Stock</i>")
+  PROJECT("Project<br/><i>Projects</i>")
+  PURCHASE_ORDER("Purchase Order<br/><i>Buying</i>")
+  QUALITY_INSPECTION("Quality Inspection<br/><i>Stock</i>")
+  SALES_ORDER("Sales Order<br/><i>Selling</i>")
+  SERIAL_AND_BATCH_BUNDLE("Serial and Batch Bundle<br/><i>Stock</i>")
+  SUPPLIER("Supplier<br/><i>Buying</i>")
+  UOM("UOM<br/><i>Setup</i>")
+  WAREHOUSE("Warehouse<br/><i>Stock</i>")
+  SUBCONTRACTING_BOM --> BOM
+  SUBCONTRACTING_BOM --> ITEM
+  SUBCONTRACTING_BOM --> UOM
+  SUBCONTRACTING_INWARD_ORDER --> BOM
+  SUBCONTRACTING_INWARD_ORDER --> COMPANY
+  SUBCONTRACTING_INWARD_ORDER --> CUSTOMER
+  SUBCONTRACTING_INWARD_ORDER --> ITEM
+  SUBCONTRACTING_INWARD_ORDER --> SALES_ORDER
+  SUBCONTRACTING_INWARD_ORDER --> UOM
+  SUBCONTRACTING_INWARD_ORDER --> WAREHOUSE
+  SUBCONTRACTING_ORDER --> ACCOUNT
+  SUBCONTRACTING_ORDER --> BOM
+  SUBCONTRACTING_ORDER --> COMPANY
+  SUBCONTRACTING_ORDER --> COST_CENTER
+  SUBCONTRACTING_ORDER --> ITEM
+  SUBCONTRACTING_ORDER --> JOB_CARD
+  SUBCONTRACTING_ORDER --> MANUFACTURER
+  SUBCONTRACTING_ORDER --> MATERIAL_REQUEST
+  SUBCONTRACTING_ORDER --> PROJECT
+  SUBCONTRACTING_ORDER --> PURCHASE_ORDER
+  SUBCONTRACTING_ORDER --> SUPPLIER
+  SUBCONTRACTING_ORDER --> UOM
+  SUBCONTRACTING_ORDER --> WAREHOUSE
+  SUBCONTRACTING_RECEIPT --> ACCOUNT
+  SUBCONTRACTING_RECEIPT --> BOM
+  SUBCONTRACTING_RECEIPT --> BATCH
+  SUBCONTRACTING_RECEIPT --> BRAND
+  SUBCONTRACTING_RECEIPT --> COMPANY
+  SUBCONTRACTING_RECEIPT --> COST_CENTER
+  SUBCONTRACTING_RECEIPT --> ITEM
+  SUBCONTRACTING_RECEIPT --> JOB_CARD
+  SUBCONTRACTING_RECEIPT --> MANUFACTURER
+  SUBCONTRACTING_RECEIPT --> PROJECT
+  SUBCONTRACTING_RECEIPT --> PURCHASE_ORDER
+  SUBCONTRACTING_RECEIPT --> QUALITY_INSPECTION
+  SUBCONTRACTING_RECEIPT --> SERIAL_AND_BATCH_BUNDLE
+  SUBCONTRACTING_RECEIPT --> SUBCONTRACTING_ORDER
+  SUBCONTRACTING_RECEIPT --> SUPPLIER
+  SUBCONTRACTING_RECEIPT --> UOM
+  SUBCONTRACTING_RECEIPT --> WAREHOUSE
+```
