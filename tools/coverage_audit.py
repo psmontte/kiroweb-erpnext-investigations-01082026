@@ -38,6 +38,7 @@ AUDITED_MODULES = (
     "Subcontracting",
     "Manufacturing",
     "Quality Management",
+    "Assets",
 )
 
 # DocTypes deliberately excluded from the investigation, with the reason.

@@ -32,7 +32,8 @@ The table is generated, so it cannot drift from reality. `--check` belongs in CI
 | Subcontracting | 4 | 4 | 0 | 0 | 0 |
 | Manufacturing | 18 | 18 | 0 | 0 | 0 |
 | Quality Management | 8 | 8 | 0 | 0 | 0 |
-| **Total** | **189** | **164** | **0** | **0** | **25** |
+| Assets | 14 | 5 | 6 | 3 | 0 |
+| **Total** | **203** | **169** | **6** | **3** | **25** |
 <!-- END COVERAGE TABLE -->
 
 Counts are **parent** DocTypes only (child tables are covered with their parent — the 99 child
