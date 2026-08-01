@@ -44,6 +44,7 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 | 6 | [06-lifecycle-status-and-returns.md](06-lifecycle-status-and-returns.md) | draft/submit/cancel, fulfilment roll-ups and `per_*`, tolerances, returns, amendment, closed/hold, locking |
 | 7 | [07-period-close-and-opening-balances.md](07-period-close-and-opening-balances.md) | period closing voucher, closing-balance snapshots, freeze/period gates, fiscal years, opening balances (AR/AP/stock), FX revaluation, report reads |
 | 8 | [08-our-implementation-spec.md](08-our-implementation-spec.md) | **the deliverable**: invariants to enforce, what we keep/change, decisions taken, and the provisional build spec (parked — see [../INVESTIGATION-PLAN.md](../INVESTIGATION-PLAN.md)) |
+| 26 | [26-journal-entry-chart-of-accounts-dimensions.md](26-journal-entry-chart-of-accounts-dimensions.md) | the structures that define *where* posting happens: `Account` as a nested set with 14 validations, `Cost Center`, the **runtime-DDL dimension mechanism** (`Accounting Dimension` / `Inventory Dimension`), and `Journal Entry` — 16 voucher types in one table, with a **documented balancing exemption** |
 
 ### Tranche A — deep dives (accounts + trade/inventory remainder)
 
