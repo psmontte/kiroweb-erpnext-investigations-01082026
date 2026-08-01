@@ -2,6 +2,11 @@
 
 What the code actually does, function by function, so we can reimplement it deliberately.
 
+> **Looking for a flow rather than a subsystem?** See
+> **[../scenarios/](../scenarios/README.md)** — Sales Order → Delivery Note → Sales Invoice,
+> payments against invoices, and Purchase Order → Receipt → Invoice, each traced end to end with
+> worked numbers and every table write in order.
+
 ## Source anchor
 
 Everything here was read from source at these exact commits. **Line numbers only mean anything

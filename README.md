@@ -10,7 +10,8 @@ modules of `erpnext` are documented at column level.
 
 ```
 docs/reveng/     schema study — start at docs/reveng/README.md
-docs/logic/      business-logic study — start at docs/logic/README.md
+docs/logic/      business-logic study by subsystem — start at docs/logic/README.md
+docs/scenarios/  end-to-end flow walkthroughs with worked numbers (SO→DN→SI, payments, PO→PR→PI)
 docs/design/     FINAL-SCHEMA.md — the finalised tables, data flow, business rules,
                  lifecycle state machine, fulfilment views, settlement model, invariants
 schema/          machine-readable catalog (JSON + CSV) and generated DDL
@@ -93,6 +94,13 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       locking, migrations + patches, reporting (`docs/logic/18`–`24`), plus
       [`docs/logic/25-our-platform-spec.md`](docs/logic/25-our-platform-spec.md) — build/buy/drop
       per capability, the four-layer enforcement rule, and 10 requirements on the orchestration engine
-- [ ] Tranches B/C/D — manufacturing, assets, projects/quality/CRM (**scope to be confirmed** —
-      see open question 1 in the investigation plan)
+- [x] **Scenario walkthroughs** — [`docs/scenarios/`](docs/scenarios/README.md): the flows traced
+      end to end with worked numbers, every table write in order, ERPNext vs ours side by side —
+      **S01** Sales Order → Delivery Note → Sales Invoice (partial delivery, partial billing,
+      dispute, return), **S02** payments against invoices (exact, partial, multi-invoice,
+      credit-note offset, advances, un-allocation, over-payment), **S03** Purchase Order →
+      Receipt → Invoice (rejection, landed cost, return)
+- [ ] Tranche C — assets + depreciation engine (**scope to be confirmed**)
+- [ ] Tranche B — manufacturing, then quality (**in scope, scheduled last** by decision)
+- [x] ~~Tranche D~~ — CRM, projects, support: **out of scope** by decision
 - [ ] Build — deferred by decision until the investigation is complete
