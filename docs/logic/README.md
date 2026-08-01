@@ -50,6 +50,8 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 
 | 29 | [29-pricing-determination.md](29-pricing-determination.md) | which price list, which rule, in what order — plus a `Price List` currency change that re-labels stored amounts without converting them, `Promotional Scheme` **generating and deleting** Pricing Rule documents, an unlocked coupon counter, and a `Shipping Rule` sort that assigns to the wrong attribute |
 
+| 30 | [30-upstream-trade-and-parties.md](30-upstream-trade-and-parties.md) | the pre-commitment layer: `Quotation` (alternatives grouped by **row adjacency**), `Proforma Invoice` (totals computed inside a PDF renderer, no cap on cumulative issue), `Request for Quotation` (**submitting it creates `User` accounts** and stores *translated* status values), `Supplier Quotation`, `Blanket Order` (allowance comparing stock UOM to transaction UOM), `Material Request` in depth, drop-ship (a delivery with no document), and the party/terms masters — plus settings singles that **rewrite DocType metadata** |
+
 ### Tranche A — deep dives (accounts + trade/inventory remainder)
 
 | Read | File | Covers |
@@ -113,7 +115,7 @@ Last run against the anchor commits:
 
 | Directory | Citations | Confirmed by symbol name | Problems |
 |---|---|---|---|
-| `docs/logic` | 2919 | 1465 | 0 |
+| `docs/logic` | 3035 | 1517 | 0 |
 | `docs/scenarios` | 459 | 164 | 0 |
 
 Name notes under `--strict-names` are advisory: the doc line may legitimately name a symbol defined

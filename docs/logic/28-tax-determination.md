@@ -528,8 +528,14 @@ section covers only which category, rate and threshold get selected.
 and the switches `tax_deduction_basis` (`Gross Total` / `Net Total`), `round_off_tax_amount`,
 `tax_on_excess_amount`, `disable_cumulative_threshold`, `disable_transaction_threshold`.
 
-`validate_dates` (`:46`) groups rate rows by `tax_withholding_group` and checks overlap **within each
-group**:
+`Tax Withholding Group` itself
+(`accounts/doctype/tax_withholding_group/tax_withholding_group.py:8`) is `pass` with a single
+`group_name` field — a bare label used to partition the rate rows below. It carries no company, no
+validity, and no relationship to the categories that reference it, so "which groups exist" is a
+naming convention rather than a model.
+
+`validate_dates` (`accounts/doctype/tax_withholding_category/tax_withholding_category.py:46`) groups
+rate rows by `tax_withholding_group` and checks overlap **within each group**:
 
 ```python
 if getdate(d.from_date) >= getdate(d.to_date):
