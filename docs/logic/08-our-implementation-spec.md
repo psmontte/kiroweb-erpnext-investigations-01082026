@@ -1,6 +1,15 @@
 # 8. Our implementation spec
 
-What we build, derived from docs 01-07. This is the document that turns study into code.
+Design intent derived from docs 01-07.
+
+> **Status: parked by decision.** We are still in investigation mode — no application code is being
+> written yet. This document is the running record of what the build *will* do, updated as each new
+> investigation tranche lands. See [../INVESTIGATION-PLAN.md](../INVESTIGATION-PLAN.md) for what is
+> still to be investigated and in what order.
+>
+> Treat the table lists and the posting algorithm below as **provisional**: Tranche A (the remainder of
+> Accounts and Stock) can still change them, specifically stock reservation, FEFO/expiry picking,
+> budgets and deferred revenue.
 
 ---
 
@@ -8,18 +17,12 @@ What we build, derived from docs 01-07. This is the document that turns study in
 
 | # | Decision | Consequence |
 |---|---|---|
-| 1 | **Money is a decimal: `numeric(19,4)`.** Quantities `numeric(21,9)`, unit rates `numeric(21,9)`, percentages `numeric(9,6)`. | One `round_money()` helper; no minor-unit conversions at every boundary. See the caveat below. |
+| 1 | **Money is a decimal: `numeric(19,4)`** (confirmed). Quantities `numeric(21,9)`, unit rates `numeric(21,9)`, percentages `numeric(9,6)`. | One `round_money()` helper; no minor-unit conversions at every boundary. Explicitly **not** the PostgreSQL `money` type: it is locale-dependent, fixed at 2 decimals regardless of currency, and carries no currency. |
 | 2 | **Multi-tenancy: all of it.** `company_id` on every business row (never nullable), *and* Postgres RLS policies keyed on a session GUC, *and* every unique constraint/FK scoped by company. Single schema, single database. | No cross-company leak is possible even from a buggy query; RLS is the backstop, `company_id` is the model. |
 | 3 | **Eight concrete trade document tables**, not one polymorphic table: `sales_quote`, `sales_order`, `delivery`, `sales_invoice`, `purchase_request`, `purchase_order`, `goods_receipt`, `purchase_invoice` (+ one `_line` table each). | Real FKs, real NOT NULLs, readable SQL. Shared behaviour lives in code (a `TradeDoc` protocol + shared services), not in one table with nullable columns. |
 | 4 | **Clean room.** ERPNext is read as a reference for *behaviour*, not copied. No schema compatibility target, no migration path from an ERPNext database. | We are free to fix the modelling; we lose "import an existing ERPNext site" as a feature. |
 
-**Caveat on #1 that I need you to confirm:** I have read this as *decimal money* (`numeric(19,4)`).
-If you meant the PostgreSQL **`money` type**, we should not use it: it is locale-dependent (output and
-input depend on `lc_monetary`), fixed at 2 decimal places regardless of currency, has no currency
-attached, and behaves badly under `SET lc_monetary`. Same practical goal, `numeric(19,4)` gets there
-safely. Say the word if you intended something else.
-
-Decisions still open (not blocking Phase 0-1):
+Decisions still open (they do not block further investigation):
 - 4 decimals enough for unit prices in your industries, or do we need 6 on `unit_price`?
 - Do we need a second reporting currency (ERPNext's `*_in_reporting_currency`) from day one?
 
@@ -280,13 +283,13 @@ The invariant register **is** the test plan.
 - **Period control** — matrix of (closed period, freeze date, closed fiscal year, pending recompute) ×
   (post, cancel, amend, reverse).
 
-## 8.8 What I need from you to start Phase 0
+## 8.8 Decisions deferred to build time
 
-1. Confirm decision #1 (`numeric(19,4)` vs the Postgres `money` type — my reading vs the literal word).
-2. Migration tool preference for the schema: plain SQL files + a runner, Alembic, Atlas, or
-   golang-migrate? This determines the repo layout.
-3. Language for the posting services (the schema is language-agnostic; the algorithm in §8.4 is not).
-   Python + SQLAlchemy Core, Go + sqlc, or TypeScript + Kysely are all fine choices — pick by what your
-   team will maintain.
-4. Whether Phase 0 should ship a minimal HTTP API or stay as a library + SQL for now (you said
-   backend/DB only, so I have assumed library + SQL).
+Not needed while we are investigating; recorded so they are not forgotten.
+
+1. Migration tool: plain SQL files + a runner, Alembic, Atlas, or golang-migrate. Determines repo layout.
+2. Language for the posting services. The schema is language-agnostic; the algorithm in §8.4 is not.
+3. Whether the first build ships an HTTP API or stays a library + SQL (backend/DB only was the brief, so
+   library + SQL is assumed).
+4. Whether balances are materialised from day one or computed until measurement says otherwise
+   (depends on the scale answer in `../INVESTIGATION-PLAN.md` §4).

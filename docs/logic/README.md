@@ -38,7 +38,7 @@ delegating to a composer), and per-voucher GL rules live in `<doctype>/services/
 | 5 | [05-taxes-totals-and-pricing.md](05-taxes-totals-and-pricing.md) | the totals pipeline, all charge types, inclusive-tax back-calculation, discounts, rounding, pricing rules, payment schedule, withholding |
 | 6 | [06-lifecycle-status-and-returns.md](06-lifecycle-status-and-returns.md) | draft/submit/cancel, fulfilment roll-ups and `per_*`, tolerances, returns, amendment, closed/hold, locking |
 | 7 | [07-period-close-and-opening-balances.md](07-period-close-and-opening-balances.md) | period closing voucher, closing-balance snapshots, freeze/period gates, fiscal years, opening balances (AR/AP/stock), FX revaluation, report reads |
-| 8 | [08-our-implementation-spec.md](08-our-implementation-spec.md) | **the deliverable**: invariants to enforce, what we keep/change, decisions taken, and the Phase 0-2 build spec |
+| 8 | [08-our-implementation-spec.md](08-our-implementation-spec.md) | **the deliverable**: invariants to enforce, what we keep/change, decisions taken, and the provisional build spec (parked — see [../INVESTIGATION-PLAN.md](../INVESTIGATION-PLAN.md)) |
 
 ## Verifying the citations
 

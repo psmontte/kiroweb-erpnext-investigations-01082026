@@ -1,6 +1,8 @@
 # erp — our own ERP (backend / database)
 
-Stage 1: reverse engineer the Frappe/ERPNext data model, then design our own.
+**Investigation mode.** We are documenting the Frappe/ERPNext data model and business logic first;
+application code starts only once the investigation is complete. Coverage map, remaining tranches and
+open questions: [docs/INVESTIGATION-PLAN.md](docs/INVESTIGATION-PLAN.md).
 
 Parsed the full standard app set — `frappe`, `erpnext`, `payments`, `hrms`, `webshop`:
 **997 DocTypes → 908 physical tables → 10,995 columns.** The accounting and trade/inventory
@@ -77,4 +79,9 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       (`docs/logic/`, 126 source citations verified against erpnext@ceefd4a)
 - [x] Implementation spec written — invariant register, Phase 0-2 tables, posting algorithm
       (`docs/logic/08-our-implementation-spec.md`)
-- [ ] Phase 0 build — blocked on the four questions in `docs/logic/08-our-implementation-spec.md` §8.8
+- [ ] Tranche A — remainder of Accounts (budgets, deferrals, POS, bank rec, inter-company) and Stock
+      (reservation, pick list, FEFO/expiry, variants, putaway, reorder)
+- [ ] Tranche E — platform mechanics we must replace rather than copy (permissions, naming, hooks,
+      regional overlay, jobs, migrations, reporting)
+- [ ] Tranches B/C/D — manufacturing, assets, projects/quality/CRM (scope to be confirmed)
+- [ ] Build — deferred by decision until the investigation is complete
