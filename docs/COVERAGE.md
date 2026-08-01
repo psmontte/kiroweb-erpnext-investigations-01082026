@@ -65,8 +65,8 @@ oversight:
 consolidates the exact measured closure, M1–M69, enforcement layers, target production schema and build
 order. `Accounts`, `Stock`, `Selling`, `Buying`, `Manufacturing`, `Subcontracting` and `Quality
 Management` all have zero uncited submittable and zero uncited configuration DocTypes. The 25 deliberate
-exclusions listed above are retained. Assets remain deferred before implementation, and application
-implementation has not started.
+exclusions listed above are retained. **Tranche C (Assets) is also complete**: all 14 Assets parents are
+cited by docs 41–43 and S11. Application implementation has not started.
 
 ## Closure ledger
 
@@ -117,8 +117,8 @@ ledger, freezing, balance-must-be) has not been read line by line.
 4. `tools/verify_refs.py` reports **0 problems** across all doc directories — no unresolved paths,
    no out-of-range lines, and no ambiguous shorthand refs. This covers both full citations and the
    `` (`:NNN`) `` shorthand; the shorthand is the bulk of the corpus, so verifying it is what makes
-   the "every claim is checkable" statement true. Current: **3957** citations in `docs/logic` and
-   **641** in `docs/scenarios`, all resolving (**4598 total**).
+   the "every claim is checkable" statement true. Current: **4373** citations in `docs/logic` and
+   **722** in `docs/scenarios`, all resolving (**5095 total**).
 5. This table is regenerated and checked.
 
 ### Status against that definition
@@ -127,8 +127,8 @@ ledger, freezing, balance-must-be) has not been read line by line.
 |---|---|---|
 | 1 | `uncited_submittable` = 0 | Accounts **0** ✔, Stock **0** ✔, Selling **0** ✔, Buying **0** ✔, Manufacturing **0** ✔, Subcontracting **0** ✔, Quality Management **0** ✔ |
 | 2 | Config DocTypes cited or excluded | **✔ 0 uncited config** in every audited module; Stock operational-QI exclusions removed after doc 39 |
-| 3 | Scenario per cross-subsystem flow | **✔** S01–S10 complete |
-| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 4598 citations** |
+| 3 | Scenario per cross-subsystem flow | **✔** S01–S11 complete, including the full asset lifecycle |
+| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 5095 citations** |
 | 5 | Table regenerated | **✔** |
 
 **Trade-core definition remains met.** `Accounts`, `Stock`, `Selling` and `Buying` have zero uncited
@@ -150,5 +150,11 @@ completes the worked cross-subsystem scenario with accepted, blocked, warned and
 **Tranche B is closed at coverage and design depth:**
 [doc 40](logic/40-tranche-b-coverage-closure-and-our-production-spec.md) preserves the exact final table,
 maps M1–M69 to enforcement layers, fixes production/ownership/quality target tables and specifies
-transaction, reversal, idempotency, outbox/projector and build ordering. Assets remain deferred before
-implementation; application implementation has not started.
+transaction, reversal, idempotency, outbox/projector and build ordering.
+
+**Assets are now closed at DocType level:** all **14/14 parent controllers** are cited, with zero uncited
+submittable and zero uncited configuration parents.
+[Docs 41–43](logic/41-asset-identity-acquisition-and-finance-books.md) and
+[S11](scenarios/S11-asset-lifecycle.md) cover identity, acquisition, capitalisation, finance books,
+depreciation schedules and posting, shifts, revaluation, custody, maintenance, repair, split and disposal,
+adding invariants **A1–A26**. Application implementation has not started.

@@ -98,8 +98,21 @@ The confirmed order was **manufacturing → subcontracting → quality → closu
 complete in docs **33–37** plus **S07**; subcontracting in **doc 38**, **S08** and **S10**; quality in
 **doc 39** and **S09**. [Doc 40](40-tranche-b-coverage-closure-and-our-production-spec.md) closes the
 tranche with measured coverage, exact M1–M69 enforcement mapping, the concrete target production
-schema, write/reversal ordering and build sequence. Assets/depreciation remain deferred and must be
-investigated before implementation. **Application implementation has not started.**
+schema, write/reversal ordering and build sequence. **Application implementation has not started.**
+
+### Tranche C — assets investigation (**complete**)
+
+| Read | File | Covers |
+|---|---|---|
+| 41 | [41-asset-identity-acquisition-and-finance-books.md](41-asset-identity-acquisition-and-finance-books.md) | asset identity and the four asset types; purchase-row resolution **by amount matching**; the conditional capitalisation journal decided by four GL probes; the daily job whose filter is `= nowdate()`; Asset Capitalization consuming stock, assets and services; categories, account resolution, finance books as editable policy copies; Locations and the activity log |
+| 42 | [42-depreciation-engine-schedules-shifts-and-adjustments.md](42-depreciation-engine-schedules-shifts-and-adjustments.md) | the schedule generator loop; straight line (fixed, daily-prorata, shift-weighted), WDV/double declining, Manual; first/last-period proration and the salvage landing rule; the daily posting job's **index-window slice that bypasses its own due-date guard**; replanning by cancel-and-copy; Asset Shift Allocation's factor conservation; Asset Value Adjustment against the fixed-asset account |
+| 43 | [43-asset-custody-maintenance-repair-and-disposal.md](43-asset-custody-maintenance-repair-and-disposal.md) | custody as scalars recomputed from movement history; the maintenance planner and its logs writing to each other; Asset Repair's ledger-checked invoice residual, per-book cost duplication and a cancellation that leaves the stock issue posted; splitting an asset by document copy that **amends posted depreciation journals**; and the four disposal callers sharing one derivation |
+
+Assets are documented in docs **41–43** plus **[S11](../scenarios/S11-asset-lifecycle.md)**: all 14
+parent controllers are cited with zero submittable and zero configuration gaps, and the register runs
+**A1–A26**. S11 is the one scenario in this repository whose arithmetic does **not** close — capitalised
+repair and revaluation leave permanent residuals in Fixed Assets and Accumulated Depreciation, because
+disposal derives both from mutable scalars by subtraction.
 
 Consolidated target schema: **[../design/FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md)** — finalised
 accounting/trade plus concrete production, owner/custodian, planning, capacity, execution,
@@ -137,8 +150,8 @@ Last run against the anchor commits:
 
 | Directory | Citations | Confirmed by symbol name | Problems |
 |---|---|---|---|
-| `docs/logic` | 3957 | 1574 | 0 |
-| `docs/scenarios` | 641 | 164 | 0 |
+| `docs/logic` | 4373 | 1574 | 0 |
+| `docs/scenarios` | 722 | 164 | 0 |
 
 Name notes under `--strict-names` are advisory: the doc line may legitimately name a symbol defined
 elsewhere in the same file. Frappe-side citations are prefixed `frappe/`.

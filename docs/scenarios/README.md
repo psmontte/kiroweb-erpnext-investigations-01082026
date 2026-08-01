@@ -39,6 +39,7 @@ Citations are `path:line` and are verified mechanically by `tools/verify_refs.py
 | **S08** | [S08-supplier-subcontracting.md](S08-supplier-subcontracting.md) | Subcontract PO service → Subcontracting Order → RM reservation/send/return → partial Subcontracting Receipt → optional service Purchase Receipt | Supplier custody remains company inventory and the SLE→GL bridge stays exact, but **the same transfer and output consume 10/5 RM under BOM backflush versus 8/4 under transferred-material backflush**; the residual allocation is unlocked |
 | **S09** | [S09-quality-gated-production-and-receipt.md](S09-quality-gated-production-and-receipt.md) | Multi-row Purchase Receipt → post-transaction inspection → Job Card operation gate → separately gated Manufacture Stock Entry | Inventory and GL remain balanced under Accepted and Warn, but **Warn posts draft/Rejected evidence as ordinary stock and one allow-after row returns from the entire receipt loop**; exact scoped release and durable exceptions are absent |
 | **S10** | [S10-customer-owned-subcontracting-inward.md](S10-customer-owned-subcontracting-inward.md) | Subcontracted SO service → customer RM receipt/return → internal Work Order/Job Card/Manufacture → FG delivery/return → service + company-material Sales Invoice | Customer material moves through company warehouses at **zero company value but without an owner dimension**; gross delivery 10 and return 2 leaves net fulfilment 8 while status is Delivered |
+| **S11** | [S11-asset-lifecycle.md](S11-asset-lifecycle.md) | Purchase Receipt → Asset + CWIP capitalisation → monthly depreciation → capitalised repair → partial sale (implicit split) → scrap | The only flow whose **arithmetic does not close**: disposal removes `net_purchase_amount` and a *subtracted* accumulated depreciation, so a capitalised repair leaves 3,000.00 permanently in Fixed Assets and 3,858.37 in Accumulated Depreciation. Selling part of a multi-quantity asset silently creates a second asset and **amends posted depreciation journals** |
 
 ## Reading order
 
@@ -86,6 +87,9 @@ largest gap between what the system appears to do and what it does.
 | Batch processes, subscriptions, banking config, `Accounts Settings` | [doc 31](../logic/31-batch-processes-instruments-recurring.md) |
 | `Stock Settings`, reposting settings, variants — and the coverage closure | [doc 32](../logic/32-stock-configuration-and-remaining-masters.md) |
 | Tranche B coverage closure and production specification | [doc 40](../logic/40-tranche-b-coverage-closure-and-our-production-spec.md) |
+| Asset identity, acquisition, capitalisation and finance books | [doc 41](../logic/41-asset-identity-acquisition-and-finance-books.md) |
+| Depreciation schedules, methods, posting, shifts and revaluation | [doc 42](../logic/42-depreciation-engine-schedules-shifts-and-adjustments.md) |
+| Asset custody, maintenance, repair, split and disposal | [doc 43](../logic/43-asset-custody-maintenance-repair-and-disposal.md) |
 | The target schema and invariant register | [FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md) |
 
 ## What is left
@@ -93,11 +97,11 @@ largest gap between what the system appears to do and what it does.
 | Deliverable | Status |
 |---|---|
 | **Tranche B** | **COMPLETE** — [doc 40](../logic/40-tranche-b-coverage-closure-and-our-production-spec.md) closes measured coverage and the target production specification |
-| Asset purchase → capitalisation → depreciation run → disposal | **Tranche C (Assets) deferred but required before implementation** |
+| **Tranche C (Assets)** | **Investigated** — docs 41–43 and [S11](S11-asset-lifecycle.md); all 14 Assets parents cited, 0 gaps |
 | Application implementation | **Has not started** |
 
 All trade / inventory / accounts flows that cross three or more subsystems are covered by
-**S01–S10**, including in-house manufacturing, both ownership directions of subcontracting and the
-quality-gated receipt/production boundary. S09 completed the Tranche B scenario set and doc 40 completed
-the tranche. Assets remain deferred before implementation.
+**S01–S11**, including in-house manufacturing, both ownership directions of subcontracting, the
+quality-gated receipt/production boundary and the full asset lifecycle. S09 completed the Tranche B
+scenario set, doc 40 completed that tranche, and S11 closes the assets scenario set.
 See [../COVERAGE.md](../COVERAGE.md) for the DocType-level coverage matrix.

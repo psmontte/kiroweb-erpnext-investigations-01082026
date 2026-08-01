@@ -1,8 +1,8 @@
 # Investigation plan and coverage map
 
 We are in **investigation mode**: the output of this repo is documents, not application code.
-**Application implementation has not started.** Building starts only after deferred Assets are
-investigated and the investigation is declared complete.
+**Application implementation has not started.** Every audited module — including Assets (Tranche C) —
+is now investigated; building starts only once the investigation is declared complete.
 
 Anchor commits for everything so far: `erpnext@ceefd4add7` (v17.0.0-dev), `frappe@5da68e856c`.
 
@@ -50,7 +50,7 @@ Consolidated target design: **`docs/design/FINAL-SCHEMA.md`** (finalised tables,
 business rules, lifecycle state machine, fulfilment views, settlement model, invariant register).
 
 Citation verification across `docs/logic/`: superseded — see the current coverage matrix
-(**4,598 citations, 0 problems** across logic and scenarios, shorthand included).
+(**5,095 citations, 0 problems** across logic and scenarios, shorthand included).
 
 ~~**Still named but not chased**~~: putaway rules (doc 27 §3), warehouse capacity (doc 27 §3, doc 16
 §4), stock closing entry (doc 27, S05 §6), loyalty program internals (doc 31 §4), payment-gateway
@@ -77,7 +77,7 @@ invoice → payment → FX revaluation — plus everything needed to call the th
 
 **Coverage: `Accounts`, `Stock`, `Selling`, `Buying`, `Manufacturing` and `Subcontracting` are at
 zero uncited DocTypes** — submittable and configuration alike (`docs/COVERAGE.md`, generated).
-Citations: **4,598 verified, 0 problems**, including the shorthand form.
+Citations: **5,095 verified, 0 problems**, including the shorthand form.
 
 Three findings from this closure changed how confident we are in earlier decisions:
 
@@ -126,7 +126,7 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 | ~~**A**~~ | ~~**Trade / inventory / accounts closure**~~ — Journal Entry + CoA + dimensions, remaining stock documents, tax determination, pricing determination, upstream trade + parties, batch processes + instruments + recurring, stock configuration | the remainder | **DONE** — `docs/logic/26`–`32`, `docs/scenarios/S04`–`S06`. Accounts/Stock/Selling/Buying at **zero uncited DocTypes** |
 | ~~**B**~~ | ~~**Manufacturing** — BOM (+ cost roll-up, exploded items, update-cost job), Work Order, Job Card, Operations/Routing, Workstation capacity, Production Plan, Master Production Schedule, scrap & rework, WIP accounting~~ | 48 total / 18 parents (8 submittable) | **DONE** — docs 33–37 + S07; 18/18 parent controllers cited, 0 gaps |
 | ~~**B**~~ | ~~**Subcontracting deep dive** — order/receipt lifecycle, supplied-item consumption, RM transfer, `Subcontracting BOM`, customer-owned inward flow~~ | 13 total / 4 parents (3 submittable) | **DONE** — doc 38 + S08 + S10; 4/4 parent controllers cited, 0 gaps |
-| **C** | **Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement | 26 (8 submittable) | **DEFERRED by decision** — must be investigated before implementation; application implementation has not started |
+| ~~**C**~~ | ~~**Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement~~ | 26 total / 14 parents (8 submittable) | **DONE** — docs 41–43 + S11; 14/14 parent controllers cited, 0 gaps |
 | ~~**D**~~ | ~~**Projects, Support, Maintenance, CRM**~~ — project costing, timesheet → billing, Support (11), Maintenance (5), CRM lead/opportunity/prospect (28) | ~75 | **OUT OF SCOPE** — dropped by decision. Not investigated, not built. |
 | ~~**B**~~ | ~~**Quality Management + operational quality** — Quality Management records plus Stock-owned inspection templates/readings and gates on receipts, deliveries, Stock Entry and Job Card~~ | 16 total / 8 module parents, plus 4 Stock parents | **DONE** — doc 39 + S09; all 12 parents cited, 0 gaps |
 | ~~**E**~~ | ~~**Platform mechanics we must replace, not copy**~~ — permission model, naming series, `hooks.py` extensibility, `@allow_regional` overlay, background jobs + scheduler, patch/migration system, query-report framework, custom fields & Customize Form, virtual doctypes | — | **DONE** — `docs/logic/18`–`25`, with a build/buy/drop decision per capability in `25-our-platform-spec.md` |
@@ -157,11 +157,13 @@ quality-gated receipt/production; **S10** customer-owned subcontracting inward.
    remaining items (report view library, front end, localisation data) are not framework.
    See `25-our-platform-spec.md` §6.
 3. **Scenario walkthroughs** (`docs/scenarios/`) — cross-cutting flow traces tying the subsystem
-   documents together. S01–S10 cover trade/inventory/accounts, manufacturing, subcontracting and quality.
+   documents together. S01–S11 cover trade/inventory/accounts, manufacturing, subcontracting, quality and
+   the asset lifecycle.
 4. ~~**Tranche B** — manufacturing → subcontracting → quality → closure/specification~~ —
    **complete**, docs 33–40 and scenarios S07–S10. Doc 40 consolidates the measured closure, M1–M69,
    target schema and build order.
-5. **Tranche C** (assets + depreciation) — **deferred but required before implementation**.
+5. ~~**Tranche C** (assets + depreciation)~~ — **complete**, `docs/logic/41`–`43` and `S11`; invariant
+   register **A1–A26**.
 6. ~~**Tranche D**~~ — **dropped**: no CRM, no projects, no support.
 7. **Implementation** — has not started.
 
@@ -173,9 +175,9 @@ citations, invariants, and an "ours" decision per behaviour, verified by `tools/
 Answers change the order and the depth, not the method.
 
 1. ~~**Scope for v1**~~ — **answered for investigation order.** CRM, projects, and support are
-   **out of scope**. Manufacturing, subcontracting, and quality are complete in Tranche B. Assets and
-   depreciation remain **deferred, not dropped**, and must be investigated before implementation;
-   application implementation has not started.
+   **out of scope**. Manufacturing, subcontracting, and quality are complete in Tranche B, and assets
+   and depreciation are now complete in Tranche C (docs 41–43, S11). Application implementation has not
+   started.
 2. **Inventory features that change the core design** — which of these are real requirements:
    batch/serial with expiry and FEFO picking, stock reservation, multi-warehouse transfers,
    landed cost, subcontracting, consignment/customer-owned stock?
