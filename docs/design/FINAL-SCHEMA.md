@@ -2451,12 +2451,33 @@ tax_credit_block(id, company_id, tax_determination_line_id, tax_component_id,
     reason_code credit_block_reason_enum /*place_of_supply|blocked_category|personal_use|
                                           exempt_output|composition|statutory_list*/,
     destination credit_destination_enum /*inventory_valuation|asset_cost|named_expense*/,
-    amount numeric(19,4), stock_move_id NULL, asset_cost_event_id NULL,
-    expense_account_id NULL, voucher_id bigint NOT NULL REFERENCES voucher(id))
+    amount numeric(19,4),
+    stock_value_event_id NULL, asset_cost_event_id NULL, expense_account_id NULL,
+    voucher_id bigint REFERENCES voucher(id) DEFERRABLE INITIALLY DEFERRED)
    UNIQUE (company_id, tax_determination_line_id, tax_component_id)
-   CHECK (num_nonnulls(stock_move_id, asset_cost_event_id, expense_account_id) = 1)
-   -- blocked credit reaches inventory and asset cost through ordinary stock_move value components
-   -- and asset_cost_event rows (§19.2) — never by patching a valuation rate in place (doc 46 §5)
+   CHECK (num_nonnulls(stock_value_event_id, asset_cost_event_id, expense_account_id) = 1)
+   CHECK ((destination = 'inventory_valuation') = (stock_value_event_id IS NOT NULL))
+   CHECK ((destination = 'asset_cost')          = (asset_cost_event_id  IS NOT NULL))
+   CHECK ((destination = 'named_expense')       = (expense_account_id   IS NOT NULL))
+   -- blocked credit reaches inventory through `stock_value_event` (§4/§14), NOT `stock_move`: the value
+   -- event is the authoritative signed company-value fact, so a backdated replay appends an adjustment
+   -- instead of stranding the allocation. Asset cost uses `asset_cost_event` (§19.2). Never an in-place
+   -- valuation-rate edit (doc 46 §5).
+   -- voucher_id is DEFERRABLE because §27.1 inserts credit blocks in the same transaction as, but before,
+   -- the voucher.
+```
+
+**Which structure is authoritative.** `tax_determination_component` is the **producer**; `doc_tax` and
+`doc_tax_line_alloc` (§5) remain the document's tax presentation and are **derived** from it for jurisdictional
+documents. The tie is a constraint, not a convention:
+
+```sql
+doc_tax_line_alloc
+   ADD COLUMN tax_determination_component_id bigint NULL
+   -- deferred, per (document, tax account, line):
+   --   Σ doc_tax_line_alloc.amount = Σ tax_determination_component.amount   EXACTLY
+   -- and per component: Σ tax_determination_component.amount across lines = doc_tax.amount for that
+   --   account, EXACTLY  ← this is the referent of §25's third trigger
 ```
 
 `gl_entry` already carries `asset_id`/`finance_book_id` (§3); determination adds no columns to it. Component
@@ -2476,16 +2497,26 @@ statutory_artefact(id, company_id, artefact_type statutory_artefact_enum
     authority_identifier varchar(128) NULL, issued_at timestamptz NULL,
     valid_until timestamptz NULL,
     evidence_class evidence_class_enum /*authority_confirmed|manually_asserted*/,
+    carries_signed_payload bool NOT NULL,    -- only the e-invoice endpoint returns a signed artefact
     signed_payload text NULL, signature_verified bool NULL, signing_cert_id bigint NULL,
     state artefact_state_enum /*required|pending|issued|cancelled|expired|not_applicable|failed*/,
     command_receipt_id)
    UNIQUE (company_id, artefact_type, authority_identifier)
       WHERE authority_identifier IS NOT NULL
    UNIQUE (company_id, artefact_type, source_doc_type, source_doc_id, generation_no)
-   CHECK ((state = 'issued') = (authority_identifier IS NOT NULL))
-   CHECK (evidence_class <> 'authority_confirmed' OR signature_verified IS TRUE)
-   -- authority_identifier is NEVER blanked (doc 47 §4.2); regeneration inserts generation_no + 1.
-   -- The signature check makes jwt.decode(..., verify_signature=False) structurally unavailable.
+   UNIQUE (company_id, artefact_type, source_doc_type, source_doc_id)
+      WHERE state IN ('required','pending','issued')     -- at most ONE live generation per document
+   CHECK (state NOT IN ('issued','cancelled','expired') OR authority_identifier IS NOT NULL)
+   CHECK (state NOT IN ('required','pending','not_applicable') OR authority_identifier IS NULL)
+   CHECK (NOT carries_signed_payload OR evidence_class <> 'authority_confirmed'
+          OR signature_verified IS TRUE)
+   -- authority_identifier is NEVER blanked (doc 47 §4.2) and SURVIVES cancellation and expiry, which is
+   -- why the state/identifier coupling is two one-directional checks rather than a biconditional: a
+   -- biconditional would refuse every cancelled artefact and make G19 impossible.
+   -- The signature check is scoped to signed artefact types, so jwt.decode(..., verify_signature=False)
+   -- is structurally unavailable for e-invoices while unsigned e-way bill and return-filing responses
+   -- can still be authority_confirmed.
+   -- `failed` after the authority issued an identifier (the timeout_unknown → reconcile path) keeps it.
 
 statutory_artefact_event(id, company_id, statutory_artefact_id, event_no integer,
     event_type artefact_event_enum /*requested|issued|vehicle_updated|transporter_updated|
