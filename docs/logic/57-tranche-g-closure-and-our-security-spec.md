@@ -86,10 +86,12 @@ adds six consequences.
    `company_id NOT NULL`, has row-level security **enabled and forced**, and has a policy evaluated against
    `auth.current_company()`. The application role holds neither `BYPASSRLS` nor table ownership. There is no
    `ignore_permissions` equivalent anywhere in the design, because there is nothing for it to switch off.
-2. **The context is set from a durable record, never from the request.** `auth.current_company()` reads a
-   session-local setting written only by the connection-establishment routine after resolving an `auth_session`
-   row. An unresolvable context returns no company and every policy denies. A caller-supplied header can
-   influence nothing.
+2. **The context is a protected row, never a setting and never the request.** `auth.current_company()` reads a
+   context table the application role holds **no** privileges on, populated only by a narrowly granted
+   `SECURITY DEFINER` function that verifies the session token and live company membership first. An
+   unresolvable context yields no company and every policy denies. Neither a caller-supplied header nor a
+   caller-issued `SET LOCAL` can influence it — §5 explains why the obvious session-variable implementation is
+   rejected.
 3. **Authorisation is a second, additive layer that also starts at deny.** RLS answers *which rows*;
    `permission_grant` answers *which operations on which object classes*. Both must say yes. Neither has an
    exempt identity: there is no `Administrator`, and break-glass is a time-boxed `delegation_grant` with a
@@ -298,8 +300,8 @@ adjacent defaults — strictness off, and strictness switched off again for unsa
 when `company` is being assigned — the practical position is that **the tenant boundary's default state is
 open**, and 892 call sites can open it explicitly in any case.
 
-Our schema makes the failure mode structurally unavailable, and it takes three separate constructs to do it,
-because a single one would leave a path:
+Our schema makes the failure mode structurally unavailable, and it takes **four** separate constructs to do it,
+because any three of them leave a path:
 
 ```sql
 -- 1. the row cannot be unscoped
@@ -308,20 +310,43 @@ ALTER TABLE gl_entry ALTER COLUMN company_id SET NOT NULL;
 -- 2. the policy cannot be skipped, and the owner cannot skip it either
 ALTER TABLE gl_entry ENABLE  ROW LEVEL SECURITY;
 ALTER TABLE gl_entry FORCE   ROW LEVEL SECURITY;
-CREATE POLICY gl_entry_tenant ON gl_entry
-    USING      (company_id = auth.current_company())
-    WITH CHECK (company_id = auth.current_company());
+CREATE POLICY company_scope ON gl_entry
+    USING      (company_id = authenticated_company_id())
+    WITH CHECK (company_id = authenticated_company_id());
 
--- 3. an unresolvable context yields no company, and every policy above denies
-CREATE FUNCTION auth.current_company() RETURNS bigint
+-- 3. the context is a PROTECTED ROW, not a session setting the caller can write
+CREATE FUNCTION authenticated_company_id() RETURNS bigint
 LANGUAGE sql STABLE AS $$
-    SELECT nullif(current_setting('auth.company_id', true), '')::bigint
+    SELECT company_id FROM authenticated_tenant_context
+     WHERE backend_pid = pg_backend_pid() AND txid = txid_current()
 $$;
+REVOKE ALL ON authenticated_tenant_context FROM PUBLIC, app_role;
+
+-- 4. the only way to populate it proves membership first
+GRANT EXECUTE ON FUNCTION begin_tenant_transaction(uuid, bigint) TO app_role;   -- SECURITY DEFINER
 ```
 
-`nullif(..., true)` returning `NULL` makes `company_id = NULL` unknown, so the policy denies every row. There
-is no value of the setting — absent, empty, or garbage — that widens access. The application role is granted
-neither `BYPASSRLS` nor ownership of any business table, which is what `FORCE` alone would not achieve.
+Construct 3 is the one that is easy to get wrong, and getting it wrong is how this design nearly shipped a
+hole. The obvious implementation is a custom GUC:
+
+```sql
+-- REJECTED
+SELECT nullif(current_setting('auth.company_id', true), '')::bigint
+```
+
+That reads correctly — an absent setting yields `NULL`, `company_id = NULL` is unknown, and the policy denies
+every row — and it is still **wrong**, because `SET LOCAL auth.company_id = '<any company>'` is a statement the
+application role is permitted to execute. The function would faithfully report a value the attacker chose. A
+policy is only as strong as the least-privileged thing that can influence its inputs, so the context must live
+somewhere `app_role` cannot write: a table it holds no privileges on, populated only by a `SECURITY DEFINER`
+function that verifies `principal_company_membership` before inserting. `FINAL-SCHEMA`'s conventions header
+requires exactly this, and requires tests proving that a forged GUC, a direct context-table write, a token for
+another principal, a replayed token and a company outside the principal's membership all fail to move the
+boundary.
+
+The application role is additionally granted neither `BYPASSRLS` nor ownership of any business table — which is
+what `FORCE ROW LEVEL SECURITY` alone would not achieve, since `FORCE` constrains the owner but not a role with
+`BYPASSRLS`.
 
 The corresponding refusal is T13's: a generated conformance check proves that every table in the catalogue has
 all three constructs, with exceptions confined to a reviewed allow-list, and **failing the check fails the
@@ -365,7 +390,7 @@ audited, non-interactive path, and it is never the credential the application ho
 
 | Group | Content |
 |---|---|
-| Identity and context | `principal`, `principal_credential`, `principal_company_membership`, `auth_session`, `auth_event`, `auth_throttle`, `delegation_grant`, and `auth.current_company()` |
+| Identity and context | `principal`, `principal_credential`, `principal_company_membership`, `auth_session`, `auth_event`, `auth_throttle`, `delegation_grant`, the protected `authenticated_tenant_context` table, and the `begin_tenant_transaction()` / `auth.current_company()` pair |
 | Authorisation | `permission_role`, `permission_grant`, `permission_assignment`, `permission_delegation`, `permission_row_predicate`, `access_decision` |
 | Boundary conformance | `isolation_denial`, the generated `rls_conformance` view, and the allow-list of global reference tables |
 | Group structure | `company_group`, `company_group_edge`, `intercompany_relationship`, `transfer_price_policy_revision`, `intercompany_transaction`, `unrealised_margin`, `unrealised_margin_realisation` |
@@ -376,8 +401,9 @@ audited, non-interactive path, and it is never the credential the application ho
 Three orderings carry the most weight:
 
 - **Context is established at connection acquisition, before any statement.** Resolve the `auth_session` row,
-  set `auth.company_id`, then hand the connection to the unit of work. A connection that reaches business
-  code without a resolved context is a bug that manifests as *no rows*, never as *all rows*.
+  call `begin_tenant_transaction(token, company)` to record the protected context row, then hand the
+  connection to the unit of work. A connection that reaches business code without a resolved context is a bug
+  that manifests as *no rows*, never as *all rows*.
 - **The scope is fixed at session issue, not per request.** Selecting a company is an act of session creation.
   This is what removes the entire class of "request switched tenant mid-transaction" reasoning, and it is why
   T3 states that a change of scope is a new session.
@@ -396,7 +422,9 @@ first eight steps below must land before the first business table is created, be
 scope columns, policies and an execution-context contract onto populated tables is the rewrite §1.1 describes.
 
 1. **Roles and context:** the migration role, the application role without `BYPASSRLS` or table ownership,
-   `auth.current_company()`, and the connection-acquisition routine that sets the setting.
+   the protected `authenticated_tenant_context` table, `begin_tenant_transaction()` as the only writer of it,
+   `auth.current_company()` as the only reader, and the connection-acquisition routine that calls it — plus the
+   forged-GUC, direct-write, replayed-token and wrong-membership refusal tests that prove §5's construct 3.
 2. **Identity:** `principal`, `principal_credential` with expiry and rotation, `principal_company_membership`,
    `auth_throttle` with both subject kinds, `auth_event` as append-only.
 3. **Sessions:** `auth_session` with scope, both expiry bounds and binding evidence; one expiry rule; total

@@ -2799,6 +2799,16 @@ the scoping lookup means *unrestricted* (`frappe/permissions.py:351-380`).
 `auth_event` is `principal_auth_event`, `auth_throttle` is `principal_auth_throttle`. The behaviour is
 identical; only the identifiers differ.
 
+**One refinement, not a contradiction.** [Doc 50 §6.1](../logic/50-authentication-session-and-tenant-context.md)
+states the context function as a lookup against the session table on every call. §29.1 below resolves the
+session **once per transaction** into a protected context row and reads that instead. Both are non-forgeable
+and both return `NULL` — hence deny — when anything is wrong; the §29.1 form is canonical because it verifies
+membership once under `FOR SHARE` rather than per statement, and because it gives the boundary a single
+protected write point to revoke privileges on. What is **rejected in both** is the obvious third option, a
+custom GUC read with `current_setting('…', true)`: it is correct-looking and forgeable, because `SET LOCAL` is
+a statement the application role may execute. [Doc 57 §5](../logic/57-tranche-g-closure-and-our-security-spec.md#5-the-signature-finding)
+works through why.
+
 **Deliberate exceptions to the company-scoping convention.** `principal`, `principal_credential`,
 `principal_auth_session`, `principal_company_membership`, `principal_auth_throttle` and
 `authenticated_tenant_context` are **not** company-scoped, because they are what *establishes* company scope

@@ -343,16 +343,21 @@ ordinary report permission.
 
 ### 7.1 Context first, and the crossing is two writes in two scopes
 
-The connection-acquisition routine resolves the `auth_session` row and sets the context before any statement
-runs:
+The connection-acquisition routine resolves the session row and establishes the context before any statement
+runs. Note what it does *not* do — it does not set a session variable, because the application role can write
+those:
 
 ```sql
-SET LOCAL auth.company_id = '<alphaco>';
--- every policy below now evaluates against auth.current_company()
+-- SECURITY DEFINER; verifies the session token AND live company membership, then records
+-- (pg_backend_pid(), txid_current(), principal_id, company_id) in a table app_role cannot touch
+SELECT begin_tenant_transaction('<opaque-session-token>', '<alphaco>');
+-- every policy below now evaluates against authenticated_company_id()
 ```
 
-An unresolvable session sets nothing, `auth.current_company()` returns `NULL`, `company_id = NULL` is unknown,
-and every policy denies (**T1, T2, T3**). This has an immediate and non-obvious consequence for the crossing:
+An unresolvable session **raises** rather than proceeding; a connection that somehow reaches business code
+without this call has no context row, `authenticated_company_id()` returns `NULL`, `company_id = NULL` is
+unknown, and every policy denies (**T1, T2, T3**). This has an immediate and non-obvious consequence for the
+crossing:
 **AlphaCo's user cannot write BetaCo's leg.** The `WITH CHECK` clause on BetaCo's tables rejects it.
 
 So the crossing is:
