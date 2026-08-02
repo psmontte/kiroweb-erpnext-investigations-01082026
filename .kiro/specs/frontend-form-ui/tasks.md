@@ -8,19 +8,25 @@ creates a `.ts`, `.js`, `.py`, `.json` or any other non-Markdown file (Requireme
 
 **Gate status at plan time.** G0–G3 all pass. Both pinned trees are present at the exact commits
 (`frappe` = `5da68e856ca7f036b20d2583167b9d00c4a8db56`, `erpnext` = `ceefd4add77715d2762c19db337fb83e28a477de`),
-the branch is `kiro/spec-planning`, and all five upstream cross-reference documents exist. Design §2.1 records
-G0 as failing; that blocker is resolved and docs 01–04 are unblocked. Both checkouts are **shallow (depth 1)**,
+the branch is `kiro/spec-planning`, and all five upstream cross-reference documents exist. Design §2.1 and
+risk R1 record G0/G1 as passing, so docs 01–04 are unblocked. Both checkouts are **shallow (depth 1)**,
 so `git log` history is unavailable but every file is present at the pinned commit. **Never pull, fetch or
 checkout in either tree** — doing so silently invalidates every recorded line number (design risk R2).
 
-**Path corrections applied throughout.** Three paths named in `docs/agents/PROMPT-frontend-form-ui.md` and in
-design §7.1 do not exist at this commit and are corrected here:
+**Path corrections applied throughout.** Three paths named in `docs/agents/PROMPT-frontend-form-ui.md` do not
+exist at this commit and are corrected here; design §7.1 now carries the same correction table:
 
-| Named in prompt / design | Actual at pinned commit | Consequence |
+| Named in prompt | Actual at pinned commit | Consequence |
 |---|---|---|
 | `frappe/public/js/frappe/form/grid_form.js` | `frappe/public/js/frappe/form/grid_row_form.js` | cite the real file |
 | `FormPage` class | does not exist; `grep -rn "FormPage" form/` is empty | record as an **absence** finding per design §7.4; the real units are `form.js`, `layout.js`, `section.js`, `column.js`, `tab.js`, `views/formview.js` |
 | `frappe/public/js/frappe/list/list_sidebar*` | no `list_sidebar.js`; only `list_sidebar_group_by.js` and `list_sidebar_stat.html` | cite the real files; sidebar composition lives in `list_view.js` / `base_list.js` |
+
+**Requirements 6.1 and 7.1 have themselves been corrected**, so no requirement text names an absent unit any
+longer: 6.1 now names `Tab` and `frappe.views.FormFactory` in place of `FormPage`, and 7.1 now names
+`grid_row_form.js` in place of `grid_form.js`. Requirement 6.9 generalises the convention — an absent class
+**or file** named in this specification is recorded as an absence finding with no line number. The corrections
+above therefore remain live only against the originating prompt.
 
 Two upstream findings the plan exploits deliberately:
 
@@ -57,7 +63,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
       `docs/design/FINAL-SCHEMA.md` all exist
     - Create the `docs/ui/` directory; do not create any file outside Owned_Paths
     - Read-only commands only; if any gate fails, stop and record the failure rather than proceeding
-    - _Requirements: 5.4, 17.5, 18.1_
+    - _Requirements: 5.4, 17.9, 18.1_
 
   - [x] 1.2 Create `docs/agents/NOTES-frontend.md` with its fixed headings and seeded entries
     - Create the file with exactly two top-level headings, `## Open questions` and
@@ -221,7 +227,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
     - State the behaviour of list settings, the sidebar, group-by and saved filters, with Citations; record
       that no `list_sidebar.js` exists at this commit and cite the files that actually compose the sidebar
     - Add a worked example for one doctype's list configuration
-    - _Requirements: 3.4, 5.1, 5.3, 9.1_
+    - _Requirements: 3.4, 5.1, 5.3, 6.9, 9.1_
 
   - [ ] 4.3 Establish filter construction and transmission
     - State the algorithm that builds a filter expression and transmits it to the server, as numbered steps
@@ -306,7 +312,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
       permitted form of design §7.5: a one-sentence statement of the consequence for layout, plus a link
     - Verify by review that doc 03 contains no re-derivation of `Meta` assembly order and no algorithm already
       numbered in doc 18 (design risk R5)
-    - _Requirements: 8.4, 17.4_
+    - _Requirements: 8.4, 17.8_
 
   - [ ] 6.6 Classify scope and upgrade survival per mechanism
     - Classify each mechanism as site-global, role-scoped or user-scoped, and state whether it survives an
@@ -347,7 +353,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
     - Specify the Layout_Revision as immutable once approved, scoped by doctype, role and company, and
       carrying an effective range
     - State rules L-1 to L-5 of design §10.1 as a rule table, with the jurisdiction scope key included
-    - _Requirements: 10.1, 15.6_
+    - _Requirements: 10.1, 15.10_
 
   - [ ] 8.3 State the stored-value-versus-displayed-text invariant
     - State the separation of stored value from displayed text as a numbered Invariant carrying the `UI`
@@ -359,13 +365,14 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
   - [ ] 8.4 State the build / buy / drop matrix and enforcement-layer assignment
     - State a build, buy or drop decision for each analysed presentation capability, in the column order used
       by `docs/logic/25-our-platform-spec.md` §3
-    - Link §3, and note in the document that Requirement 15.1's reference to "section 6" is stale on this
-      branch; the corresponding Notes_Register request from task 1.2 already records this
+    - Link §3, which is the section Requirement 15.1 cites for the decision format; the earlier "section 6"
+      reference is gone from the requirement, and the corresponding Notes_Register request is withdrawn in
+      task 11.3
     - Assign each guarantee to the lowest enforcement layer able to enforce it without cooperation from a
       caller (L1 schema, L2 triggers/RLS, L3 orchestration, L4 service code)
     - Enter the `@allow_regional` whole-function override as **excluded**, with a Citation to the upstream
       decorator read directly from the erpnext tree rather than taken from another document
-    - _Requirements: 14.4, 15.1, 15.2, 15.6_
+    - _Requirements: 14.4, 15.1, 15.2, 15.10_
 
   - [ ] 8.5 Write the authoritative UI-invariant register
     - Write the single register table holding every invariant from docs 01–04 plus doc 05's new ones, with
@@ -380,16 +387,27 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
       decisions, only the normative restatement of what doc 05 decided
     - State the `layout_revision` structure as a SQL DDL sketch matching `docs/design/FINAL-SCHEMA.md`'s
       notation, with scope keys, effective range, immutability and content hashes
-    - _Requirements: 10.1, 15.6_
+    - State the lineage of the table in the fixed form of design §10.1: `layout_revision` is the concrete form
+      of the `ui_field` / `ui_layout` capability that `docs/logic/25-our-platform-spec.md` §3 records as
+      **BUILD**, citing `docs/logic/25-our-platform-spec.md:79`; note that `docs/design/FINAL-SCHEMA.md`
+      defines neither table, so the specification originates here, FINAL-SCHEMA stays read-only, and the
+      divergence is registered in the Notes_Register
+    - _Requirements: 10.1, 15.4, 15.10_
 
   - [ ] 9.2 State the typed layout tree and its publish-time validation
     - State the `layout_node` structure as a DDL sketch with the tab → section → column → field kinds
+    - Carry the same lineage statement as 9.1: `layout_node` is the `ui_layout` half of doc 25 §3's **BUILD**
+      decision (`docs/logic/25-our-platform-spec.md:79`), specified here because FINAL-SCHEMA defines no such
+      table, and it governs rendering only with no effect on stored business schema
     - State every publish-time validation rule with its identified error code — `LT-KIND`, `LT-ROOT`,
-      `LT-ACYCLIC`, `LT-ORDINAL`, `LT-FIELD`, `LT-DUP`, `LT-BIND`, `LT-EXPR`, `LT-LABEL` — and state that a
-      failing tree rejects the whole containing revision
+      `LT-ACYCLIC`, `LT-ORDINAL`, `LT-FIELD`, `LT-DUP`, `LT-BIND-BUS`, `LT-BIND-META`, `LT-EXPR`, `LT-LABEL` —
+      and state that a failing tree rejects the whole containing revision
+    - `LT-BIND-BUS` checks a business-data binding against `docs/design/FINAL-SCHEMA.md`; `LT-BIND-META` checks
+      a presentation-metadata binding against the `layout_revision` / `layout_node` columns defined in this
+      document
     - State that structure derives from the typed tree, never from ordered break rows, referencing doc 01's
       **Reject** verdict on the break-row model
-    - _Requirements: 10.2, 10.3, 10.4, 15.6_
+    - _Requirements: 10.2, 10.3, 10.4, 15.4, 15.5, 15.6, 15.10_
 
   - [ ] 9.3 State the expression language grammar and AST rules
     - State the full grammar in EBNF, following the skeleton of design §10.3, with permitted operators and
@@ -408,7 +426,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
       version
     - Close the cross-reference footer; reference `UI-SPEC.md` for every fact UI-SPEC owns rather than
       restating it
-    - _Requirements: 8.3, 10.5, 15.6, 17.4_
+    - _Requirements: 8.3, 10.5, 15.10, 17.8_
 
 - [ ] 10. Write `docs/design/UI-SPEC.md`
   - [ ] 10.1 State the control mapping and the grid contract
@@ -427,12 +445,18 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
       canonical types `numeric(19,4)` for money, `numeric(21,9)` for quantity and rate, `numeric(9,6)` for
       percent; enumerations stored as stable lower-case codes with labels resolved at read time; rejection of
       any design writing formatted or translated text to storage
-    - State the binding table naming, for each layout field, the `docs/design/FINAL-SCHEMA.md` table and
-      column; verify each named table and column exists; treat FINAL-SCHEMA as strictly read-only and propose
-      no edit to it
+    - State the single binding table of design §10.5 in its seven-column form, including a **Binding kind**
+      column carrying exactly one of business data or presentation metadata, and a **Defining document**
+      column naming the document that defines the bound table; state rules B-1 to B-4
+    - Verify each **business-data** row against `docs/design/FINAL-SCHEMA.md`: the named table and column must
+      exist there, and the name is cited, never proposed
+    - Verify each **presentation-metadata** row against the `layout_revision` and `layout_node` definitions in
+      `docs/design/FORM-LAYOUT.md` (task 9.1 and task 9.2): the named column must exist there
+    - Treat `docs/design/FINAL-SCHEMA.md` as strictly read-only; propose no edit to it and add no name to it,
+      whichever binding kind a row declares
     - State that presentation metadata governs rendering only and cannot affect stored schema, and that every
       layout query reading a business table is RLS-scoped by `company_id`
-    - _Requirements: 13.1, 13.2, 13.3, 13.4, 15.3, 15.4, 15.5_
+    - _Requirements: 13.1, 13.2, 13.3, 13.4, 15.3, 15.5, 15.6, 15.7, 15.9_
 
   - [ ] 10.3 State the localisation and GST contract
     - State rules J-1 to J-5: layout support for HSN and SAC codes, place of supply, GSTIN, reverse-charge
@@ -450,7 +474,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
     - Express content as tables, the expression grammar and precedence rules; never leave prose as the sole
       statement of a rule
     - Close the cross-reference footer; reference `FORM-LAYOUT.md` for every fact it owns
-    - _Requirements: 9.5, 15.1, 15.2, 15.6, 17.4_
+    - _Requirements: 9.5, 15.1, 15.2, 15.10, 17.8_
 
 - [ ] 11. Reconcile the normative boundary and the invariant numbering
   - [ ] 11.1 Enforce the single-source rule between UI-SPEC and FORM-LAYOUT
@@ -459,7 +483,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
     - Where a fact appears in both, **delete the copy in the non-owning document** and replace it with a
       relative link and section number; do not attempt to reconcile two wordings
     - Confirm no fact appears in UI-SPEC or FORM-LAYOUT that doc 05 does not decide
-    - _Requirements: 15.6, 17.4_
+    - _Requirements: 15.10, 17.8_
 
   - [ ] 11.2 Renumber the UI invariants into a gap-free `UI1..UIn` sequence
     - Renumber once, after doc 05 exists, updating the register and every reference to an invariant in the
@@ -468,13 +492,30 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
       identifier uses a reserved prefix — `M`, `A`, `F`, `T`, `R`, `V`, or a bare `U` not followed by `I`
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
+  - [ ] 11.3 Bring the Notes_Register into line with the settled requirements
+    - Reclassify the presentation-metadata binding request seeded by task 1.2: it is **confirmation requested,
+      not blocking** — `docs/design/FORM-LAYOUT.md` specifies `layout_revision` and `layout_node` itself, so
+      task 10.2 and the §10.5 binding table are unblocked; a differing backend answer triggers reconciliation
+      of the binding table and the DDL in a single commit
+    - Add the Requirement 15.8 entry under `## Open questions`: `docs/design/FORM-LAYOUT.md` specifies both
+      tables as the concrete form of doc 25 §3's `ui_field` / `ui_layout` **BUILD** decision
+      (`docs/logic/25-our-platform-spec.md:79`), pending confirmation by the backend agent, and the named
+      divergence is that `docs/design/FINAL-SCHEMA.md` defines neither table
+    - Add the Requirement 17.3 entry: the Citation_Verifier checks only Citations whose path ends in `.py` —
+      the citation pattern requires the `.py` extension (`tools/verify_refs.py:35`) and the symbol index is
+      built with Python `ast` (`tools/verify_refs.py:62`) — so `0 problems` is necessary and insufficient
+    - Withdraw the seeded request that doc 25's decision format be noted as §3 rather than §6: Requirement
+      15.1 now cites section 3, so nothing in `docs/logic/**` needs to change
+    - Leave every Restricted_Path byte-identical; only `docs/agents/NOTES-frontend.md` is edited
+    - _Requirements: 15.8, 16.2, 16.4, 17.3_
+
 - [ ] 12. Run the acceptance loop V1–V6
   - [ ] 12.1 Run V1 and V2 — citation verifier and whitespace
     - Run `python3 tools/verify_refs.py --docs docs/ui --app erpnext=/projects/sandbox/erpnext/erpnext --app frappe=/projects/sandbox/frappe/frappe --strict-names` from the repository root and require the literal `0 problems`
     - Replace any citation reported `AMBIGUOUS` with the full `path:line` form; treat `NAME NOTE` as advisory
       and resolve each one explicitly
     - Run `git diff --check` and require no output
-    - _Requirements: 17.1, 17.2, 17.3_
+    - _Requirements: 17.1, 17.2, 17.7_
 
   - [ ] 12.2 Run V3 — resolve every relative link
     - Confirm every relative Markdown link in `docs/ui/**`, `docs/design/UI-SPEC.md`,
@@ -483,16 +524,22 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
       `docs/logic/18-metadata-and-runtime-ddl.md`, `docs/logic/19-permissions-and-access-control.md`,
       `docs/logic/24-reporting-framework.md` — and that the stale names used in
       `docs/agents/PROMPT-frontend-form-ui.md` appear in no link
-    - _Requirements: 17.4, 17.5_
+    - _Requirements: 17.8, 17.9_
 
   - [ ] 12.3 Run V4 — read back every non-`.py` citation
-    - The verifier's citation regex matches `.py` only, so `.js`, `.json`, `.vue` and `.html` citations are
-      invisible to it and `0 problems` alone is not sufficient evidence
-    - Re-read each non-`.py` citation at its cited line in the pinned tree and confirm the line exists and
-      contains the construct the claim names; use read-only commands and create no files
+    - Treat a `0 problems` report as **necessary and insufficient** evidence of Citation correctness; the
+      read-back below is a gate condition in its own right, not a compensation for a tool limitation
+    - Re-read **every** Citation whose path ends in an extension other than `.py` at its cited line in the
+      pinned tree and confirm the line contains the construct the carrying claim names; use read-only commands
+      and create no files
+    - Correct or remove any Citation the read-back does not confirm **before the gate passes**; a claim left
+      without a confirmed Citation becomes an absence finding
+    - Why the verifier cannot substitute for this: its citation regex requires the `.py` extension
+      (`tools/verify_refs.py:35`) and its symbol index is built with Python `ast` (`tools/verify_refs.py:62`),
+      so `.js`, `.json`, `.vue` and `.html` citations are invisible to it
     - Confirm every absence finding carries a Citation to the nearest related code and **no** line number for
       the absent behaviour
-    - _Requirements: 5.4, 5.5, 17.1, 17.2_
+    - _Requirements: 5.4, 5.5, 17.4, 17.5, 17.6_
 
   - [ ] 12.4 Run V5 and V6 — path containment and invariant set
     - Confirm `git diff --name-only` is a subset of Owned_Paths, that no Restricted_Path appears in any commit,
@@ -572,10 +619,11 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
     { "id": 27, "tasks": ["9.4", "10.4"] },
     { "id": 28, "tasks": ["11.1"] },
     { "id": 29, "tasks": ["11.2"] },
-    { "id": 30, "tasks": ["12.1"] },
-    { "id": 31, "tasks": ["12.2"] },
-    { "id": 32, "tasks": ["12.3"] },
-    { "id": 33, "tasks": ["12.4"] }
+    { "id": 30, "tasks": ["11.3"] },
+    { "id": 31, "tasks": ["12.1"] },
+    { "id": 32, "tasks": ["12.2"] },
+    { "id": 33, "tasks": ["12.3"] },
+    { "id": 34, "tasks": ["12.4"] }
   ]
 }
 ```
