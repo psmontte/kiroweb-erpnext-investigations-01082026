@@ -1084,6 +1084,305 @@ prose; the numbered inventory and the verdicts are §8's and §10's to write.
 
 ## 4. Render effect of the field flags
 
+Seven docfield flags are named in Requirement 6.5. They do not form a family. Three of them —
+`hidden`, `read_only` and `allow_on_submit` — are consumed by one function,
+`frappe.perm.get_field_display_status` (`frappe/public/js/frappe/model/perm.js:232`), which reduces every
+input to one of three strings, `"Read"`, `"Write"` or `"None"`
+(`frappe/public/js/frappe/model/perm.js:233-234`). One, `bold`, is applied after that decision and only if it
+was not `"None"`. One, `in_list_view`, has **no effect on the parent form at all**. One, `print_hide`, is not
+read by the form runtime, only by the print path. And one, `translatable`, does not translate anything on a
+form; it conditions a button.
+
+The analytical question this section answers for each flag is whether its effect exists anywhere other than
+the browser. §3.6 settled that question for `mandatory_depends_on` and `read_only_depends_on` — neither is a
+security or integrity boundary, the first because the server ignores it and the second because the server has
+no counterpart — and the same server-side search was run independently for each of the seven flags below. The
+answers differ: one of the seven is a genuine server-enforced constraint, one is enforced only on the print
+path, and five are presentation.
+
+### 4.1 The pipeline the flags feed
+
+`get_field_display_status` applies its inputs in a fixed order, and the order is load-bearing because later
+arms overwrite earlier ones. Numbered as the code sequences them:
+
+| # | Arm | Effect on `status` | Citation |
+|---|---|---|---|
+| 1 | permission at `df.permlevel` | `"Write"` if `p.write` and not `df.disabled` and not `df.is_virtual`; else `"Read"` if `p.read`; else the initial `"None"` | `frappe/public/js/frappe/model/perm.js:246-256` |
+| 2 | **`hidden`** | `cint(df.hidden)` ⇒ `"None"`, unconditionally, overwriting a `"Write"` | `frappe/public/js/frappe/model/perm.js:260` |
+| 3 | `hidden_due_to_dependency` (§3) | ⇒ `"None"` | `frappe/public/js/frappe/model/perm.js:264` |
+| 4 | docstatus | `"Write"` and `cint(doc.docstatus) > 0` ⇒ `"Read"` | `frappe/public/js/frappe/model/perm.js:272` |
+| 5 | **`allow_on_submit`** | `"Read"` and `allow_on_submit` and `docstatus === 1` and `p.write` ⇒ **`"Write"`** — the only arm that widens | `frappe/public/js/frappe/model/perm.js:277-280` |
+| 6 | workflow state | `"Read"` stays `"Read"` when the form is workflow-read-only or the field is a workflow-updated field | `frappe/public/js/frappe/model/perm.js:284-293` |
+| 7 | **`read_only`** | `"Write"` and (`cint(df.read_only)` or `fieldtype === "Read Only"`) ⇒ `"Read"` | `frappe/public/js/frappe/model/perm.js:297-299` |
+| 8 | `set_only_once` | `"Write"` and `df.set_only_once` and not `doc.__islocal` ⇒ `"Read"` | `frappe/public/js/frappe/model/perm.js:302-304` |
+
+Three ordering consequences follow directly and are relied on below.
+
+1. **`hidden` beats everything above it and is beaten by nothing below it.** Arm 2 sets `"None"` and no later
+   arm tests for `"None"` before writing — arms 4, 5, 7 and 8 all guard on `"Write"` or `"Read"`
+   (`frappe/public/js/frappe/model/perm.js:272`, `frappe/public/js/frappe/model/perm.js:278`,
+   `frappe/public/js/frappe/model/perm.js:297`, `frappe/public/js/frappe/model/perm.js:302`) — so once
+   `"None"` is set it survives to the `return` at `frappe/public/js/frappe/model/perm.js:307`.
+2. **`read_only` still wins over `allow_on_submit`.** On a submitted document a field with both flags goes
+   `"Write"` → `"Read"` (arm 4) → `"Write"` (arm 5) → `"Read"` (arm 7). The widening at arm 5 is undone at
+   arm 7, because arm 7 guards on `"Write"`, which arm 5 has just produced.
+3. **`allow_on_submit` is inert on a cancelled document.** Arm 4 fires for any `docstatus > 0` but arm 5
+   requires `docstatus === 1` exactly (`frappe/public/js/frappe/model/perm.js:278`), so a cancelled document
+   (`docstatus` 2) is read-only regardless of the flag. A commented-out line immediately above records an
+   abandoned intent to exclude `Table` fields from the flag
+   (`frappe/public/js/frappe/model/perm.js:276`); it is dead text, and `Table` fields do honour
+   `allow_on_submit`.
+
+The returned string reaches the DOM through two steps. `BaseControl.refresh` assigns it to `this.disp_status`
+and toggles one class, `hide-control`, on `"None"`
+(`frappe/public/js/frappe/form/controls/base_control.js:138-143`). `BaseInput.refresh_input` then does the
+`"Read"`/`"Write"` split: it returns immediately when `disp_status` is `"None"`
+(`frappe/public/js/frappe/form/controls/base_input.js:95`), builds a live input when
+`can_write()` — defined as `disp_status == "Write"`
+(`frappe/public/js/frappe/form/controls/base_input.js:144-146`) — is true
+(`frappe/public/js/frappe/form/controls/base_input.js:105-110`), and otherwise hides the input area and
+renders static text into `disp_area` instead
+(`frappe/public/js/frappe/form/controls/base_input.js:112-122`,
+`frappe/public/js/frappe/form/controls/base_input.js:148`).
+
+A dialog or Web Form control never reaches `get_field_display_status`. `BaseControl.get_status` has a separate
+branch for the case of no `doctype`/`docname`, or `parenttype === "Web Form"`, which reimplements the same
+decision from `hidden`, `hidden_due_to_dependency` and `read_only` alone, with no permission arm and no
+`allow_on_submit` arm at all (`frappe/public/js/frappe/form/controls/base_control.js:53-92`, especially
+`frappe/public/js/frappe/form/controls/base_control.js:61-71`). `get_field_display_status` carries a third
+reimplementation for the case of a missing `perm` argument, again covering only `hidden`,
+`hidden_due_to_dependency` and `read_only` (`frappe/public/js/frappe/model/perm.js:239-243`). So the
+three-flag subset has three independent implementations and the full eight-arm pipeline has one.
+
+### 4.2 One statement per flag
+
+#### `hidden`
+
+**Render effect.** A truthy `hidden` forces `disp_status` to `"None"`
+(`frappe/public/js/frappe/model/perm.js:260`), and a `"None"` control receives the `hide-control` class
+(`frappe/public/js/frappe/form/controls/base_control.js:141`) and skips input construction entirely
+(`frappe/public/js/frappe/form/controls/base_input.js:95`). On the three layout objects the flag is read
+directly rather than through the permission model: `Section.refresh` computes
+`hide = hide || this.df.hidden || this.df.hidden_due_to_dependency`
+(`frappe/public/js/frappe/form/section.js:110-112`), `Column.refresh` the same
+(`frappe/public/js/frappe/form/column.js:64-67`) and `Tab.refresh` the same
+(`frappe/public/js/frappe/form/tab.js:50-51`) — extending §3.1's asymmetry from
+`hidden_due_to_dependency` to the static flag. `Tab` is the one exception to that asymmetry: it *does*
+consult permission, adding a `get_perm(permlevel, "read")` arm of its own
+(`frappe/public/js/frappe/form/tab.js:54-56`), which `Section` and `Column` do not have.
+
+**Client-only?** Yes. `hidden` plays no part in server-side field access. `get_permitted_fields` delegates to
+`Meta.get_permitted_fieldnames` (`frappe/model/__init__.py:240-245`), which builds its list purely from
+`permlevel` membership (`frappe/model/meta.py:712-726`); **absent:** neither function tests `hidden`, and
+`grep -rn "\bhidden\b"` across `frappe/model/base_document.py` and `frappe/model/document.py` returns only
+the docstring of `is_print_hide` (`frappe/model/base_document.py:1524-1533`). No line number is given for the
+absent check. A hidden field's value is still transmitted and still written — the same conclusion §3.3
+reached for a field hidden by `depends_on`. The only server-side rule touching the flag is a publish-time
+consistency check, `check_hidden_and_mandatory`, which rejects `hidden` combined with `reqd` and no `default`
+(`frappe/core/doctype/doctype/doctype.py:1442-1449`, called at
+`frappe/core/doctype/doctype/doctype.py:1840`); that constrains the *metadata*, not any document write.
+`hidden` is therefore **a presentation choice, not a security boundary**: it conceals a field from a rendered
+form and from nothing else. Field-level confidentiality upstream is `permlevel`, per
+[`docs/logic/19-permissions-and-access-control.md`](../logic/19-permissions-and-access-control.md).
+
+#### `read_only`
+
+**Render effect.** A truthy `read_only`, or the `Read Only` fieldtype, demotes `"Write"` to `"Read"`
+(`frappe/public/js/frappe/model/perm.js:297-299`). `refresh_input` then takes the else branch: it hides the
+input area, renders the formatted value as static text into `disp_area`, and additionally sets
+`disabled` on any `$input` that already exists
+(`frappe/public/js/frappe/form/controls/base_input.js:112-122`). A second, independent route reaches the same
+outcome in a dialog, where `read_only` is tested alongside `is_virtual` and the `Read Only` fieldtype without
+any permission involvement (`frappe/public/js/frappe/form/controls/base_control.js:67-71`). One further
+interaction is worth naming because it turns `"Read"` into `"None"`: when the system default
+`hide_empty_read_only_fields` is set, a `"Read"` control with a null value is demoted to `"None"` and
+disappears rather than rendering as blank
+(`frappe/public/js/frappe/form/controls/base_control.js:122-134`).
+
+**Client-only?** Yes, and more completely than any other flag here. §3.6 records that
+`grep -rn "read_only" frappe/model/base_document.py` returns nothing; that is verified — the count is
+**zero** — and it extends to the sibling module: the three hits in `frappe/model/document.py` are all
+different properties. Two are the request-scoped `frappe.flags.read_only`
+(`frappe/model/document.py:2207`, `frappe/model/document.py:2240`) and one is the **doctype-level**
+`read_only` property, tested to decide whether to publish a `list_update` realtime event
+(`frappe/model/document.py:1947`). **Absent:** no server code rejects a write to a field carrying the
+docfield `read_only` flag. The nearest related server behaviour is the one §3.6 names,
+`_validate_update_after_submit` (`frappe/model/base_document.py:1346`), which is keyed on `allow_on_submit`
+and never reads `read_only`. No line number is given for the absent check. `read_only` is therefore
+**a presentation choice and emphatically not a security boundary** — a field that a form renders as
+uneditable static text is freely writable by any caller that does not run the form, including the REST API
+and any Server Script.
+
+#### `bold`
+
+**Render effect.** `bold` toggles a single CSS class, `bold`, on the live input and on the static display
+area: `this.$input.toggleClass("bold", !!(this.df.bold || this.df.reqd))` and the same for `disp_area`
+(`frappe/public/js/frappe/form/controls/base_input.js:292-298`). It is applied by `set_bold`, called from
+`refresh_input` (`frappe/public/js/frappe/form/controls/base_input.js:139`) inside the
+`disp_status != "None"` guard (`frappe/public/js/frappe/form/controls/base_input.js:95`), so a hidden field
+is never made bold. The flag is **not independently observable**: the expression ORs it with `df.reqd`, so a
+mandatory field is bold whether or not `bold` is set, and `bold` changes nothing on a field that is already
+`reqd`. The grid applies the same disjunction to a column header cell —
+`else if (df.reqd || df.bold) { column.addClass("bold"); }`
+(`frappe/public/js/frappe/form/grid_row.js:760-761`).
+
+**Client-only?** Yes, entirely. **Absent:** no server code reads the docfield `bold` property. Searched:
+`grep -rn "bold" frappe/model/*.py frappe/core/doctype/docfield/docfield.py`; every hit in the model layer
+is a call to the unrelated helper `frappe.bold()`, which wraps a string in `<b>` tags for an error message
+(for example `frappe/model/base_document.py:1375-1377`,
+`frappe/model/document.py:1119`), and the only occurrence of the property itself is its generated type
+annotation, `bold: DF.Check` (`frappe/core/doctype/docfield/docfield.py:23`). No line number is given for the
+absent consumer. `bold` is **pure typography** — the weakest of the seven, and the one flag whose removal
+would be invisible wherever `reqd` is also set.
+
+#### `allow_on_submit`
+
+**Render effect.** `allow_on_submit` is the only one of the eight arms that *widens* a decision: it promotes
+`"Read"` back to `"Write"` on a submitted document, subject to `docstatus === 1` exactly and to the user
+holding `p.write` (`frappe/public/js/frappe/model/perm.js:277-280`). Its render effect is therefore
+conditional on document state in a way no other flag here is: on a draft it does nothing at all, because arm
+4 never fired. In a grid it also governs whether an in-grid control escapes the parent grid's read-only
+state — a `"Write"` control is demoted to `"Read"` when its grid is read-only, but the `layout.grid` arm of
+that test is skipped for a field carrying `allow_on_submit`
+(`frappe/public/js/frappe/form/controls/base_control.js:102-111`, especially
+`frappe/public/js/frappe/form/controls/base_control.js:104`).
+
+**Client-only?** **No — this is the one genuine server-enforced flag of the seven.**
+`_validate_update_after_submit` re-reads the persisted document, iterates every key, and throws
+`frappe.UpdateAfterSubmitError` for any field whose value differs and whose `df.allow_on_submit` is falsy
+(`frappe/model/base_document.py:1346-1354`, throw at `frappe/model/base_document.py:1371-1381`). It is
+reached from `validate_update_after_submit` (`frappe/model/document.py:1477-1487`), which also recurses into
+children, exempting a newly added child row when the parent table field itself allows updates on submit
+(`frappe/model/document.py:1482-1485`). Two adjacent server behaviours are keyed on the same flag: a
+`fetch_from` value is refreshed on a submitted document only for a field that allows it
+(`frappe/model/base_document.py:1136-1138`), and HTML sanitisation is skipped on a submitted document except
+for fields that allow updates after submit (`frappe/model/base_document.py:1410-1418`, especially
+`frappe/model/base_document.py:1416`).
+
+It is nevertheless **not a complete boundary**, for two reasons observable in the code. First, the check runs
+only on the `update_after_submit` action — `if self._action == "update_after_submit":`
+(`frappe/model/document.py:844-848`) — and is skipped outright when
+`flags.ignore_validate_update_after_submit` is set (`frappe/model/document.py:1478-1479`). Second,
+`Document.db_set` does not go through it: it writes the field and calls `frappe.db.set_value` directly
+(`frappe/model/document.py:1951`, `frappe/model/document.py:1994-1996`), under a docstring that says so —
+"this method does not trigger controller validations"
+(`frappe/model/document.py:1954-1955`). ERPNext relies on exactly that bypass: the status updater writes
+`per_billed` and a status field onto an already-submitted parent through
+`target.db_set(update_data, …)` (`erpnext` `controllers/status_updater.py:677-683`, values computed at
+`controllers/status_updater.py:663-670`). So `allow_on_submit` is best classified as **a real constraint on
+the ordinary save path and no constraint at all on the direct-write path** — a boundary that holds against
+`Document.save()` and not against `db_set`.
+
+#### `in_list_view`
+
+**Form-side render effect: none.** **Absent** — for a field of the doctype being rendered, `in_list_view`
+has no effect on the form. Searched: `grep -rn "in_list_view" frappe/public/js/frappe/form/`, whose every hit
+is one of two things. Either it is the child-table grid — the visible-column test
+`df && !df.hidden && (this.editable_fields || df.in_list_view) && perm read`
+(`frappe/public/js/frappe/form/grid.js:1528-1533`), the per-row propagation
+`row_df.in_list_view = column_df.in_list_view` (`frappe/public/js/frappe/form/grid_row.js:807`) and the
+column-visibility setter `set_column_disp_in_list_view`
+(`frappe/public/js/frappe/form/grid.js:1086`) — or it is one of the two `DocType Layout` override lists
+(`frappe/public/js/frappe/form/layout.js:98`, `frappe/public/js/frappe/form/layout.js:561`), which merely
+make the flag overridable without giving it a form-side meaning. No `Section`, `Column`, `Tab`, `Layout` or
+control code path reads it. No line number is given for the absent form-side consumer.
+
+The flag's real subject is therefore the grid, and the grid is
+`docs/ui/02-child-table-grid-engine.md`'s to document (sub-task 3.3), including the width budget and the
+storage of user column configuration. The server confirms the dual meaning in its own error text: the
+publish-time validator labels the property "In Grid View" for a child table and "In List View" otherwise —
+`property_label = "In Grid View" if is_table else "In List View"`
+(`frappe/core/doctype/doctype/doctype.py:1455-1460`).
+
+**Client-only?** The flag has server-side *writers* and a server-side *validator*, but no server-side
+enforcement of anything. `set_default_in_list_view` mutates the metadata at DocType save time, setting the
+flag on the first four `reqd`, non-`hidden` fields of a permitted fieldtype when no field carries it
+(`frappe/core/doctype/doctype/doctype.py:291-302`, called at
+`frappe/core/doctype/doctype/doctype.py:205`), and `check_in_list_view` rejects the flag on a no-value
+fieldtype (`frappe/core/doctype/doctype/doctype.py:1455-1460`, called at
+`frappe/core/doctype/doctype/doctype.py:1854`, with the excluded set built at
+`frappe/core/doctype/doctype/doctype.py:1873-1878`). Both act on the metadata. `in_list_view` is
+**a presentation choice** and cannot be a security boundary in either direction: it neither hides data from a
+caller nor grants access to any.
+
+#### `print_hide`
+
+**Render effect on the form: none.** **Absent** — `print_hide` is not read anywhere in the form runtime.
+Searched: `grep -rn "print_hide" frappe/public/js/frappe/form/` returns **no hits at all**. It is in no arm of
+`get_field_display_status` (`frappe/public/js/frappe/model/perm.js:246-307`) and in none of the three
+`DocType Layout` override lists — the form's two (`frappe/public/js/frappe/form/layout.js:92-105`,
+`frappe/public/js/frappe/form/layout.js:555-568`) or the grid's child-layout one
+(`frappe/public/js/frappe/form/grid.js:916-926`), so it is not even overridable by a layout. No line number is
+given for an absent form-side consumer. Its effect is confined to the print path.
+
+**Client-only?** No — `print_hide` is resolved **on the server**, which makes it the second of the seven to
+have a real server counterpart. `Document.is_print_hide` returns truthy for a field to be omitted from print,
+consulting three sources in order: a controller-supplied `__print_hide` marker on the docfield, then
+`print_hide_if_no_value` when the value is `0` and the doctype is not a child table, then `print_hide` itself,
+preferring an explicitly passed `df` over the metadata copy
+(`frappe/model/base_document.py:1523-1550`). The print view calls it as the last test of its own `is_visible`
+helper, after excluding layout fieldtypes and checking permlevel access
+(`frappe/www/printview.py:517-525`). The same method is exposed to Server Scripts through the safe-exec shim
+(`frappe/utils/safe_exec.py:256-260`).
+
+Even so it is **not a security boundary**, for a reason the code makes plain: it removes a field from a
+rendered print layout, not from the document. The permlevel test that *is* a boundary sits on the line above
+it and is separate (`frappe/www/printview.py:522-523`). A `print_hide` field is still returned by every read
+API. Classify it as **a presentation choice that happens to be enforced server-side** — the enforcement makes
+it reliable for its purpose, not sufficient for confidentiality.
+
+#### `translatable`
+
+**Render effect on a form: it conditions a button, not the displayed value.** `BaseControl.refresh` calls
+`show_translatable_button(value)` (`frappe/public/js/frappe/form/controls/base_control.js:145-147`), which
+returns without doing anything unless `this.df.translatable` is set, a `frm`, a `doc` and a non-empty value
+all exist, and the user can write the `Translation` doctype
+(`frappe/public/js/frappe/form/controls/base_control.js:149-159`, the flag test at
+`frappe/public/js/frappe/form/controls/base_control.js:155`); when all hold it appends a globe icon that
+opens the translation manager (`frappe/public/js/frappe/form/controls/base_control.js:162-175`).
+**Absent:** no form control passes a value through `__()` because `df.translatable` is set. Searched:
+`grep -rn "translatable" frappe/public/js/frappe/`, whose only display-affecting hit is
+`ControlLink.get_translated`, and that is gated on the boot list `frappe.boot.translated_doctypes` — a
+**doctype**-level property — rather than on the docfield flag
+(`frappe/public/js/frappe/form/controls/link.js:119-124`). No line number is given for the absent
+value-translation path. So a `translatable` `Data` field renders its stored text verbatim on a form; the flag
+buys a maintenance affordance, not a translated display.
+
+**Client-only?** No, but its server-side effect is on a different surface again. The report/export query
+translates values column by column, selecting which columns to translate from exactly this flag —
+`_(value) if translatable_fields[idx] else value`
+(`frappe/desk/reportview.py:496-506`, the flag list built at `frappe/desk/reportview.py:499`), with the
+per-column decision assembled at `frappe/desk/reportview.py:620-635` and widened to `True` for a `Link`
+pointing at a translated doctype (`frappe/desk/reportview.py:630-631`). Publish-time writers coerce the flag
+to `0` for a fieldtype that cannot support it, `supports_translation` admitting only `Data`, `Select`, `Text`,
+`Small Text` and `Text Editor` (`frappe/model/docfield.py:9-10`), applied from DocType save
+(`frappe/core/doctype/doctype/doctype.py:304`, `frappe/core/doctype/doctype/doctype.py:307-308`, called at
+`frappe/core/doctype/doctype/doctype.py:206`), from `Custom Field`
+(`frappe/custom/doctype/custom_field/custom_field.py:209-210`) and from `Customize Form`
+(`frappe/custom/doctype/customize_form/customize_form.py:402`).
+
+`translatable` is therefore **a presentation choice**, and one with a hazard worth recording: it causes a
+*stored* value to be replaced by a *translated* one in the export path
+(`frappe/desk/reportview.py:503`), which is precisely the stored-value/displayed-text confusion Requirement
+13.4 rejects. It is not a security boundary in any direction.
+
+### 4.3 Summary — boundary or presentation
+
+| Flag | Client render effect | Server counterpart | Boundary? |
+|---|---|---|---|
+| `hidden` | `disp_status` → `"None"`, `hide-control` class (`frappe/public/js/frappe/model/perm.js:260`, `frappe/public/js/frappe/form/controls/base_control.js:141`) | none for access; a publish-time metadata check only (`frappe/core/doctype/doctype/doctype.py:1442-1449`) | **presentation** — value still sent, stored and returned |
+| `read_only` | `"Write"` → `"Read"`; static text instead of an input (`frappe/public/js/frappe/model/perm.js:297-299`, `frappe/public/js/frappe/form/controls/base_input.js:112-122`) | **none at all** — zero occurrences in `frappe/model/base_document.py`; nearest is `_validate_update_after_submit` (`frappe/model/base_document.py:1346`) | **presentation** — freely writable off-form |
+| `bold` | `bold` class on input and display area, OR-ed with `reqd` (`frappe/public/js/frappe/form/controls/base_input.js:292-298`) | none; only the generated annotation (`frappe/core/doctype/docfield/docfield.py:23`) | **presentation** — typography only |
+| `allow_on_submit` | `"Read"` → `"Write"` when `docstatus === 1` (`frappe/public/js/frappe/model/perm.js:277-280`) | `_validate_update_after_submit` throws `UpdateAfterSubmitError` (`frappe/model/base_document.py:1346-1354`, `frappe/model/base_document.py:1371-1381`) | **boundary on the save path only** — bypassed by `db_set` (`frappe/model/document.py:1951`, `frappe/model/document.py:1954-1955`) |
+| `in_list_view` | **none on the parent form**; grid visible-column signal only (`frappe/public/js/frappe/form/grid.js:1528-1533`) | metadata writer and validator only (`frappe/core/doctype/doctype/doctype.py:291-302`, `frappe/core/doctype/doctype/doctype.py:1455-1460`) | **presentation** |
+| `print_hide` | **none on the form**; not read by any arm of the pipeline (`frappe/public/js/frappe/model/perm.js:246-307`) | `is_print_hide`, applied by the print view (`frappe/model/base_document.py:1523-1550`, `frappe/www/printview.py:517-525`) | **presentation, server-enforced** — omits from print, not from any read API |
+| `translatable` | a translation-manager button, gated on `can_write("Translation")`; **no** effect on the rendered value (`frappe/public/js/frappe/form/controls/base_control.js:149-159`) | translates exported values (`frappe/desk/reportview.py:496-506`); fieldtype coercion (`frappe/model/docfield.py:9-10`) | **presentation** — and substitutes translated text for stored text on export |
+
+Two conclusions carry into §10. Only `allow_on_submit` may be relied on for integrity, and only against
+`Document.save()`. Every other flag in this set is a rendering instruction, so any target rule phrased as
+"field X cannot be changed" or "field X is not visible" must be restated against `permlevel` or against a
+server-side check, exactly as §3.6 concluded for `read_only_depends_on`.
+
 ## 5. Field type → control mapping
 
 ## 6. Precision resolution, and where display diverges from storage
