@@ -50,9 +50,18 @@ divergence from the prompt is visible rather than silently absorbed.
 | `grid_form.js` — [`PROMPT-frontend-form-ui.md`](PROMPT-frontend-form-ui.md):109, carried into Requirement 7.1 and design §7.1 | No `grid_form.js`. The file is `frappe/public/js/frappe/form/grid_row_form.js`. | Doc 02 cites `grid_row_form.js`. |
 | `list_sidebar*` — design §7.1, from the prompt's sidebar item at [`PROMPT-frontend-form-ui.md`](PROMPT-frontend-form-ui.md):130 | No `list_sidebar.js`. Only `frappe/public/js/frappe/list/list_sidebar_group_by.js` and `list_sidebar_stat.html` exist. | Doc 04 cites the files that actually exist; sidebar composition is documented from `list_view.js` and `base_list.js`. |
 
-**Open part of this question.** Requirement 6.1 names `FormPage` in its acceptance criteria. The absence
-finding discharges the criterion honestly, but the criterion's wording still names a class that does not
-exist upstream. No requirement text is amended without instruction; flagged for the reviewer's judgement.
+**Resolved.** The requirement text has since been amended, so no acceptance criterion names an absent unit
+any longer. Requirement 6.1 now names `Tab` and `frappe.views.FormFactory` in place of `FormPage`, and
+Requirement 7.1 names `grid_row_form.js` in place of `grid_form.js`; `grep -c FormPage` against
+[`requirements.md`](../../.kiro/specs/frontend-form-ui/requirements.md) returns **0**. New Requirement 6.9
+generalises the convention rather than leaving it to this register: an absent class **or file** named
+anywhere in the specification is recorded as an absence finding, named explicitly, with no line number. The
+originating prompt remains the only place naming the three absent units, which is why the table above is
+retained, and doc 01 §1.5 carries the `FormPage` absence finding itself
+([`docs/ui/01-form-rendering-and-layout-engine.md`](../ui/01-form-rendering-and-layout-engine.md)). Doc 01
+§5.3 row 17 and §5.10 finding 2 record a fourth instance of the same pattern — Requirement 6.6 names a
+fieldtype `Markdown`, whereas the canonical fieldtype is `Markdown Editor` — handled under the same
+Requirement 6.9 convention and needing no further requirement amendment.
 
 ### Q3 — `layout_revision` and `layout_node` are specified here, pending backend confirmation (Requirement 15.8)
 

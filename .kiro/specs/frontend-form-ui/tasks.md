@@ -123,7 +123,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
       merely a presentation choice
     - _Requirements: 5.1, 6.5_
 
-  - [ ] 2.6 Map each field type to its control implementation
+  - [x] 2.6 Map each field type to its control implementation
     - Read `frappe/public/js/frappe/form/controls/base_control.js` then the per-type controls under
       `frappe/public/js/frappe/form/controls/`
     - Produce a coverage matrix with one cited row per mandated type: `Link`, `Dynamic Link`, `Table`,

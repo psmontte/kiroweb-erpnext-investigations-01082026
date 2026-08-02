@@ -2019,8 +2019,10 @@ adds the `bold` class — and would have anyway, since `reqd: 1` is OR-ed into t
 (`frappe/public/js/frappe/form/controls/base_input.js:294`), which is §4.5 finding 2 in live use.
 `print_hide: 1` has no effect on the form.
 
-**Resulting DOM.** Assembling the markup from `base_input.js:21-33`, `base_control.js:11-18` and
-`link.js:14-24`:
+**Resulting DOM.** Assembling the markup from
+`frappe/public/js/frappe/form/controls/base_input.js:21-33`,
+`frappe/public/js/frappe/form/controls/base_control.js:11-18` and
+`frappe/public/js/frappe/form/controls/link.js:14-24`:
 
 ```html
 <div class="frappe-control" data-fieldtype="Link" data-fieldname="customer">
