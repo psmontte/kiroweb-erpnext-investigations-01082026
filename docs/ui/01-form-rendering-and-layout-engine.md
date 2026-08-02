@@ -32,8 +32,8 @@ Five classes cooperate: `frappe.ui.form.Form` (`frappe/public/js/frappe/form/for
 `Section` (`frappe/public/js/frappe/form/section.js:1`), `Column`
 (`frappe/public/js/frappe/form/column.js:1`) and `Tab` (`frappe/public/js/frappe/form/tab.js:7`). The route
 that reaches them is owned by `frappe.views.FormFactory`
-(`frappe/public/js/frappe/views/formview.js:6`). A sixth class named in Requirement 6.1 — `FormPage` — does
-not exist; see §1.5.
+(`frappe/public/js/frappe/views/formview.js:6`). A sixth class named in the investigation prompt
+(`docs/agents/PROMPT-frontend-form-ui.md:94`) — `FormPage` — does not exist; see §1.5.
 
 Two facts govern everything below. First, **the `Form` constructor builds no DOM**: it stores options and
 loads metadata (`frappe/public/js/frappe/form/form.js:25-60`), and the entire widget tree is built later, by
@@ -287,8 +287,10 @@ re-classify it (`frappe/public/js/frappe/form/column.js:41-43`,
 
 ### 1.5 Absence finding — there is no `FormPage`
 
-**Absent.** Requirement 6.1 names `FormPage` as one of the five classes in the construction order. No such
-class exists in the pinned `frappe` tree. Searched: `grep -rn "FormPage" public/js/frappe/form/` (no output,
+**Absent.** The investigation prompt names `FormPage` among the classes to investigate under
+`frappe/public/js/frappe/form/**` (`docs/agents/PROMPT-frontend-form-ui.md:94`), and Requirement 6.1
+previously carried the name before it was corrected to name `Tab` and `frappe.views.FormFactory` instead. No
+such class exists in the pinned `frappe` tree. Searched: `grep -rn "FormPage" public/js/frappe/form/` (no output,
 exit status 1); `grep -rn "FormPage"` across the whole app (three hits, all `WebFormPage` in
 `website/page_renderers/web_form.py` and `website/path_resolver.py`, an unrelated server-side website
 renderer); and `find . -name "*form_page*"` (no output). No line number is given here, because there is no
