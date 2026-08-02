@@ -130,7 +130,7 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 | ~~**B**~~ | ~~**Manufacturing** — BOM (+ cost roll-up, exploded items, update-cost job), Work Order, Job Card, Operations/Routing, Workstation capacity, Production Plan, Master Production Schedule, scrap & rework, WIP accounting~~ | 48 total / 18 parents (8 submittable) | **DONE** — docs 33–37 + S07; 18/18 parent controllers cited, 0 gaps |
 | ~~**B**~~ | ~~**Subcontracting deep dive** — order/receipt lifecycle, supplied-item consumption, RM transfer, `Subcontracting BOM`, customer-owned inward flow~~ | 13 total / 4 parents (3 submittable) | **DONE** — doc 38 + S08 + S10; 4/4 parent controllers cited, 0 gaps |
 | ~~**C**~~ | ~~**Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement~~ | 26 total / 14 parents (8 submittable) | **DONE** — docs 41–44 + S11; 14/14 parent controllers cited, 0 gaps |
-| **F** | **Localisation — India GST first** — jurisdiction as data, HSN/SAC, place of supply, CGST/SGST/IGST/cess components, reverse charge, TDS/TCS interaction, statutory numbering, GSTR/e-invoice extracts, amendment and credit-note semantics | 27 parents in `india_compliance` | **IN PROGRESS** — docs 45–46 done (registration/settings/HSN/tax structure; determination core). Register **G1–G16**. ERPNext's `@allow_regional` overlay is **rejected** (doc 21 §4, doc 42 §4.3) |
+| **F** | **Localisation — India GST first** — jurisdiction as data, HSN/SAC, place of supply, CGST/SGST/IGST/cess components, reverse charge, TDS/TCS interaction, statutory numbering, GSTR/e-invoice extracts, amendment and credit-note semantics | 27 parents in `india_compliance` | **IN PROGRESS** — docs 45–47 done (registration/settings/HSN/tax structure; determination core; external artefacts). Register **G1–G23**. ERPNext's `@allow_regional` overlay is **rejected** (doc 21 §4, doc 42 §4.3) |
 
 ### Tranche F deliverables
 
@@ -138,7 +138,7 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 |---:|---|---|
 | 45 | [`45-gst-registration-settings-hsn-and-tax-structure.md`](logic/45-gst-registration-settings-hsn-and-tax-structure.md) | **DONE** — GST's absence from core, the app's attachment mechanism, GSTIN/PAN identity and status caching, GST Settings, five-component tax structure, HSN/SAC |
 | 46 | [`46-gst-place-of-supply-and-component-determination.md`](logic/46-gst-place-of-supply-and-component-determination.md) | **DONE** — place of supply and provenance, intra/inter split, applicable component sets, reverse charge and refund balance rules, ineligible ITC into inventory/asset cost, item-wise distribution, statutory period control |
-| 47 | `47-e-invoice-and-e-waybill.md` | external API state machines, logs, retry and cancellation windows |
+| 47 | [`47-e-invoice-and-e-waybill-external-state-machines.md`](logic/47-e-invoice-and-e-waybill-external-state-machines.md) | **DONE** — obligation, submission attempts, duplicate reconciliation and signature verification, cancellation windows, in-transit amendments, durable retry |
 | 48 | `48-gst-returns-and-reconciliation.md` | GSTR-1/3B, purchase reconciliation, Bill of Entry, amendment semantics |
 | 49 | `49-tranche-f-closure-and-our-localisation-spec.md` | closure, G-register, jurisdiction-as-data schema, build order |
 
