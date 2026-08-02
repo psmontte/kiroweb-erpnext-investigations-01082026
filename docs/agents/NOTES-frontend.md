@@ -54,14 +54,66 @@ divergence from the prompt is visible rather than silently absorbed.
 finding discharges the criterion honestly, but the criterion's wording still names a class that does not
 exist upstream. No requirement text is amended without instruction; flagged for the reviewer's judgement.
 
+### Q3 — `layout_revision` and `layout_node` are specified here, pending backend confirmation (Requirement 15.8)
+
+| Aspect | Statement |
+|---|---|
+| What this investigation specifies | `docs/design/FORM-LAYOUT.md` specifies the presentation-metadata tables **`layout_revision`** and **`layout_node`** as the concrete form of the `ui_field` / `ui_layout` capability that doc 25 §3 (subsection 3.1) commits to **BUILD**ing. |
+| Status | **Pending confirmation by the backend agent.** The specification stands and is used; it is not held open awaiting an answer. |
+| Named divergence | [`docs/design/FINAL-SCHEMA.md`](../design/FINAL-SCHEMA.md) **defines neither table**. Searching it for `ui_field`, `ui_layout`, `layout_revision` and `layout_node` returns no matches. |
+| Restricted_Path impact | None. `docs/design/FINAL-SCHEMA.md` is left byte-identical (Requirement 15.7). Both tables are defined wholly inside an Owned_Path. |
+
+**Evidence that doc 25 commits to the capability.**
+[`docs/logic/25-our-platform-spec.md`](../logic/25-our-platform-spec.md):79 states:
+
+```
+| Presentation metadata | **BUILD** — `ui_field` / `ui_layout`, describes rendering only; cannot affect storage | L4 |
+```
+
+and [`docs/logic/25-our-platform-spec.md`](../logic/25-our-platform-spec.md):259 lists `ui_field` again among
+the settings tables the orchestration engine must support. The heading at
+[`docs/logic/25-our-platform-spec.md`](../logic/25-our-platform-spec.md):66 is
+`## 3. Build / buy / drop, by capability`, and line 79 falls inside its subsection
+`### 3.1 Schema and metadata (doc 18)`.
+
+**Why this is a note rather than a blocking request.** The divergence is registered, not hidden. Because
+`FORM-LAYOUT.md` owns both table definitions, the design §10.5 binding table resolves every presentation-metadata
+row without FINAL-SCHEMA, so nothing in this investigation waits on the answer. A **differing** backend answer
+— different table or column names for the same capability — triggers reconciliation of the §10.5 binding table
+and the FORM-LAYOUT DDL in a single commit (design risk R11). The corresponding confirmation request to the
+backend agent is R4 below.
+
+### Q4 — Citation_Verifier scope: only Citations ending in `.py` are checked (Requirement 17.3)
+
+This is a **standing scope note** about what the acceptance gate proves. It is not a request; the request to
+extend the tool is R2 below, and this note holds whether or not that request is ever actioned.
+
+| Aspect | Statement |
+|---|---|
+| Scope of the gate | The Citation_Verifier checks **only** Citations whose path ends in `.py`. Citations to any other extension are not matched, not counted and not reported. |
+| Consequence | A report of `0 problems` is **necessary and insufficient** evidence of Citation correctness (Requirement 17.4). It is not treated as proof that the non-`.py` Citations are correct. |
+| What covers the remainder | The V4 read-back: every Citation whose path ends in an extension other than `.py` is re-read at its cited line in Pinned_Sources and confirmed to contain the construct the claim names (Requirement 17.5); any that does not confirm is corrected or removed before the gate passes (Requirement 17.6). |
+
+**Evidence, read directly from the tool:**
+
+- [`tools/verify_refs.py`](../../tools/verify_refs.py):35 — the citation pattern **requires the `.py`
+  extension**: `CITATION = re.compile(r"([A-Za-z_][\w/]*(?:/[\w/]+)*\.py):(\d+)(?:-(\d+))?")`.
+- [`tools/verify_refs.py`](../../tools/verify_refs.py):62 — the symbol index behind `--strict-names` is built
+  with Python `ast` (`tree = ast.parse(...)`), which is structurally Python-only.
+
+**Relationship to R2.** R2 asks for the tool to be extended and sets out the full consequence for this
+deliverable, whose citations are almost entirely `frappe/public/js/**`. That request remains **open and
+non-blocking**. This entry records the scope limit as a permanent property of the gate, so the strength of a
+`0 problems` report is never overstated even after R2 is closed.
+
 ## Requests for the backend agent
 
 | # | Restricted path | Request | Status |
 |---|---|---|---|
 | R1 | (workspace, not a file) | Fetch both pinned trees at the stated commits | **Closed** — satisfied |
-| R2 | `tools/verify_refs.py` | Extend the citation regex beyond `.py`; gate `--strict-names` on a Python-only symbol index | **Open** — mitigated |
-| R3 | `docs/logic/25-our-platform-spec.md` | None; correction applied on the frontend side | **Closed** — informational |
-| R4 | `docs/design/FINAL-SCHEMA.md` | Add the presentation-metadata tables, or confirm the intended binding | **Open — blocking** |
+| R2 | `tools/verify_refs.py` | Extend the citation regex beyond `.py`; gate `--strict-names` on a Python-only symbol index | **Open, non-blocking** — mitigated |
+| R3 | `docs/logic/25-our-platform-spec.md` | None; withdrawn — Requirement 15.1 now cites section 3 | **Withdrawn** |
+| R4 | `docs/design/FINAL-SCHEMA.md` | Confirm `layout_revision` / `layout_node` as the intended binding | **Confirmation requested, not blocking** |
 
 ### R1 — Pinned source trees: request closed
 
@@ -105,32 +157,39 @@ read-back check: every non-`.py` citation is re-read at its cited line in the pi
 contain the construct the claim names. `tools/**` is a Restricted_Path, so the frontend agent does not make
 this change itself.
 
-### R3 — Doc 25's build/buy/drop format is in §3, not §6
+### R3 — Doc 25's build/buy/drop format is in §3, not §6 — **withdrawn**
+
+**This request is withdrawn.** It is retained for the audit trail, not for action. Requirement 15.1 now cites
+**section 3** of doc 25 directly, so the requirement and the branch agree: **no change is needed** to anything
+under `docs/logic/**`. No answer and no file change is requested of the backend agent.
 
 | Field | Statement |
 |---|---|
 | Path | [`docs/logic/25-our-platform-spec.md`](../logic/25-our-platform-spec.md) — a Restricted_Path, left byte-identical. |
-| Requested change | **None.** No file change is requested of the backend agent. |
-| Reason for the entry | Requirement 15.1 and the design both cite "section 6" of doc 25 for the build/buy/drop decision format. On this branch that reference is stale. Recorded so the discrepancy is visible rather than silently absorbed. |
+| Requested change | **None.** Withdrawn; the requirement text was corrected instead. |
+| Why it was raised | An earlier revision of Requirement 15.1 cited "section 6" of doc 25 for the build/buy/drop decision format. On this branch that reference was stale, and the discrepancy was recorded here rather than silently absorbed. |
+| Why it is withdrawn | Requirement 15.1 cites section 3, which is where the format actually lives. The mismatch that motivated the entry no longer exists. |
 
-**Evidence, read from `docs/logic/25-our-platform-spec.md`:**
+**Evidence, read from `docs/logic/25-our-platform-spec.md` — retained because it is what closed the question:**
 
 - line 66 — `## 3. Build / buy / drop, by capability`
 - line 292 — `## 6. Cost of leaving Frappe — honest accounting`
 
-**Correction applied on the frontend side.** Doc 05 and `docs/design/UI-SPEC.md` follow the requirement's
-intent — the decision format doc 25 actually uses — and link **§3**. Neither document links §6 for this
-purpose.
+**Position on the frontend side.** Doc 05 and `docs/design/UI-SPEC.md` link **§3** for the decision format,
+matching Requirement 15.1. Neither document links §6 for this purpose.
 
 ### R4 — `docs/design/FINAL-SCHEMA.md` has no presentation-layer tables
 
-**This is the consequential one, and it is blocking for `docs/design/UI-SPEC.md`.**
+**Confirmation requested, not blocking.** This entry was originally recorded as blocking
+`docs/design/UI-SPEC.md`. It no longer is: `docs/design/FORM-LAYOUT.md` specifies `layout_revision` and
+`layout_node` itself under Requirement 15.4, so task 10.2 and the design §10.5 binding table are
+**unblocked**. What remains is a confirmation, tracked as an open question under Q3 below (Requirement 15.8).
 
 | Field | Statement |
 |---|---|
 | Path | [`docs/design/FINAL-SCHEMA.md`](../design/FINAL-SCHEMA.md) — a Restricted_Path, left byte-identical. |
-| Requested change | Either (a) add the presentation-metadata tables to FINAL-SCHEMA, or (b) confirm that `layout_revision` / `layout_node`, as specified in this investigation's `docs/design/FORM-LAYOUT.md`, are the intended concrete form of doc 25's `ui_field` / `ui_layout`. |
-| Reason | Design rule E-4 has nothing to bind to: the tables doc 25 promises are not in the schema. |
+| Requested change | Confirm that `layout_revision` / `layout_node`, as specified in this investigation's `docs/design/FORM-LAYOUT.md`, are the intended concrete form of doc 25's `ui_field` / `ui_layout`. Adding the tables to FINAL-SCHEMA is at the backend agent's discretion and is not required for this investigation to complete. |
+| Reason | The tables doc 25 promises are not in the schema register, so the binding rule needed a home for presentation-metadata fields. |
 
 **Evidence that doc 25 commits to presentation metadata.** `docs/logic/25-our-platform-spec.md:79` states:
 
@@ -145,12 +204,20 @@ engine must support.
 `ui_layout`, `layout_revision` and `layout_node` returns **no matches**. The tables doc 25 promises are absent
 from the schema register.
 
-**Impact — why this blocks.** Requirement 15.4 and design rule E-4 require every layout field to name an
-existing FINAL-SCHEMA table and column, and design property P9 checks exactly that. Until (a) or (b) is
-settled, the binding table in `docs/design/UI-SPEC.md` (task 10.2) **cannot be completed and cannot be
-verified**. The remainder of `UI-SPEC.md` — the control mapping, the grid contract, the formatting rules, the
-localisation rules — is unaffected and proceeds.
+**Impact — why this no longer blocks.** The binding rule originally required every layout field to name an
+existing FINAL-SCHEMA table and column, which was unsatisfiable for presentation-metadata fields and did block
+task 10.2. Requirement 15.4 now has `docs/design/FORM-LAYOUT.md` specify `layout_revision` and `layout_node`,
+and the design §10.5 binding table splits its rows by kind: business-data fields resolve against
+`docs/design/FINAL-SCHEMA.md` (Requirement 15.5), presentation-metadata fields resolve against
+`docs/design/FORM-LAYOUT.md` (Requirement 15.6). Every row therefore has a resolvable target, design property
+P9 is checkable, and **task 10.2 and the §10.5 binding table are unblocked**. `docs/design/FINAL-SCHEMA.md` is
+left unchanged (Requirement 15.7).
+
+**What a differing answer triggers.** If the backend agent later specifies `ui_field` / `ui_layout` with
+different table or column names, the §10.5 binding table and the FORM-LAYOUT DDL are reconciled **in a single
+commit**, so the two never disagree on the branch. This is design risk R11, and the divergence is registered
+under Q3 (Requirement 15.8) so the reconciliation is triggered by a known open item rather than discovered
+later.
 
 **What the frontend agent will not do.** It will not edit `docs/design/FINAL-SCHEMA.md`, and it will not
-invent a table or column name to close the binding table. If (b) is the answer, the confirmation is recorded
-here and the binding table cites the FINAL-SCHEMA names as they then stand.
+invent a FINAL-SCHEMA table or column name to close the binding table.

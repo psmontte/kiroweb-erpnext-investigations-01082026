@@ -492,7 +492,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
       identifier uses a reserved prefix — `M`, `A`, `F`, `T`, `R`, `V`, or a bare `U` not followed by `I`
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-  - [ ] 11.3 Bring the Notes_Register into line with the settled requirements
+  - [x] 11.3 Bring the Notes_Register into line with the settled requirements
     - Reclassify the presentation-metadata binding request seeded by task 1.2: it is **confirmation requested,
       not blocking** — `docs/design/FORM-LAYOUT.md` specifies `layout_revision` and `layout_node` itself, so
       task 10.2 and the §10.5 binding table are unblocked; a differing backend answer triggers reconciliation
