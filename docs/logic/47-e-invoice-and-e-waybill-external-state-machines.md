@@ -135,9 +135,11 @@ cache (`india_compliance/gst_india/utils/e_invoice.py:507-517`). `_log_e_invoice
 keyed by IRN, swallowing the not-found message
 (`india_compliance/gst_india/utils/e_invoice.py:518-530`).
 
-So the record of a legally binding artefact is written **outside the transaction that recorded its effect**,
-by a background job, with no idempotency receipt of its own. If that job is lost, the document says an IRN
-exists and the log does not — and §4 shows the log is where the cancellation window is read from.
+Worse than "later": the enqueue omits `enqueue_after_commit`, which the GSTIN path does set
+(`india_compliance/gst_india/doctype/gstin/gstin.py:129`). The job is therefore **unordered with respect to the
+caller's transaction** — it may run before the commit, or after a rollback, leaving an `e-Invoice Log` row for a
+document state that never existed. If it is lost instead, the document says an IRN exists while the log does
+not — which §4 shows is where the cancellation window is read from.
 
 ### 3.4 Manual assertion
 
@@ -337,6 +339,8 @@ statutory_artefact(id, company_id, artefact_type statutory_artefact_enum /*e_inv
                        e_invoice_cancellation|import_declaration*/,
     jurisdiction_revision_id, tax_registration_id,
     source_doc_type text, source_doc_id bigint, tax_determination_id bigint NOT NULL,
+    generation_no integer NOT NULL DEFAULT 1,
+    carries_signed_payload bool NOT NULL,    -- only the e-invoice endpoint returns a signed artefact
     obligation_basis text NOT NULL,          -- which rule made this required
     authority_identifier varchar(128) NULL,  -- IRN / e-way bill number, once issued
     issued_at timestamptz NULL,              -- the AUTHORITY's timestamp
@@ -348,9 +352,16 @@ statutory_artefact(id, company_id, artefact_type statutory_artefact_enum /*e_inv
    UNIQUE (company_id, artefact_type, authority_identifier)
       WHERE authority_identifier IS NOT NULL
    UNIQUE (company_id, artefact_type, source_doc_type, source_doc_id, generation_no)
-   CHECK ((state = 'issued') = (authority_identifier IS NOT NULL))
-   CHECK (evidence_class <> 'authority_confirmed' OR signature_verified IS TRUE)
-   -- authority_identifier is NEVER blanked; regeneration inserts a new row with generation_no + 1
+   UNIQUE (company_id, artefact_type, source_doc_type, source_doc_id)
+      WHERE state IN ('required','pending','issued')       -- at most ONE live generation
+   CHECK (state NOT IN ('issued','cancelled','expired') OR authority_identifier IS NOT NULL)
+   CHECK (state NOT IN ('required','pending','not_applicable') OR authority_identifier IS NULL)
+   CHECK (NOT carries_signed_payload OR evidence_class <> 'authority_confirmed'
+          OR signature_verified IS TRUE)
+   -- authority_identifier is NEVER blanked and survives cancellation and expiry, which is why the
+   -- state/identifier coupling is TWO one-directional checks and not a biconditional. The signature gate
+   -- is scoped to signed artefact types: an e-way bill and a return filing come back as unsigned JSON and
+   -- must still be able to be authority_confirmed.
 
 statutory_artefact_event(id, company_id, statutory_artefact_id, event_no integer,
     event_type artefact_event_enum /*requested|issued|vehicle_updated|transporter_updated|
@@ -388,9 +399,14 @@ The decisions that matter:
 - **`timeout_unknown` is a first-class outcome.** A lost response is neither success nor failure; the next
   action is *reconcile*, never *resubmit*. This is the case upstream handles only via `DUPIRN` after the
   fact.
-- **`signature_verified` gates `authority_confirmed`.** A signed artefact whose signature we did not verify
-  cannot be recorded as authority-confirmed, so the `jwt.decode(..., verify_signature=False)` shortcut is
-  structurally unavailable.
+- **`signature_verified` gates `authority_confirmed` for signed artefact types.** An e-invoice whose signature
+  we did not verify cannot be authority-confirmed, so the `jwt.decode(..., verify_signature=False)` shortcut is
+  structurally unavailable — while e-way bills and return filings, whose responses carry no signature, stay
+  confirmable through `carries_signed_payload = false`.
+- **The identifier survives every terminal state**, so a cancelled or expired artefact keeps its number and
+  `UNIQUE (company_id, artefact_type, authority_identifier)` remains enforceable.
+- **At most one live generation per document**, so regeneration after cancellation cannot leave two issued IRNs
+  against one invoice — the tax consequence this document opens with.
 - **The cancellation window is a rule revision**, evaluated against `issued_at` — the authority's timestamp —
   not against an onload cache, and not a literal `days=1`.
 - **`authority_identifier` is never blanked**, so `UNIQUE (company_id, artefact_type, authority_identifier)`
@@ -435,8 +451,10 @@ is the one question the current implementation cannot answer.
    (`india_compliance/gst_india/utils/e_waybill.py:414-442`).
 4. **An identifier field doubles as a state flag**, which is what forces the erasure
    (`india_compliance/gst_india/utils/e_invoice.py:531-578`).
-5. **The log write is enqueued**, outside the transaction that recorded the effect, with no idempotency
-   receipt (`india_compliance/gst_india/utils/e_invoice.py:507-530`).
+5. **The log write is enqueued without `enqueue_after_commit`**, so it is unordered with respect to the
+   caller's transaction and can run before the commit or after a rollback
+   (`india_compliance/gst_india/utils/e_invoice.py:507-530`; contrast
+   `india_compliance/gst_india/doctype/gstin/gstin.py:129`).
 6. **A statutory deadline is read from an onload cache**
    (`india_compliance/gst_india/utils/e_invoice.py:580-596`).
 7. **The 24-hour window is a literal**, not a jurisdiction rule

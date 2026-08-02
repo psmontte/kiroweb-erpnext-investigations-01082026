@@ -26,9 +26,12 @@ Invariants continue from doc 45 at **G9**.
 
 ## 1. Where determination happens in the document lifecycle
 
-`before_validate_transaction` runs first, setting GST tax types and place of supply and recomputing taxes
-(`india_compliance/gst_india/overrides/transaction.py:1574-1614`). `validate_transaction` then runs the
-gate battery (`india_compliance/gst_india/overrides/transaction.py:1615-1687`). Item-level details are
+`before_validate_transaction` runs first, and does less than its name suggests: it sets place of supply
+**only when missing** and applies reverse charge from settings
+(`india_compliance/gst_india/overrides/transaction.py:1574-1591`). `set_gst_tax_type` and
+`_update_place_of_supply_and_taxes` are called from `validate_transaction`
+(`india_compliance/gst_india/overrides/transaction.py:1615-1687`), and the latter only for new documents
+(`india_compliance/gst_india/overrides/transaction.py:1592-1614`). Item-level details are
 recomputed separately (`india_compliance/gst_india/overrides/transaction.py:1688-1701`), and there are
 after-submit paths that resync transporter and address-dependent fields
 (`india_compliance/gst_india/overrides/transaction.py:1861-1966`).
@@ -39,12 +42,16 @@ Two structural observations before any of the arithmetic:
   writes `place_of_supply` onto the document and then re-runs the tax controller
   (`india_compliance/gst_india/overrides/transaction.py:1592-1614`). There is no determination record
   separate from the document being determined.
-- **Some GST fields change after submission.** `before_update_after_submit` and
-  `sync_address_dependent_fields_after_submit` allow transporter and address-derived GST fields to be
-  rewritten on a submitted document
-  (`india_compliance/gst_india/overrides/transaction.py:1861-1887`,
-  `india_compliance/gst_india/overrides/transaction.py:1913-1966`). For fields that determine tax treatment,
-  that is a mutable posted fact.
+- **Some GST fields change after submission, but not once an artefact exists.**
+  `sync_address_dependent_fields_after_submit` **throws** when an IRN or e-way bill is present, and otherwise
+  re-runs the full battery — backdating, place of supply, overseas category, GSTIN status, GST category and
+  account validation — before syncing
+  (`india_compliance/gst_india/overrides/transaction.py:1913-1966`);
+  `before_update_after_submit` handles transporter fields
+  (`india_compliance/gst_india/overrides/transaction.py:1861-1887`). The residual concern is still real and
+  worth stating precisely: a **submitted invoice with no artefact yet** can have its place of supply — and
+  therefore its component split and its GSTR-1 section — rewritten, while GL has already posted from the old
+  components and no reversal occurs.
 
 > **Invariant G9 — determination is a recorded computation, not a document mutation.** Jurisdiction, place of
 > supply, supply type, registration snapshots, classification revision, rate revision and the resulting
@@ -144,17 +151,21 @@ it to `None` when the account is not a GST account**
 (`india_compliance/gst_india/overrides/transaction.py:272-282`). Every downstream rule keys off that field,
 so an account that falls out of the map is not "invalid" — it becomes invisible to GST validation.
 
-`GSTAccounts.validate` then runs five checks in order
-(`india_compliance/gst_india/overrides/transaction.py:283-300`):
+`GSTAccounts.validate` then runs **eight** checks, after early returns for documents with no taxes and no GST
+tax rows (`india_compliance/gst_india/overrides/transaction.py:283-303`):
 
 1. `validate_invalid_account_for_transaction` — sales accounts on sales, purchase on purchase;
 2. `validate_for_same_party_gstin` — no GST when both sides carry the same GSTIN;
 3. `validate_reverse_charge_accounts`;
 4. `validate_sales_transaction`;
-5. `validate_purchase_transaction`.
+5. `validate_purchase_transaction`;
+6. **`validate_for_invalid_account_type`** — the CGST/SGST/IGST applicability refusal;
+7. `validate_for_charge_type`;
+8. `validate_missing_accounts_in_item_tax_template`.
 
-Check 2 is the one that encodes a real statutory principle structurally: a supply to yourself is not a
-supply.
+Check 2 encodes a real statutory principle structurally: a supply to yourself is not a supply. Check 6 means
+the intra/inter filter of §3 is **enforced**, not merely used to build a list — so G11's applicability rule is
+a strengthening of an existing guarantee rather than a new one.
 
 > **Invariant G11 — component applicability is derived, and unmapped accounts are refusals.** The applicable
 > component set is a pure function of (jurisdiction, supply type, transaction direction, reverse-charge flag),
@@ -172,8 +183,8 @@ document carries both an applied tax and a booked liability that must cancel
 (`india_compliance/gst_india/overrides/transaction.py:996-1061`):
 
 ```text
-for each tax row with a gst_tax_type and a non-zero amount:
-    amount = base_tax_amount_after_discount_amount   (negated when is_return)
+for each tax row with a gst_tax_type and a non-zero **tax_amount**:      ← transaction currency
+    amount = base_tax_amount_after_discount_amount   ← BASE currency (negated when is_return)
 
     if "rcm" not in gst_tax_type:                    # forward-charge row
         require add_deduct_tax == "Add" and amount > 0
@@ -203,7 +214,12 @@ Worked, a 5,000.00 intra-state reverse-charge purchase at 18%:
 For a credit note (`is_return`), every sign expectation flips, and the error message flips with it
 (`india_compliance/gst_india/overrides/transaction.py:1000-1013`).
 
-**The defect is the tolerance.** The equality is evaluated at `flt(…, 2)` — a hard-coded two-decimal
+Note the currency mismatch in the guard: the loop skips rows whose **transaction-currency** `tax_amount` is
+zero, then sums their **base-currency** `base_tax_amount_after_discount_amount`. On a multi-currency document
+a row that rounds to zero in transaction currency drops out of a statutory equality while still carrying base
+value.
+
+**The larger defect is the tolerance.** The equality is evaluated at `flt(…, 2)` — a hard-coded two-decimal
 rounding, not the document's own currency precision and not an exact comparison. Doc 01 §1.3 rejected
 ERPNext's 0.5 balance tolerance for the general ledger; this is the same class of concession applied to a
 statutory liability, and 2 is a literal rather than a derived precision.
@@ -219,7 +235,19 @@ cannot discharge the liability.
 ### 4.3 Refund accounts
 
 `validate_gst_refund_accounts` applies to sales documents only
-(`india_compliance/gst_india/overrides/transaction.py:1062-1099`). Refund rows must be negative on a normal
+(`india_compliance/gst_india/overrides/transaction.py:1062-1099`) — and **only when the document is not
+reverse charge**. The two balance rules are mutually exclusive
+(`india_compliance/gst_india/overrides/transaction.py:1676-1681`):
+
+```python
+if doc.get("is_reverse_charge"):
+    validate_reverse_charge_transaction(doc)
+else:
+    validate_gst_refund_accounts(doc)
+```
+
+So a reverse-charge sales document carrying refund rows is **never checked for refund net-zero at all**. That
+is a missing check, not merely an inconsistent precision. Refund rows must be negative on a normal
 invoice and positive on a credit note, and when any refund row is present the **net of all GST rows must be
 zero** at the document's own tax precision:
 
@@ -308,9 +336,21 @@ item/HSN granularity while the invoice reports at document level (doc 48).
 - **`validate_backdated_transaction`** refuses submission or cancellation when GSTR-1 has already been filed
   up to that date (`india_compliance/gst_india/overrides/transaction.py:626-635`, using
   `restrict_gstr_1_transaction_for` from
-  `india_compliance/gst_india/doctype/gst_settings/gst_settings.py:567-601`). This is a genuine period-close
-  mechanism, parallel to the accounting period control in doc 07 — and it is enforced **per document**, from
-  a settings lookup, rather than by a period record.
+  `india_compliance/gst_india/doctype/gst_settings/gst_settings.py:567-601`). The **intent** is a genuine
+  period close, parallel to the accounting period control in doc 07, but it is weaker than it looks in three
+  ways: it is enforced per document from a settings lookup rather than by a period record; it is **opt-in**,
+  returning early unless `restrict_changes_after_gstr_1` is set; and it is **bypassed outright** for anyone
+  holding `role_allowed_to_modify`, and for `Administrator`:
+
+  ```python
+  if not gst_settings.restrict_changes_after_gstr_1:
+      update_is_not_latest_gstr1_data(posting_date, doc.company_gstin) ; return
+  ...
+  if gst_settings.role_allowed_to_modify in frappe.get_roles() or frappe.session.user == "Administrator":
+      restrict = False
+  ```
+
+  A statutory period close with a permanent role bypass is the strongest available argument for G14.
 - **`validate_mandatory_fields`** (`india_compliance/gst_india/overrides/transaction.py:185-208`) and
   **`validate_company_address_field`** (`india_compliance/gst_india/overrides/transaction.py:1553-1573`).
 - **`validate_hsn_codes`** honours a settings flag and a configured valid length
@@ -454,19 +494,26 @@ change of address, transporter or party master cannot alter it; only a reversal 
    (`india_compliance/gst_india/overrides/transaction.py:996-1061`).
 6. **Two statutory balance rules use different precision policies** — hard-coded `2` for reverse charge,
    document precision for refunds
-   (`india_compliance/gst_india/overrides/transaction.py:1062-1099`).
+   (`india_compliance/gst_india/overrides/transaction.py:1062-1099`) — **and they never both run**, so a
+   reverse-charge document with refund rows gets no refund check
+   (`india_compliance/gst_india/overrides/transaction.py:1676-1681`).
+6a. **The reverse-charge guard filters on transaction currency and sums base currency**, so a row that rounds
+   to zero in transaction currency escapes a statutory equality while carrying base value
+   (`india_compliance/gst_india/overrides/transaction.py:996-1061`).
 7. **An unmapped account makes a tax row invisible** to GST validation rather than invalid
    (`india_compliance/gst_india/overrides/transaction.py:272-282`).
-8. **GST fields are mutable after submission**, including address-derived ones
-   (`india_compliance/gst_india/overrides/transaction.py:1861-1887`,
-   `india_compliance/gst_india/overrides/transaction.py:1913-1966`).
+8. **GST fields are mutable after submission until an artefact exists.** The sync throws once an IRN or
+   e-way bill is present, but before that a submitted invoice's place of supply can change while GL already
+   posted from the old components (`india_compliance/gst_india/overrides/transaction.py:1913-1966`,
+   `india_compliance/gst_india/overrides/transaction.py:1861-1887`).
 9. **Ineligible ITC mutates valuation rates in place**, including asset valuation
    (`india_compliance/gst_india/overrides/ineligible_itc.py:291-312`).
 10. **Classification validation is optional**, gated by a settings flag and a configurable length
     (`india_compliance/gst_india/overrides/transaction.py:636-644`).
 11. **A global bypass disables the whole battery.**
     (`india_compliance/gst_india/overrides/transaction.py:1838-1842`).
-12. **Statutory period control lives in a Single** and is consulted per document
+12. **Statutory period control lives in a Single**, is consulted per document, is **opt-in**, and is bypassed
+    by a configurable role and by `Administrator`
     (`india_compliance/gst_india/doctype/gst_settings/gst_settings.py:567-601`).
 13. **No determination provenance is stored** — no rate-schedule identity, engine version, or
     place-of-supply basis (§8).

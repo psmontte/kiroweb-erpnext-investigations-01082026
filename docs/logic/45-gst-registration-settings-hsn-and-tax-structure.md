@@ -54,7 +54,7 @@ actually implements it, which is why this tranche pins a third repository. Anyth
 |---|---|
 | App | `resilient-tech/india-compliance`, pinned `205c3de` |
 | Python | 50,407 lines across 318 non-test files |
-| DocTypes | **27** |
+| DocTypes | **26** |
 | Version alignment | `17.0.0-dev`, `frappe >=17.0.0-dev` — matches our pinned frappe/erpnext exactly |
 
 The 27 DocTypes, grouped by what they are for:
@@ -110,12 +110,17 @@ enable_e_invoice                changed → toggle E_INVOICE_FIELDS
 enable_reverse_charge_in_sales  changed → toggle SALES_REVERSE_CHARGE_FIELDS
 ```
 
-`toggle_custom_fields` flips `hidden` on existing fields and creates them if absent
-(`india_compliance/utils/custom_fields.py:7-37`); `delete_custom_fields` removes them outright
-(`india_compliance/utils/custom_fields.py:54-79`). So **the shape of a tax document is a function of a
-settings checkbox**, applied by mutating metadata rather than by versioned schema. Doc 18 §4 already
-established why runtime DDL and Property Setters are unacceptable as our extension mechanism; GST is the
-strongest case yet, because here the fields being toggled carry **statutory** meaning.
+`toggle_custom_fields` writes exactly one thing — `hidden` — on Custom Fields that already exist, then clears
+the doctype cache (`india_compliance/utils/custom_fields.py:7-37`). It does **not** create or delete them:
+creation is `make_custom_fields` at install (`india_compliance/utils/custom_fields.py:80-91`), and
+`delete_custom_fields` (`india_compliance/utils/custom_fields.py:54-79`) is reached only from uninstall and
+two patches.
+
+So the precise claim is narrower than "a checkbox changes the document's shape": a checkbox changes the
+**visibility** of fields that always exist as runtime `Custom Field` rows. That is still the mechanism doc 18
+§4 rejects — statutory fields are install-time metadata mutated by settings rather than versioned schema, and
+a settings save invalidates the doctype cache — but the fields do not blink in and out of existence, and the
+argument must not claim they do.
 
 > **Invariant G2 — statutory fields are schema, not settings.** Jurisdiction-specific columns exist in the
 > versioned schema, are populated only when the jurisdiction applies, and never appear or disappear because a
@@ -129,7 +134,7 @@ strongest case yet, because here the fields being toggled carry **statutory** me
 ### 3.1 GSTIN format is category-specific
 
 A GSTIN is 15 characters. The app holds **seven distinct regexes** and maps GST categories onto them
-(`india_compliance/gst_india/constants/__init__.py:1436-1478`):
+(`india_compliance/gst_india/constants/__init__.py:1446-1473`):
 
 ```text
 NORMAL        ^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z1-9ABD-J]{1}[0-9A-Z]{1}$
@@ -180,7 +185,7 @@ definitions depending on the role it is used in.
 
 `guess_gst_category` infers a category from the number, falling back to `Registered Regular` when nothing
 matches — explicitly so that e-commerce TCS numbers land somewhere
-(`india_compliance/gst_india/utils/__init__.py:370-412`). Inference is convenient and lossy: two categories
+(`india_compliance/gst_india/utils/__init__.py:372-408`). Inference is convenient and lossy: two categories
 share the `REGISTERED` pattern, so the guess cannot distinguish `SEZ` from `Registered Regular`, and the
 function preserves an already-set category to compensate.
 
@@ -226,11 +231,20 @@ key with hour granularity, not an idempotency record.
 ### 3.4 PAN
 
 `PAN` is a DocType with format `^[A-Z]{5}[0-9]{4}[A-Z]{1}$`
-(`india_compliance/gst_india/constants/__init__.py:1479-1481`) and an externally-fetched status
-(`india_compliance/gst_india/doctype/pan/pan.py:39-112`). `validate_pan` on parties derives PAN from
-characters 3–12 of the GSTIN when absent (`india_compliance/gst_india/overrides/party.py:61-78`) — a
-derivation that is correct for most categories and wrong for the formats whose middle segment is not a PAN,
-which is why it is guarded by category.
+(`india_compliance/gst_india/constants/__init__.py:1475`) and an externally-fetched status
+(`india_compliance/gst_india/doctype/pan/pan.py:39-112`). `validate_pan` derives PAN from characters 3–12 of the GSTIN
+(`india_compliance/gst_india/overrides/party.py:61-78`) — and does so **unconditionally whenever a GSTIN
+exists**, overwriting any stored PAN, with **no category guard**:
+
+```python
+if doc.gstin:
+    doc.pan = pan_from_gstin if is_valid_pan(pan_from_gstin := doc.gstin[2:12]) else ""
+    return
+```
+
+The derivation is correct for the `REGISTERED` formats and wrong for TDS, TCS, UIN and NRI numbers, whose
+middle segment is not a PAN — and in those cases the stored PAN is **blanked**, not left alone. `is_valid_pan`
+is the only test applied.
 
 The module also ships a Verhoeff checksum and an Aadhaar generator
 (`india_compliance/gst_india/doctype/pan/pan.py:148-166`) used for API sandbox flows.
@@ -259,7 +273,7 @@ Behaviours worth recording:
 - **A statutory floor is hard-coded.** `e_invoice_applicable_from` may not precede
   `E_INVOICE_START_DATE = "2021-01-01"`
   (`india_compliance/gst_india/doctype/gst_settings/gst_settings.py:220-243`,
-  `india_compliance/gst_india/doctype/gst_settings/gst_settings.py:36`).
+  `india_compliance/gst_india/doctype/gst_settings/gst_settings.py:37`).
 - **An anti-pattern is warned about, not prevented.** Setting `nil_exempt_e_invoice_treatment` to
   "Generate with Taxable Values" produces a message saying it causes GSTR-1 inconsistencies and is *not
   recommended* (`india_compliance/gst_india/doctype/gst_settings/gst_settings.py:68-85`) — a known-wrong
@@ -267,7 +281,7 @@ Behaviours worth recording:
 - **A rollout date is deliberately unreachable.** `SHIP_TO_GSTIN_APPLICABLE_DATE = 2099-12-31`, with the
   comment "deliberately unreachable. Sandbox stays reachable via `sandbox_mode`"
   (`india_compliance/gst_india/constants/__init__.py:10-12`), consumed by
-  `is_ship_to_gstin_applicable` (`india_compliance/gst_india/utils/__init__.py:445-455`). A statutory
+  `is_ship_to_gstin_applicable` (`india_compliance/gst_india/utils/__init__.py:450-458`). A statutory
   switch is pinned to a sentinel date pending a real one — honest, and exactly the kind of thing that must
   be a dated rule revision rather than a constant.
 
@@ -309,7 +323,16 @@ for each tax row:
 Worked: an 18% item resolves to `CGST 9% + SGST 9%` within a state and `IGST 18%` across states. A 5% item
 resolves to `2.5% + 2.5%` or `5%`. The doubling rule is the whole of GST's intra/inter-state duality
 expressed as one equality — and it is checked, with the expected value reported per row
-(`india_compliance/gst_india/overrides/item_tax_template.py:56-67`).
+(`india_compliance/gst_india/overrides/item_tax_template.py:56-67`) — subject to the per-row limitation
+below.
+
+**Upstream never checks that the components sum to the headline rate.** `validate_tax_rates` inspects each
+row independently, against `abs(row.tax_rate)`
+(`india_compliance/gst_india/overrides/item_tax_template.py:27-67`), so a template carrying a single CGST row
+at 9% passes an 18% headline, a −9% row passes because of `abs()`, and a row whose account is in neither the
+intra- nor the inter-state set is skipped in silence. The doubling relationship is asserted per row, never
+summed — which is precisely the gap `tax_rate_component`'s exact-sum trigger closes in §8, and it makes that
+constraint an addition rather than a reformulation.
 
 `validate_zero_tax_options` couples treatment and rate: any treatment other than `Taxable` forces the rate
 to zero, and `Taxable` with a zero rate is refused
@@ -318,11 +341,13 @@ to zero, and `Taxable` with a zero rate is refused
 Nil-Rated/Exempted/Non-GST are the non-taxable remainder — a distinction that matters in GSTR-1 (doc 48),
 not in arithmetic.
 
-Reverse-charge and refund accounts legitimately carry **negative** rates, and which ones do depends on how
-the purchase template was built: `get_accounts_with_negative_rate` includes purchase RCM accounts only when
-an existing `Purchase Taxes and Charges` row has `add_deduct_tax = "Add"`
-(`india_compliance/gst_india/overrides/item_tax_template.py:78-108`). Validation behaviour therefore depends
-on the content of another document's child row.
+Reverse-charge and refund accounts legitimately carry **negative** rates.
+`get_accounts_with_negative_rate` computes which ones, including purchase RCM accounts only when an existing
+`Purchase Taxes and Charges` row has `add_deduct_tax = "Add"`
+(`india_compliance/gst_india/overrides/item_tax_template.py:78-108`) — so it depends on another document's
+child row. It is also **client-side only**: it is reachable solely through the whitelisted
+`get_valid_gst_accounts` (`india_compliance/gst_india/overrides/item_tax_template.py:69-77`), called from the
+form script. Server-side validation ignores sign entirely, via the `abs()` above.
 
 ### 5.2 Company fixtures
 
@@ -347,8 +372,8 @@ which fixture version produced them.
 
 `GST HSN Code` validates that a code is 4, 6 or 8 digits
 (`india_compliance/gst_india/doctype/gst_hsn_code/gst_hsn_code.py:115-133`,
-`india_compliance/gst_india/constants/__init__.py:1517-1519`), and services are identified by the prefix
-`99` (`india_compliance/gst_india/constants/__init__.py:1519`).
+`india_compliance/gst_india/constants/__init__.py:1524`), and services are identified by the prefix
+`99` (`india_compliance/gst_india/constants/__init__.py:1525`).
 
 Editing an HSN code's taxes **pushes them into every Item carrying that code**
 (`india_compliance/gst_india/doctype/gst_hsn_code/gst_hsn_code.py:21-45`), by bulk-inserting item tax rows,
@@ -463,26 +488,29 @@ approved effective ranges.
    (`india_compliance/gst_india/utils/__init__.py:246-282`).
 7. **Category inference is lossy.** `REGISTERED` covers five categories, so `guess_gst_category` cannot
    distinguish them and falls back to `Registered Regular`
-   (`india_compliance/gst_india/utils/__init__.py:370-412`).
+   (`india_compliance/gst_india/utils/__init__.py:372-408`).
 8. **Pincode/state validation silently passes** for states absent from the mapping
    (`india_compliance/gst_india/utils/__init__.py:325-368`).
-9. **HSN taxes are bulk-pushed into item masters** with direct inserts, timestamp patching and comments,
+9. **Component sums are never validated.** Each row is checked independently against `abs(tax_rate)`, so a
+   single-component template passes a two-component headline
+   (`india_compliance/gst_india/overrides/item_tax_template.py:27-67`).
+10. **HSN taxes are bulk-pushed into item masters** with direct inserts, timestamp patching and comments,
    with no rate-revision provenance
    (`india_compliance/gst_india/doctype/gst_hsn_code/gst_hsn_code.py:21-114`).
-10. **Classification and rates are unversioned** while GST rates change by dated notification — posted
+11. **Classification and rates are unversioned** while GST rates change by dated notification — posted
     documents cannot name the schedule they used (§6).
-11. **Account uniqueness is a per-document check-then-write.**
+12. **Account uniqueness is a per-document check-then-write.**
     (`india_compliance/gst_india/doctype/gst_settings/gst_settings.py:176-209`).
-12. **A settings document mutates scheduler rows.**
+13. **A settings document mutates scheduler rows.**
     (`india_compliance/gst_india/doctype/gst_settings/gst_settings.py:132-155`).
-13. **A known-inconsistent option is warned about rather than removed.**
+14. **A known-inconsistent option is warned about rather than removed.**
     (`india_compliance/gst_india/doctype/gst_settings/gst_settings.py:68-85`).
-14. **A statutory rollout is pinned to a sentinel date** (`2099-12-31`) rather than modelled as a dated rule
+15. **A statutory rollout is pinned to a sentinel date** (`2099-12-31`) rather than modelled as a dated rule
     (`india_compliance/gst_india/constants/__init__.py:10-12`).
-15. **Rate validation depends on another document's child rows.** Negative-rate account sets are derived
-    from an existing `Purchase Taxes and Charges` row's `add_deduct_tax`
-    (`india_compliance/gst_india/overrides/item_tax_template.py:78-108`).
-16. **Company fixtures are unversioned generated master data.**
+16. **The negative-rate account set is client-side only**, and depends on another document's child rows
+    (`india_compliance/gst_india/overrides/item_tax_template.py:78-108`,
+    `india_compliance/gst_india/overrides/item_tax_template.py:69-77`).
+17. **Company fixtures are unversioned generated master data.**
     (`india_compliance/gst_india/overrides/company.py:25-100`).
 
 No deterministic lock or unique constraint was found around: GSTIN status read → transaction validation;
