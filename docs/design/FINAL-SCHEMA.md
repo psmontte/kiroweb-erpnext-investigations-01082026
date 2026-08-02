@@ -2317,7 +2317,379 @@ upstream leaves behind is unrepresentable, and so is the split-rounding cent.
 
 ---
 
-## 24. What remains open
+## 24. Jurisdiction, registration and classification
+
+Tranche F ([docs 45–48](../logic/45-gst-registration-settings-hsn-and-tax-structure.md)) adds localisation.
+The driving constraint: **India GST is not in ERPNext** — it was removed in v14
+(`patches/v14_0/remove_india_localisation.py:5-21`) and lives in a separate app that attaches itself through
+`doc_events` overrides and **custom fields toggled by settings checkboxes**. We reject that mechanism and
+ERPNext's `@allow_regional` function replacement (doc 21 §4, doc 42 §4.3) in favour of jurisdiction as data.
+
+All conventions at the top of this document apply. Money `numeric(19,4)`; rates and percentages
+`numeric(9,6)`; `company_id` everywhere with RLS and `FORCE RLS`; stable lower-case enum codes; append-only
+facts with reversal/supersession.
+
+```sql
+tax_jurisdiction(id, code varchar(8), name text)  UNIQUE (code)   -- 'in', 'ae', 'gb'
+tax_jurisdiction_revision(id, company_id, tax_jurisdiction_id, revision_no integer,
+    effective_from date, effective_to date NULL, state revision_state_enum,
+    requires_e_invoice bool, requires_e_waybill bool, supports_reverse_charge bool,
+    supports_composition bool, classification_scheme_id bigint,
+    approved_at NULL, approved_by NULL, supersedes_revision_id bigint NULL)
+   UNIQUE (company_id, tax_jurisdiction_id, revision_no)
+   EXCLUDE USING gist (company_id WITH =, tax_jurisdiction_id WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&) WHERE (state = 'approved')
+
+tax_area(id, company_id, tax_jurisdiction_id, area_code varchar(8), name text,
+    is_outside_jurisdiction bool NOT NULL DEFAULT false)
+   UNIQUE (company_id, tax_jurisdiction_id, area_code)
+   -- Indian states by GST state number; '96' becomes is_outside_jurisdiction, not a magic literal
+tax_area_postal_range(id, company_id, tax_area_id, range_start integer, range_end integer)
+   CHECK (range_end >= range_start)
+   -- an unmapped area is a REFUSAL, never a silent pass (doc 45 §3.2)
+
+tax_registration(id, company_id, party_id NULL, owning_company_id NULL,
+    tax_jurisdiction_id, registration_no varchar(32),
+    registration_category registration_category_enum, tax_area_id,
+    secondary_id varchar(32) NULL,            -- PAN or equivalent
+    valid_from date, valid_to date NULL)
+   UNIQUE (company_id, tax_jurisdiction_id, registration_no)
+   CHECK (num_nonnulls(party_id, owning_company_id) = 1)
+   -- L2 trigger: registration_no matches the format for its category on the jurisdiction revision,
+   -- and its check digit validates; a transporter-style identifier is a separate typed row, not an
+   -- exemption inside this one (doc 45 §3.2)
+
+tax_registration_snapshot(id, company_id, source_doc_type text, source_doc_id bigint,
+    party_role party_role_enum /*supplier|customer|company|transporter*/,
+    registration_no varchar(32), registration_category registration_category_enum,
+    tax_area_id, status registration_status_enum, registered_on date NULL,
+    cancelled_on date NULL, source snapshot_source_enum /*api|manual|derived*/,
+    retrieved_at timestamptz NOT NULL, fetch_attempt_id bigint NULL)
+   UNIQUE (company_id, source_doc_type, source_doc_id, party_role)
+   -- IMMUTABLE. This is what makes doc 45 §3.3's async, log-only validation impossible: the write
+   -- blocks until a snapshot within the policy window exists, and a later portal refresh cannot
+   -- retroactively invalidate a posted document.
+
+classification_scheme(id, company_id, code, name, allowed_lengths integer[],
+    service_prefix varchar(4) NULL)
+   UNIQUE (company_id, code)          -- HSN lengths {4,6,8} and prefix '99' are DATA (doc 45 §6)
+classification_code_revision(id, company_id, classification_scheme_id, code varchar(16),
+    revision_no integer, description text, effective_from date, effective_to date NULL,
+    state revision_state_enum)
+   UNIQUE (company_id, classification_scheme_id, code, revision_no)
+item_classification(id, company_id, item_id, classification_code_revision_id,
+    effective_from date, effective_to date NULL)
+   UNIQUE (company_id, item_id, classification_scheme_id, effective_from)
+   -- items REFERENCE a classification revision; rates are never bulk-pushed into item masters
+
+tax_component(id, company_id, tax_jurisdiction_id, component_code varchar(24),
+    component_role component_role_enum /*output|input|reverse_charge|refund*/,
+    sign_policy sign_policy_enum /*positive|negative*/, is_quantity_based bool)
+   UNIQUE (company_id, tax_jurisdiction_id, component_code, component_role)
+tax_component_account(id, company_id, tax_component_id, account_id)
+   UNIQUE (company_id, tax_component_id)
+   UNIQUE (company_id, account_id)     -- one account cannot serve two component roles (doc 45 §5)
+
+tax_treatment(id, company_id, tax_jurisdiction_id, code treatment_enum
+    /*taxable|zero_rated|nil_rated|exempted|non_gst*/, allows_nonzero_rate bool,
+    reporting_category text)
+   UNIQUE (company_id, tax_jurisdiction_id, code)
+tax_rate_revision(id, company_id, tax_jurisdiction_id, classification_code_revision_id,
+    supply_type supply_type_enum, headline_rate numeric(9,6), tax_treatment_id,
+    revision_no integer, effective_from date, effective_to date NULL, state revision_state_enum)
+   UNIQUE (company_id, classification_code_revision_id, supply_type, revision_no)
+   EXCLUDE USING gist (company_id WITH =, classification_code_revision_id WITH =,
+      supply_type WITH =, daterange(effective_from, effective_to, '[)') WITH &&)
+      WHERE (state = 'approved')
+   CHECK (headline_rate >= 0)
+tax_rate_component(id, company_id, tax_rate_revision_id, tax_component_id,
+    rate numeric(9,6) NOT NULL)
+   UNIQUE (company_id, tax_rate_revision_id, tax_component_id)
+   -- deferred: Σ rate = headline_rate EXACTLY per supply type. This generalises the
+   -- `gst_rate == tax_rate × 2` intra-state rule (doc 45 §5.1) from a validation message to a
+   -- constraint, and supports three-way or quantity-based splits without new code.
+```
+
+---
+
+## 25. Determination and blocked credit
+
+```sql
+tax_determination(id, company_id, source_doc_type text, source_doc_id bigint,
+    tax_jurisdiction_revision_id, engine_version varchar(64), determined_at timestamptz,
+    supply_type supply_type_enum,
+    liability_direction liability_direction_enum /*forward|reverse|refund|zero_rated*/,
+    place_of_supply_area_id bigint NOT NULL,
+    place_of_supply_basis pos_basis_enum /*party_registration|shipping_address|
+                                          company_registration|explicit_override|statutory_default*/,
+    source_area_id bigint NOT NULL, source_basis pos_basis_enum,
+    supplier_registration_snapshot_id, customer_registration_snapshot_id,
+    money_precision smallint NOT NULL,
+    command_receipt_id, reverses_determination_id bigint NULL)
+   UNIQUE (company_id, source_doc_type, source_doc_id) WHERE reverses_determination_id IS NULL
+   -- place of supply is an AREA FK, never a "NN-State Name" label whose first two characters are
+   -- statutory (doc 46 §2.1). Absence of a place of supply is a refusal, not intra-state.
+
+tax_determination_line(id, company_id, tax_determination_id, source_line_id bigint,
+    classification_code_revision_id, tax_rate_revision_id, tax_treatment_id,
+    taxable_amount numeric(19,4), ordinal integer)
+   UNIQUE (company_id, tax_determination_id, source_line_id)
+   CHECK (taxable_amount >= 0)
+
+tax_determination_component(id, company_id, tax_determination_line_id, tax_component_id,
+    component_role component_role_enum, rate numeric(9,6), amount numeric(19,4),
+    account_id, is_residual bool NOT NULL DEFAULT false)
+   UNIQUE (company_id, tax_determination_line_id, tax_component_id, component_role)
+   -- deferred triggers:
+   --   the component is in the applicable set for (jurisdiction, supply_type, direction, role)
+   --   Σ amount per line = round(taxable_amount × Σ rate) with exactly ONE residual component
+   --   Σ amount per component across lines = the document's component total, EXACTLY
+   --   forward and reverse amounts cancel EXACTLY at determination.money_precision
+   --      (never at a hard-coded 2 — doc 46 §4.1)
+
+tax_credit_block(id, company_id, tax_determination_line_id, tax_component_id,
+    reason_code credit_block_reason_enum /*place_of_supply|blocked_category|personal_use|
+                                          exempt_output|composition|statutory_list*/,
+    destination credit_destination_enum /*inventory_valuation|asset_cost|named_expense*/,
+    amount numeric(19,4), stock_move_id NULL, asset_cost_event_id NULL,
+    expense_account_id NULL, voucher_id bigint NOT NULL REFERENCES voucher(id))
+   UNIQUE (company_id, tax_determination_line_id, tax_component_id)
+   CHECK (num_nonnulls(stock_move_id, asset_cost_event_id, expense_account_id) = 1)
+   -- blocked credit reaches inventory and asset cost through ordinary stock_move value components
+   -- and asset_cost_event rows (§19.2) — never by patching a valuation rate in place (doc 46 §5)
+```
+
+`gl_entry` already carries `asset_id`/`finance_book_id` (§3); determination adds no columns to it. Component
+amounts post through the existing `voucher`/`gl_entry` boundary with `source_line_type`/`source_line_id`
+pointing at `tax_determination_component`.
+
+---
+
+## 26. Statutory artefacts and external submission
+
+```sql
+statutory_artefact(id, company_id, artefact_type statutory_artefact_enum
+        /*e_invoice|e_waybill|e_invoice_cancellation|import_declaration|return_filing*/,
+    tax_jurisdiction_revision_id, tax_registration_id,
+    source_doc_type text, source_doc_id bigint, tax_determination_id bigint NULL,
+    generation_no integer NOT NULL DEFAULT 1, obligation_basis text NOT NULL,
+    authority_identifier varchar(128) NULL, issued_at timestamptz NULL,
+    valid_until timestamptz NULL,
+    evidence_class evidence_class_enum /*authority_confirmed|manually_asserted*/,
+    signed_payload text NULL, signature_verified bool NULL, signing_cert_id bigint NULL,
+    state artefact_state_enum /*required|pending|issued|cancelled|expired|not_applicable|failed*/,
+    command_receipt_id)
+   UNIQUE (company_id, artefact_type, authority_identifier)
+      WHERE authority_identifier IS NOT NULL
+   UNIQUE (company_id, artefact_type, source_doc_type, source_doc_id, generation_no)
+   CHECK ((state = 'issued') = (authority_identifier IS NOT NULL))
+   CHECK (evidence_class <> 'authority_confirmed' OR signature_verified IS TRUE)
+   -- authority_identifier is NEVER blanked (doc 47 §4.2); regeneration inserts generation_no + 1.
+   -- The signature check makes jwt.decode(..., verify_signature=False) structurally unavailable.
+
+statutory_artefact_event(id, company_id, statutory_artefact_id, event_no integer,
+    event_type artefact_event_enum /*requested|issued|vehicle_updated|transporter_updated|
+                                    validity_extended|cancelled|expired|rejected*/,
+    authority_timestamp timestamptz NULL, local_timestamp timestamptz NOT NULL,
+    timestamp_source timestamp_source_enum /*authority|local_fallback*/,
+    reason_code text NULL, payload jsonb, domain_event_id bigint NOT NULL)
+   UNIQUE (company_id, statutory_artefact_id, event_no)
+   CHECK ((timestamp_source = 'authority') = (authority_timestamp IS NOT NULL))
+
+statutory_submission_attempt(id, company_id, statutory_artefact_id, attempt_no integer,
+    endpoint text, request_hash char(64), request_payload jsonb,
+    response_code text NULL, response_payload jsonb NULL,
+    outcome attempt_outcome_enum /*issued|duplicate_reconciled|rejected|transport_error|
+                                  timeout_unknown|refused_locally*/,
+    started_at timestamptz, completed_at timestamptz NULL,
+    idempotency_key varchar(128) NOT NULL, command_receipt_id)
+   UNIQUE (company_id, statutory_artefact_id, attempt_no)
+   UNIQUE (company_id, idempotency_key)
+   -- inserted BEFORE the call. `timeout_unknown` is first-class: the next action is RECONCILE,
+   -- never blind resubmission.
+
+statutory_submission_work(id, company_id, statutory_artefact_id,
+    state work_state_enum /*queued|running|retryable|failed|completed|cancelled*/,
+    attempts integer NOT NULL DEFAULT 0, next_attempt_at timestamptz,
+    lease_owner text NULL, lease_until timestamptz NULL, terminal_reason text NULL)
+   UNIQUE (company_id, statutory_artefact_id) WHERE state IN ('queued','running','retryable')
+   -- replaces an `Auto-Retry` status string as the queue, and a Single flag cleared before the work
+
+statutory_cancellation_window(id, company_id, tax_jurisdiction_revision_id, artefact_type,
+    window_hours integer NOT NULL, basis window_basis_enum /*authority_issue_time|posting_date*/)
+   UNIQUE (company_id, tax_jurisdiction_revision_id, artefact_type)
+   -- the 24-hour IRN rule is a jurisdiction rule evaluated against the stored authority issued_at,
+   -- never a literal `days=1` read from an onload cache (doc 47 §4.1)
+```
+
+---
+
+## 27. Return periods, reconciliation and imports
+
+```sql
+return_period(id, company_id, tax_registration_id, return_type text,
+    period_start date, period_end date, frequency return_frequency_enum, due_on date,
+    state return_period_state_enum /*open|working|ready|filed|revised*/)
+   UNIQUE (company_id, tax_registration_id, return_type, period_start)
+   EXCLUDE USING gist (company_id WITH =, tax_registration_id WITH =, return_type WITH =,
+      daterange(period_start, period_end, '[]') WITH &&)
+   -- posting, amending or reversing inside a `filed` period is refused by the SAME period-control
+   -- trigger family as accounting periods (§2), evaluated per posting date and registration
+
+return_format_revision(id, company_id, return_type, revision_no integer,
+    schema_definition jsonb NOT NULL, output_precision smallint NOT NULL,
+    effective_from date, effective_to date NULL, state revision_state_enum)
+   UNIQUE (company_id, return_type, revision_no)
+   -- the statutory shape is a versioned row, not a JSON file on disk (doc 48 §2)
+
+return_working_set(id, company_id, return_period_id, version integer,
+    source_watermark bigint NOT NULL, content_hash char(64) NOT NULL,
+    return_format_revision_id bigint NOT NULL, built_at timestamptz,
+    generator_version varchar(64), command_receipt_id)
+   UNIQUE (company_id, return_period_id, version)
+   -- immutable; rebuilding appends a version. Staleness is detected by comparing the watermark,
+   -- never asserted by an `is_latest_data` boolean (doc 48 §1.2)
+return_working_set_line(id, company_id, return_working_set_id,
+    statutory_category text, statutory_subcategory text, natural_key text,
+    source_doc_type text, source_doc_id bigint, tax_determination_id bigint,
+    taxable_value numeric(19,4), component_amounts jsonb)
+   UNIQUE (company_id, return_working_set_id, statutory_subcategory, natural_key)
+
+authority_dataset(id, company_id, tax_registration_id, dataset_type text,
+    period_start date, period_end date, retrieved_at timestamptz,
+    payload_hash char(64), source authority_source_enum /*api|upload*/,
+    statutory_submission_attempt_id bigint NOT NULL)
+   UNIQUE (company_id, tax_registration_id, dataset_type, period_start, payload_hash)
+
+match_policy_revision(id, company_id, tax_jurisdiction_revision_id, dataset_type text,
+    revision_no integer, effective_from date, effective_to date NULL, state revision_state_enum)
+   UNIQUE (company_id, tax_jurisdiction_revision_id, dataset_type, revision_no)
+match_policy_tier(id, company_id, match_policy_revision_id, tier_no integer,
+    resulting_finding finding_enum)
+   UNIQUE (company_id, match_policy_revision_id, tier_no)
+match_policy_field(id, company_id, match_policy_tier_id, field_code text,
+    comparison comparison_mode_enum /*exact|fuzzy|rounding|ignored*/,
+    tolerance numeric(19,4) NULL, fuzzy_threshold numeric(9,6) NULL)
+   UNIQUE (company_id, match_policy_tier_id, field_code)
+   -- promotes doc 48 §3's declarative rule ladder from a Python tuple to versioned data, so a filed
+   -- reconciliation can name the policy that produced it and tolerance changes need no deploy
+
+reconciliation_run(id, company_id, return_period_id, return_working_set_id,
+    authority_dataset_id, match_policy_revision_id, comparison_precision smallint NOT NULL,
+    run_at timestamptz, command_receipt_id)
+   UNIQUE (company_id, command_receipt_id)
+reconciliation_finding(id, company_id, reconciliation_run_id,
+    statutory_subcategory text, natural_key text,
+    finding finding_enum /*matched|mismatch|missing_in_books|missing_at_authority|
+                          suggested|residual|manual*/,
+    match_tier integer NULL, differing_fields text[] NULL,
+    books_payload jsonb, authority_payload jsonb, signed_difference jsonb,
+    books_source_doc_type text NULL, books_source_doc_id bigint NULL,
+    authority_row_id bigint NULL)
+   UNIQUE (company_id, reconciliation_run_id, statutory_subcategory, natural_key)
+   -- keeps upstream's best idea (the difference IS the payload, both sides retained) while never
+   -- writing back into the working set it compares (doc 48 §1.3)
+reconciliation_decision(id, company_id, reconciliation_finding_id,
+    decision decision_enum /*accept_match|reject_match|link|unlink|defer|write_off|dispute*/,
+    actor_id, decided_at timestamptz, reason_code text, reason text,
+    match_policy_revision_id bigint NOT NULL, reverses_decision_id bigint NULL,
+    command_receipt_id)
+   UNIQUE (company_id, command_receipt_id)
+   -- append-only; current linkage is a projection over unreversed decisions
+
+return_filing(id, company_id, return_period_id, return_working_set_id,
+    payload jsonb NOT NULL, payload_hash char(64) NOT NULL,
+    acknowledgement_no text, filed_at timestamptz, authority_timestamp timestamptz,
+    evidence_class evidence_class_enum, statutory_artefact_id bigint NULL,
+    supersedes_filing_id bigint NULL, command_receipt_id)
+   UNIQUE (company_id, return_period_id, payload_hash)
+   -- one unreversed current filing per period by deferred trigger under the period lock
+
+customs_assessment(id, company_id, doc_no, import_declaration_no text, assessed_on date,
+    supplier_id, currency_id, exchange_rate numeric(21,9),
+    assessable_value numeric(19,4), voucher_id bigint NOT NULL REFERENCES voucher(id),
+    state posting_state_enum, command_receipt_id, reverses_assessment_id bigint NULL)
+   UNIQUE (company_id, doc_no)
+   UNIQUE (company_id, import_declaration_no)
+customs_assessment_allocation(id, company_id, customs_assessment_id,
+    source_line_type text, source_line_id bigint, tax_component_id NULL, duty_code text NULL,
+    amount numeric(19,4), destination credit_destination_enum,
+    stock_move_id NULL, asset_cost_event_id NULL, expense_account_id NULL, ordinal integer)
+   UNIQUE (company_id, customs_assessment_id, source_line_id, tax_component_id, duty_code, ordinal)
+      NULLS NOT DISTINCT
+   CHECK (num_nonnulls(stock_move_id, asset_cost_event_id, expense_account_id) <= 1)
+   -- deferred: Σ allocation per source line ≤ that line's assessed residual, under a source-line lock.
+   -- Coverage between the commercial invoice and the assessment is a doc_link graph with a derived
+   -- residual — never a `pending_boe_qty` counter (doc 48 §4).
+```
+
+### 27.1 Localisation write ordering
+
+```text
+determination (inside the §8 posting funnel)
+1 claim idempotency ; 2 guard accounting period AND return_period state for the registration
+3 capture tax_registration_snapshot for both parties — BLOCKING, refuse if stale beyond policy
+4 resolve jurisdiction revision, place of supply + basis, source area + basis, supply type
+5 resolve classification and rate revisions per line
+6 compute components purely; assign the residual deterministically
+7 insert determination + lines + components ; insert tax_credit_block rows and their
+  stock_move value components / asset_cost_event rows
+8 insert voucher + gl_entry ; run deferred applicability, per-line, per-component and
+  forward/reverse cancellation checks
+9 outbox ; commit ; project registers
+
+external artefact
+1 obligation from the dated jurisdiction rule → statutory_artefact(state=required)
+2 claim statutory_submission_work FOR UPDATE SKIP LOCKED ; set lease
+3 insert statutory_submission_attempt BEFORE the call
+4 call ; then: issued → event with the authority timestamp ; duplicate → fetch, VERIFY signature,
+  compare full identifying content, attach only on exact match ; rejected → terminal ;
+  transport/timeout → retryable with backoff, never blind resubmit
+5 release the lease ; outbox ; commit
+
+return period
+1 build return_working_set version N from determination facts up to a watermark
+2 fetch authority_dataset via a submission attempt
+3 reconciliation_run pins working set, dataset, match policy and comparison precision
+4 insert reconciliation_finding rows — pure, no writes to either input
+5 append reconciliation_decision rows ; linkage is projected
+6 insert return_filing ; record the acknowledgement and authority timestamp
+7 return_period.state = filed → the posting guard now refuses that period
+```
+
+---
+
+## 28. Localisation invariant register
+
+The exact **G1–G29** names and their primary enforcement layers are consolidated in
+[`docs/logic/49`](../logic/49-tranche-f-closure-and-our-localisation-spec.md#3-g1g29-exact-register-and-enforcement-owner).
+They extend the registers in §9, §18 and §23. Structurally:
+
+- **G1/G2** — jurisdiction, rates, formats and match policies are approved revisions; statutory columns live
+  in versioned schema and never appear or disappear with a settings checkbox;
+- **G3** — `tax_registration_snapshot` is immutable and captured synchronously, so registration validation
+  cannot arrive after the write;
+- **G4/G5** — `tax_rate_component`'s exact-sum trigger generalises the intra-state doubling rule, and
+  classification and rates are effective-dated revisions items merely reference;
+- **G10/G11** — place of supply is an area FK with a recorded basis, and an unmapped component account is a
+  refusal;
+- **G12** — forward and reverse amounts cancel exactly at the document's declared precision;
+- **G13** — blocked credit is a typed allocation into `stock_move` value components and `asset_cost_event`
+  rows, never an in-place valuation edit;
+- **G14/G24/G25** — `return_period` and `return_filing` are the statutory period-control and filing facts;
+  working sets are versioned and hashed;
+- **G18/G19** — every submission is an attempt record committed before the call, and an authority identifier
+  is append-only with `signature_verified` gating `authority_confirmed`;
+- **G26** — match tiers are versioned data and every match decision is an append-only fact; and
+- **G27** — customs assessment is a posting document with typed allocations and a link-graph residual.
+
+Every G invariant requires a schema refusal test; submission, reconciliation and filing invariants
+additionally require concurrency, retry and duplicate-response tests. **S12** is the end-to-end acceptance
+fixture.
+
+---
+
+## 29. What remains open
 
 - **Application implementation has not started.** This file is the target schema contract produced by
   investigation.

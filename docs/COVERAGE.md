@@ -119,8 +119,8 @@ ledger, freezing, balance-must-be) has not been read line by line.
 4. `tools/verify_refs.py` reports **0 problems** across all doc directories — no unresolved paths,
    no out-of-range lines, and no ambiguous shorthand refs. This covers both full citations and the
    `` (`:NNN`) `` shorthand; the shorthand is the bulk of the corpus, so verifying it is what makes
-   the "every claim is checkable" statement true. Current: **4455** citations in `docs/logic` and
-   **726** in `docs/scenarios`, all resolving (**5181 total**).
+   the "every claim is checkable" statement true. Current: **4754** citations in `docs/logic` and
+   **766** in `docs/scenarios`, all resolving (**5520 total**).
 5. This table is regenerated and checked.
 
 ### Status against that definition
@@ -130,7 +130,7 @@ ledger, freezing, balance-must-be) has not been read line by line.
 | 1 | `uncited_submittable` = 0 | Accounts **0** ✔, Stock **0** ✔, Selling **0** ✔, Buying **0** ✔, Manufacturing **0** ✔, Subcontracting **0** ✔, Quality Management **0** ✔ |
 | 2 | Config DocTypes cited or excluded | **✔ 0 uncited config** in every audited module; Stock operational-QI exclusions removed after doc 39 |
 | 3 | Scenario per cross-subsystem flow | **✔** S01–S11 complete, including the full asset lifecycle |
-| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 5181 citations** |
+| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 5520 citations** |
 | 5 | Table regenerated | **✔** |
 
 **Trade-core definition remains met.** `Accounts`, `Stock`, `Selling` and `Buying` have zero uncited
@@ -148,6 +148,21 @@ ownership directions, custody, transfer, consumption, receipt/manufacture, SLE, 
 four Stock-owned operational inspection parents are cited, with zero gaps. Doc 39 covers criteria,
 sampling, formulas, transaction and Job Card gates, QM workflows, scheduler behavior and races. S09
 completes the worked cross-subsystem scenario with accepted, blocked, warned and post-transaction gates.
+
+**Tranche F (localisation, India GST) is complete.** India GST is **not in ERPNext** — removed in v14
+(`patches/v14_0/remove_india_localisation.py:5-21`) — so docs 45–49 and
+[S12](scenarios/S12-gst-invoice-e-invoice-and-gstr1.md) read a third pinned repository,
+`india-compliance@205c3de`, covering its **27 DocTypes** at controller depth. That app is outside this
+matrix, which counts ERPNext parents only; the ERPNext totals above are unchanged. Invariants **G1–G29**.
+
+Verify Tranche F citations with the third app root:
+
+```bash
+python3 tools/verify_refs.py --docs docs/logic \
+  --app erpnext=/projects/sandbox/erpnext/erpnext \
+  --app frappe=/projects/sandbox/frappe/frappe \
+  --app india_compliance=/projects/sandbox/india_compliance/india_compliance
+```
 
 **Tranche B is closed at coverage and design depth:**
 [doc 40](logic/40-tranche-b-coverage-closure-and-our-production-spec.md) preserves the exact final table,

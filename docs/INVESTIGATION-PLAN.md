@@ -53,7 +53,7 @@ Consolidated target design: **`docs/design/FINAL-SCHEMA.md`** (finalised tables,
 business rules, lifecycle state machine, fulfilment views, settlement model, invariant register).
 
 Citation verification across `docs/logic/`: superseded — see the current coverage matrix
-(**5,181 citations, 0 problems** across logic and scenarios, shorthand included).
+(**5,520 citations, 0 problems** across logic and scenarios, shorthand included).
 
 ~~**Still named but not chased**~~: putaway rules (doc 27 §3), warehouse capacity (doc 27 §3, doc 16
 §4), stock closing entry (doc 27, S05 §6), loyalty program internals (doc 31 §4), payment-gateway
@@ -80,7 +80,7 @@ invoice → payment → FX revaluation — plus everything needed to call the th
 
 **Coverage: `Accounts`, `Stock`, `Selling`, `Buying`, `Manufacturing` and `Subcontracting` are at
 zero uncited DocTypes** — submittable and configuration alike (`docs/COVERAGE.md`, generated).
-Citations: **5,181 verified, 0 problems**, including the shorthand form.
+Citations: **5,520 verified, 0 problems**, including the shorthand form.
 
 Three findings from this closure changed how confident we are in earlier decisions:
 
@@ -130,7 +130,7 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 | ~~**B**~~ | ~~**Manufacturing** — BOM (+ cost roll-up, exploded items, update-cost job), Work Order, Job Card, Operations/Routing, Workstation capacity, Production Plan, Master Production Schedule, scrap & rework, WIP accounting~~ | 48 total / 18 parents (8 submittable) | **DONE** — docs 33–37 + S07; 18/18 parent controllers cited, 0 gaps |
 | ~~**B**~~ | ~~**Subcontracting deep dive** — order/receipt lifecycle, supplied-item consumption, RM transfer, `Subcontracting BOM`, customer-owned inward flow~~ | 13 total / 4 parents (3 submittable) | **DONE** — doc 38 + S08 + S10; 4/4 parent controllers cited, 0 gaps |
 | ~~**C**~~ | ~~**Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement~~ | 26 total / 14 parents (8 submittable) | **DONE** — docs 41–44 + S11; 14/14 parent controllers cited, 0 gaps |
-| **F** | **Localisation — India GST first** — jurisdiction as data, HSN/SAC, place of supply, CGST/SGST/IGST/cess components, reverse charge, TDS/TCS interaction, statutory numbering, GSTR/e-invoice extracts, amendment and credit-note semantics | 27 parents in `india_compliance` | **IN PROGRESS** — docs 45–48 done (registration/settings/HSN/tax structure; determination; external artefacts; returns/reconciliation/imports). Register **G1–G29**. Remaining: doc 49 closure + S12. ERPNext's `@allow_regional` overlay is **rejected** (doc 21 §4, doc 42 §4.3) |
+| ~~**F**~~ | ~~**Localisation — India GST first**~~ — jurisdiction as data, HSN/SAC, place of supply, CGST/SGST/IGST/cess components, reverse charge, TDS/TCS interaction, statutory numbering, GSTR/e-invoice extracts, amendment and credit-note semantics | 27 parents in `india_compliance` | **DONE** — docs 45–49 + S12; 27 India Compliance DocTypes read at controller depth. Register **G1–G29**. ERPNext's `@allow_regional` overlay is **rejected** (doc 21 §4, doc 42 §4.3) |
 
 ### Tranche F deliverables
 
@@ -140,9 +140,9 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 | 46 | [`46-gst-place-of-supply-and-component-determination.md`](logic/46-gst-place-of-supply-and-component-determination.md) | **DONE** — place of supply and provenance, intra/inter split, applicable component sets, reverse charge and refund balance rules, ineligible ITC into inventory/asset cost, item-wise distribution, statutory period control |
 | 47 | [`47-e-invoice-and-e-waybill-external-state-machines.md`](logic/47-e-invoice-and-e-waybill-external-state-machines.md) | **DONE** — obligation, submission attempts, duplicate reconciliation and signature verification, cancellation windows, in-transit amendments, durable retry |
 | 48 | [`48-gst-returns-reconciliation-and-imports.md`](logic/48-gst-returns-reconciliation-and-imports.md) | **DONE** — return periods and working sets, GSTR-1 reconciliation, GSTR-3B, the declarative purchase-match ladder, Bill of Entry and import allocations |
-| 49 | `49-tranche-f-closure-and-our-localisation-spec.md` | closure, G-register, jurisdiction-as-data schema, build order |
+| 49 | [`49-tranche-f-closure-and-our-localisation-spec.md`](logic/49-tranche-f-closure-and-our-localisation-spec.md) | **DONE** — closure, G1–G29 enforcement mapping, jurisdiction-as-data schema, build order, cross-tranche seams |
 
-Scenario: **S12** GST invoice → e-invoice → GSTR-1.
+Scenario: **[S12](scenarios/S12-gst-invoice-e-invoice-and-gstr1.md)** determination → e-invoice → e-way bill → GSTR-1. **DONE**.
 | ~~**D**~~ | ~~**Projects, Support, Maintenance, CRM**~~ — project costing, timesheet → billing, Support (11), Maintenance (5), CRM lead/opportunity/prospect (28) | ~75 | **OUT OF SCOPE** — dropped by decision. Not investigated, not built. |
 | ~~**B**~~ | ~~**Quality Management + operational quality** — Quality Management records plus Stock-owned inspection templates/readings and gates on receipts, deliveries, Stock Entry and Job Card~~ | 16 total / 8 module parents, plus 4 Stock parents | **DONE** — doc 39 + S09; all 12 parents cited, 0 gaps |
 | ~~**E**~~ | ~~**Platform mechanics we must replace, not copy**~~ — permission model, naming series, `hooks.py` extensibility, `@allow_regional` overlay, background jobs + scheduler, patch/migration system, query-report framework, custom fields & Customize Form, virtual doctypes | — | **DONE** — `docs/logic/18`–`25`, with a build/buy/drop decision per capability in `25-our-platform-spec.md` |
@@ -181,10 +181,13 @@ quality-gated receipt/production; **S10** customer-owned subcontracting inward.
 5. ~~**Tranche C** (assets + depreciation)~~ — **complete**, `docs/logic/41`–`44` and `S11`; invariant
    register **A1–A26**. Doc 44 consolidates the measured closure, enforcement mapping, asset schema and
    build order.
-5a. **Tranche F** (localisation, **India GST first**) — **next**, and now a confirmed requirement rather
-   than an open question. Scoped in doc 44 §11.
+5a. ~~**Tranche F** (localisation, **India GST first**)~~ — **complete**, `docs/logic/45`–`49` and `S12`;
+   invariant register **G1–G29**. Doc 49 consolidates the closure, enforcement mapping and build order.
+   Additional jurisdictions (UAE VAT, South Africa, Italy) remain a rule-revision mapping exercise, not new
+   code — see doc 49 §7.2.
 6. ~~**Tranche D**~~ — **dropped**: no CRM, no projects, no support.
-7. **Implementation** — has not started.
+7. **Implementation** — has not started. Every named functional gap is now closed; what remains is a
+   decision plus the open questions in §4.
 
 Each tranche produces documents in the same shape as `docs/logic/`: pinned commit, `file.py:line`
 citations, invariants, and an "ours" decision per behaviour, verified by `tools/verify_refs.py`.

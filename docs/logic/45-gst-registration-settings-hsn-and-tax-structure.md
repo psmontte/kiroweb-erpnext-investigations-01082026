@@ -537,7 +537,7 @@ continues at **G9** with transaction-time determination.
 
 Cross-references: [doc 28](28-tax-determination.md) (the core tax engine GST must map onto — `Tax Category`,
 `Tax Rule`, `Item Tax Template`, withholding and LDC), [doc 29](29-pricing-determination.md),
-[doc 18](18-metadata-and-doctype-engine.md) (custom fields, Property Setters, runtime DDL — the mechanism we
+[doc 18](18-metadata-and-runtime-ddl.md) (custom fields, Property Setters, runtime DDL — the mechanism we
 reject), [doc 21](21-extensibility-hooks-and-regional.md) (`doc_events`, `@allow_regional`),
 [doc 22](22-background-jobs-scheduling-and-locking.md) (scheduler coupling and job identity),
 [doc 26](26-journal-entry-chart-of-accounts-dimensions.md) (accounts and dimensions),

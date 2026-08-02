@@ -2,7 +2,7 @@
 
 **Investigation mode.** We are documenting the Frappe/ERPNext data model and business logic first;
 **application implementation has not started** and starts only once the investigation is declared
-complete. Assets (Tranche C) are done; localisation with India GST (Tranche F) is next. Coverage map and remaining work:
+complete. Tranches A, B, C, E and F are done; Tranche D (CRM, projects, support) is out of scope. Coverage map and remaining work:
 [docs/INVESTIGATION-PLAN.md](docs/INVESTIGATION-PLAN.md).
 
 Parsed the full standard app set — `frappe`, `erpnext`, `payments`, `hrms`, `webshop`:
@@ -113,7 +113,7 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       submittable and configuration alike; see [`docs/COVERAGE.md`](docs/COVERAGE.md) (generated)
       and the closure statement in
       [`docs/logic/32`](docs/logic/32-stock-configuration-and-remaining-masters.md) §5.
-      **5,181 citations verified, 0 problems.**
+      **5,520 citations verified, 0 problems.**
 - [x] **Tranche B complete** (`docs/logic/33`–`40`, scenarios `S07`–`S10`) — manufacturing,
       supplier/customer-owned subcontracting, quality, coverage closure and the consolidated production
       specification. Final measured coverage: **Manufacturing 18/18**, **Subcontracting 4/4** and
@@ -124,10 +124,14 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       maintenance, repair, split and disposal, and the consolidated asset specification. **Assets: 14/14
       parent controllers cited, 0 submittable and 0 configuration gaps.** Invariant register **A1–A26**;
       see [`docs/logic/44`](docs/logic/44-tranche-c-closure-and-our-asset-spec.md).
-- [ ] **Tranche F — localisation, India GST first** (**next; confirmed requirement**) — jurisdiction as
-      data, HSN/SAC, place of supply, CGST/SGST/IGST/cess components, reverse charge, TDS/TCS, statutory
-      numbering and GSTR/e-invoice extracts. ERPNext's `@allow_regional` overlay is rejected; scoped in
-      [`docs/logic/44` §11](docs/logic/44-tranche-c-closure-and-our-asset-spec.md).
+- [x] **Tranche F complete** (`docs/logic/45`–`49`, scenario `S12`) — localisation with **India GST**.
+      India GST is **not in ERPNext** (removed in v14), so this tranche pins a third repository,
+      `india-compliance@205c3de` (`17.0.0-dev`, 50,407 LOC, **27 DocTypes**), read at controller depth:
+      registration identity and status, settings, HSN/SAC, the five-component tax structure, place of supply
+      and component determination, reverse charge, ineligible ITC, e-invoice/e-way bill as external state
+      machines, GSTR-1/3B, purchase reconciliation and Bill of Entry. ERPNext's `@allow_regional` overlay and
+      settings-toggled custom fields are **rejected** in favour of jurisdiction-as-data. Invariant register
+      **G1–G29**; see [`docs/logic/49`](docs/logic/49-tranche-f-closure-and-our-localisation-spec.md).
 - [x] ~~Tranche D~~ — CRM, projects, support: **out of scope** by decision
-- [ ] Build — **application implementation has not started**; every audited module is investigated, so the
-      remaining gates are localisation (Tranche F) and declaring the investigation complete
+- [ ] Build — **application implementation has not started**; every named functional gap is now closed, so
+      the remaining gate is declaring the investigation complete

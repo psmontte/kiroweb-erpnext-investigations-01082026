@@ -527,7 +527,7 @@ from, and the period guard this layer closes), [doc 47](47-e-invoice-and-e-waybi
 [doc 04](04-ar-ap-and-settlement.md) (subledger reconciliation patterns),
 [doc 06](06-lifecycle-status-and-returns.md) (link graph versus counters, and credit notes as the post-window
 remedy), [doc 07](07-period-close-and-opening-balances.md) (period close this parallels),
-[doc 14](14-banking-matching-and-instruments.md) (the other matching engine in the system — compare its rule
+[doc 14](14-banking-and-collections.md) (the other matching engine in the system — compare its rule
 model with §3), [doc 15](15-intercompany-and-history-rewriting.md) (reposting and history),
 [doc 41](41-asset-identity-acquisition-and-finance-books.md) (asset cost events imports must use), and
 [`../design/FINAL-SCHEMA.md`](../design/FINAL-SCHEMA.md). Next: doc 49 — Tranche F closure and our
