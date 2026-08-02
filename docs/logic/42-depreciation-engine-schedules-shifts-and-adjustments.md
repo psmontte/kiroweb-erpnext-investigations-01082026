@@ -237,13 +237,32 @@ pending has fallen **below** salvage value; it then adds `pending − salvage` t
 sets `skip_row`
 (`assets/doctype/asset_depreciation_schedule/deppreciation_schedule_controller.py:364-379`):
 
+The order of operations matters, because the loop **decrements `pending_depreciation_amount` before**
+calling the adjustment
+(`assets/doctype/asset_depreciation_schedule/deppreciation_schedule_controller.py:54-98`, then
+`assets/doctype/asset_depreciation_schedule/deppreciation_schedule_controller.py:364-379`). With the
+proration above, row 0 is 53.76 and rows 1–59 are 1,666.67 each:
+
 ```text
-after 59 periods: accumulated = 59 × 1,666.67 = 98,333.53 ; pending = 21,666.47
-period 60 raw    = 1,666.67
-adjustment       = 21,666.47 − 20,000.00 − 1,666.67 = −0.20 relative to raw
-final amount     = 1,666.67 + (21,666.47 − 20,000.00) − … → exactly 1,666.47
-accumulated      = 100,000.00 ; book value = 20,000.00
+Σ rows 0..59            = 53.76 + 59 × 1,666.67 = 98,387.29
+pending before row 60   = 120,000.00 − 98,387.29 = 21,612.71
+row 60 raw              = 1,666.67
 ```
+
+`set_depreciation_amount_for_last_row` runs first for a prorated schedule and subtracts row 0's amount
+(`assets/doctype/asset_depreciation_schedule/deppreciation_schedule_controller.py:342-363`) — this is why a
+60-period asset has **61** rows:
+
+```text
+row 60 after last-row   = 1,666.67 − 53.76 = 1,612.91
+pending after decrement = 21,612.71 − 1,612.91 = 19,999.80
+adjustment              = 19,999.80 − 20,000.00 = −0.20
+final amount            = 1,612.91 − 0.20 = 1,612.71
+Σ all rows              = 100,000.00 exactly ; book value = 20,000.00
+```
+
+So `depreciation_amount += pending − salvage` is only meaningful against **post-decrement** pending; read
+against pre-decrement pending it appears to add 1,612.71 too much.
 
 The mechanism is correct in outcome — the schedule always lands exactly on salvage value — but it is
 implemented by mutating the amount that was just computed, and the adjustment is rounded with
@@ -747,7 +766,7 @@ stable lower-case enum codes.
 |---|---|
 | `depreciation_plan` | asset, finance book, `plan_version`, `asset_policy_revision_id`, generated_at, `generator_version`, `input_hash`, `state`, `supersedes_plan_id`; unique `(company_id, asset_id, finance_book_id, plan_version)`; at most one `active` per `(asset, finance_book)` by partial unique index |
 | `depreciation_plan_period` | plan, `period_no`, `period_start`, `period_end`, `basis_days`, `shift_code`, `shift_factor_revision_id`, `planned_amount`, `planned_accumulated`; unique `(company_id, depreciation_plan_id, period_no)`; check `period_end >= period_start`; check `planned_amount >= 0` |
-| `depreciation_shift_factor` / `_revision` | stable `shift_code`, factor revision with effective range; unique `(company_id, shift_code)`; exactly one default enforced by partial unique index |
+| `asset_shift_factor` / `asset_shift_factor_revision` | stable `shift_code`, factor revision with effective range; unique `(company_id, shift_code)`; exactly one default enforced by partial unique index |
 
 Plan periods carry **no** journal link. The plan is immutable once `active`; replanning inserts a new
 version and supersedes the old one, and every superseded version remains readable.
@@ -757,10 +776,10 @@ version and supersedes the old one, and every superseded version remains readabl
 | Target table | Key columns and constraints |
 |---|---|
 | `depreciation_period` | canonical period identity: asset, finance book, `period_start`, `period_end`; unique `(company_id, asset_id, finance_book_id, period_start)` |
-| `depreciation_posting` | period, plan version satisfied, amount, posting date, `voucher_id`, `command_receipt_id`, `reverses_posting_id`; **unique partial index: one unreversed posting per `depreciation_period`**; unique `(company_id, command_receipt_id)` |
+| `depreciation_posting` | period, plan version satisfied, amount, posting date, `voucher_id`, `command_receipt_id`, `reverses_posting_id`; **at most one unreversed posting per `depreciation_period`** (deferred trigger under the asset/book lock; a partial unique index would forbid re-posting after a reversal); unique `(company_id, command_receipt_id)` |
 | `depreciation_posting_attempt` | period, attempt_no, outcome (`posted`/`failed`/`skipped`), error code, occurred_at; unique `(company_id, depreciation_period_id, attempt_no)` |
 | `asset_revaluation` | asset, finance book, effective date, `previous_book_value`, `new_book_value`, difference, revaluation account, reason, authority, `voucher_id`, `reverses_revaluation_id`; unique `(company_id, command_receipt_id)` |
-| `asset_disposal_depreciation` | period fact flagged as partial-period-to-disposal with its basis, referencing the disposal event |
+| `depreciation_period.is_partial_to_disposal` | the final period is an ordinary period fact flagged partial-to-disposal, with its own basis, referencing the disposal |
 
 `depreciation_period` is what makes idempotency real: the unique key is on the period, not on a nullable
 link, so a retried run cannot double-post and a reversal is a new row rather than a cleared field.

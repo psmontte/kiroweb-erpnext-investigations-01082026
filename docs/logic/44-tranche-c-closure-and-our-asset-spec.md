@@ -52,26 +52,38 @@ Asset depth is supplied by:
 - [doc 43](43-asset-custody-maintenance-repair-and-disposal.md): custody, maintenance planning and logs,
   repair cost and consumption, splitting, and all four disposal callers; and
 - [S11](../scenarios/S11-asset-lifecycle.md): the worked lifecycle with exact numbers, every table write in
-  order, and the balance proof that **does not close**.
+  order, and the balance proof showing which two accounts are misstated and why.
 
 ### 1.1 The finding that frames the whole design
 
-S11 §8 runs one asset through purchase, recognition, five depreciation periods, a capitalised repair, a
-partial sale and a scrap, and ends with:
+S11 §8 runs one asset through purchase, recognition, six depreciation periods, a capitalised repair, a
+partial sale and a scrap, and ends with both balance-sheet accounts non-zero:
 
 ```text
-Fixed Asset — Machinery : 123,000.00 debited, 120,000.00 removed  → 3,000.00 stranded
-Accumulated Depreciation:   8,487.21 posted,    4,628.84 removed  → 3,858.37 stranded
+Fixed Asset — Machinery : 123,000.00 debited, 120,000.00 removed  → 3,000.00 left (debit)
+Accumulated Depreciation:   7,629.45 posted,    4,629.44 removed  → 3,000.01 left (credit)
 ```
 
-Every individual voucher balances. The subsystem still fails to close, because disposal removes
-`net_purchase_amount` and an accumulated-depreciation figure **derived by subtraction**
-(`assets/doctype/asset/depreciation.py:639-695`,
-`assets/doctype/asset/depreciation.py:696-716`) while capitalised repair raised book value through a
-different field (`assets/doctype/asset_repair/asset_repair.py:242-254`).
+The two residuals are **the same number with opposite signs**, and provably so: each disposal debits
+accumulated depreciation with `net_purchase_amount − value_after_depreciation`, so the residual on both
+sides is exactly `additional_asset_cost` regardless of instalment, period count or disposal timing (S11
+§8.1 carries the algebra; the trailing 0.01 is the split-rounding cent).
 
-That single root cause — **cost and accumulated depreciation are derived from mutable scalars rather than
-read from their own ledgers** — is what §4–§8 remove structurally.
+That makes the finding narrower and sharper than "the books do not close":
+
+- every voucher balances, **net book value removed is correct**, and both gain and loss are correct;
+- but **cost is overstated by 3,000.00 and accumulated depreciation is overstated by 3,000.00** — the
+  capitalised repair is silently reclassified as depreciation on the balance sheet.
+
+Invisible in the P&L and in net assets; visible in the gross-cost and accumulated-depreciation columns of
+every fixed-asset register, in depreciation-to-cost ratios, and in any statutory note that discloses the two
+separately. A revaluation reclassifies identically (doc 42 §8).
+
+The root cause is one thing: disposal removes `net_purchase_amount` and an accumulated-depreciation figure
+**derived by subtraction** (`assets/doctype/asset/depreciation.py:639-695`,
+`assets/doctype/asset/depreciation.py:696-716`) while capitalised repair raised book value through a
+different field (`assets/doctype/asset_repair/asset_repair.py:242-254`). **Cost and accumulated depreciation
+must each be read from their own ledger** — which is what §4–§8 enforce structurally.
 
 ---
 
@@ -120,7 +132,7 @@ custody/disposal boundaries respectively; **A8/A17/A25** are the relational-inte
 | A9 | serializable asset decisions | L2 deterministic asset and source locks + L1 idempotency uniqueness |
 | A10 | the plan is not the posting | L1 separate `depreciation_plan_period` and `depreciation_posting`; no journal link on plan rows |
 | A11 | deterministic, complete, exact schedules | L4 pure generator + L2 deferred `Σ planned_amount = depreciable_base` |
-| A12 | depreciation posting is idempotent per period | L1 `UNIQUE (company_id, depreciation_period_id) WHERE reverses_posting_id IS NULL` |
+| A12 | depreciation posting is idempotent per period | L2 deferred unreversed-count trigger on `depreciation_period` under the asset/book lock |
 | A13 | shift plans are explicit, conserved and named | L1 `shift_code` identity + factor revisions; L2 plan-total conservation |
 | A14 | revaluation is an explicit, reconciled event | L1 separate reserve/impairment accounts + L2 per-account GL equality |
 | A15 | disposal-period depreciation and reversal are dated facts | L1 `is_partial_to_disposal` period + `reversal_dating` on the reversal |
@@ -131,7 +143,7 @@ custody/disposal boundaries respectively; **A8/A17/A25** are the relational-inte
 | A20 | maintenance plans and occurrences are separate, non-cyclic records | L1 `(task_revision, occurrence_no)` and `(task_revision, due_date)` uniqueness; L3 one-way writes |
 | A21 | repair and improvement are allocated cost facts | L1 `asset_service_cost_allocation` + `asset_service_book_apportionment` exact-sum trigger |
 | A22 | splitting is an authorised transformation, not an edit | L1 `asset_transformation_part` + L2 per-book conservation trigger |
-| A23 | disposal is one event with one exit reason | L1 `UNIQUE (company_id, asset_id) WHERE reverses_disposal_id IS NULL` |
+| A23 | disposal is one event with one exit reason | L2 deferred unreversed-count trigger per asset, plus typed `disposal_kind` |
 | A24 | evidence before custody and disposal projections | L2 atomic facts/outbox before any projection write |
 | A25 | relational custody, service and disposal integrity | L1 unique/FK/check/exclusion constraints |
 | A26 | serializable custody, service and disposal decisions | L2 deterministic asset and source locks + L1 idempotency uniqueness |
@@ -187,8 +199,8 @@ section states the ownership boundaries and keys commands depend on.
   date-range exclusion constraint and `period_end` uniqueness. A zero amount must state a
   `zero_reason` and does not truncate the plan — upstream breaks out of the generation loop on the first
   zero (`assets/doctype/asset_depreciation_schedule/deppreciation_schedule_controller.py:54-98`).
-- `depreciation_period` is canonical period identity and `depreciation_posting` is unique per unreversed
-  period. That is the guarantee replacing the nullable `journal_entry` column on a plan row, which is
+- `depreciation_period` is canonical period identity and at most one unreversed `depreciation_posting`
+  exists per period. That is the guarantee replacing the nullable `journal_entry` column on a plan row, which is
   currently both the plan and the evidence of posting
   (`assets/doctype/depreciation_schedule/depreciation_schedule.py:8-27`).
 - `depreciation_posting_attempt` records per-period outcomes, replacing the single per-asset
@@ -240,16 +252,20 @@ net_book_value = Σ asset_cost_event(cost classes)
                − Σ asset_revaluation(impairment classes)
 ```
 
-and at disposal the voucher removes each term from **its own** account, so:
+where accumulated depreciation is `Σ depreciation_posting + Σ depreciation_attribution` (the second term
+carries a split's share, so a transformation cannot orphan it). At disposal the voucher removes each term
+from **its own** account, and because every asset-role `gl_entry` leg carries `asset_id` — and
+`finance_book_id` where the account is book-scoped — each balance is a real query:
 
 ```text
-fixed_asset balance(asset)              = 0
-accumulated_depreciation balance(asset) = 0
-revaluation_reserve balance(asset)      = 0
+fixed_asset balance(asset)                          = 0
+accumulated_depreciation balance(asset, book)       = 0   for every finance book
+revaluation_reserve balance(asset)                  = 0
 ```
 
-This is the acceptance criterion for S11. The 3,000.00 and 3,858.37 residuals of §1.1 are not merely
-avoided — they are **unrepresentable**, because no leg is derived by subtraction from a mutable scalar.
+This is the acceptance criterion for S11. The 3,000.00 reclassification of §1.1 is not merely avoided — it is
+**unrepresentable**, because no leg is derived by subtraction from a mutable scalar. The split cent is
+unrepresentable too: `asset_transformation_part` apportions exactly, with one designated residual part.
 
 ---
 
@@ -259,7 +275,7 @@ avoided — they are **unrepresentable**, because no leg is derived by subtracti
 
 Asset commands acquire only the owners they need, sorted lexicographically by
 `(lock_class, company_id, key…)`, and the classes extend the production order in
-[doc 40 §5.1](40-tranche-b-coverage-closure-and-our-production-spec.md#51-lock-keys-and-order):
+[doc 40 §5.1](40-tranche-b-coverage-closure-and-our-production-spec.md#51-canonical-state-machine-and-lock-order):
 
 1. period/company policy;
 2. commercial source lines (purchase line, sales invoice line, service invoice line);

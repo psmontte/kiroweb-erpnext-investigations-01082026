@@ -377,12 +377,18 @@ the existing asset sets `ignore_validate_update_after_submit` before saving
 (`assets/doctype/asset/mapper.py:232-250`). `total_asset_cost` is recomputed as
 `net_purchase_amount + additional_asset_cost`.
 
-Worked split of 10 units at 120,000.00 total, 40,000.02 accumulated, into 3 and 7:
+Worked split of 10 units at 120,000.00 total, 40,000.02 accumulated depreciation, into 3 and 7:
 
 ```text
-new asset  : factor 0.3 → cost 36,000.00 ; opening/accumulated scaled ; qty 3 ; split_from set
-existing   : factor 0.7 → cost 84,000.00 ; qty 7
+new asset  : factor 0.3 → cost 36,000.00 ; value_after_depreciation × 0.3 ; qty 3 ; split_from set
+existing   : factor 0.7 → cost 84,000.00 ; value_after_depreciation × 0.7 ; qty 7
 ```
+
+Note what is **not** scaled: there is no accumulated-depreciation field on `Asset`.
+`set_split_asset_values` scales `opening_accumulated_depreciation` — zero for an ordinary purchased asset —
+and `value_after_depreciation` (`assets/doctype/asset/mapper.py:232-250`). For an asset whose 40,000.02 came
+from posted depreciation, accumulated depreciation is split **only** through the journal rewrite below, never
+through a stored quantity.
 
 Because `flags.is_split_asset` short-circuits `validate_linked_purchase_documents`
 (`assets/doctype/asset/asset.py:499-520`), the split children skip the purchase-document quantity ceiling
@@ -394,8 +400,17 @@ any more, and which is also why that ceiling cannot be trusted as a conservation
 
 `update_finance_books` re-plans each book, and for the new asset walks the active schedule and, for every
 row with a posted journal, calls `add_reference_in_jv_on_split`
-(`assets/doctype/asset/mapper.py:272-288`) — that is, **already-posted depreciation journals are amended
-to reference the new asset for its share of the amount**.
+(`assets/doctype/asset/mapper.py:272-288`). That function does more than amend: it saves the journal with
+`ignore_validate_update_after_submit`, then sets `docstatus = 2`, calls `make_gl_entries(1)` to cancel the
+posted GL rows, sets `docstatus` back to `1` and re-posts them
+(`assets/doctype/asset/mapper.py:345-360`). **Submitted GL is cancelled and re-created in place** — the
+sharpest violation of the append-only contract anywhere in the Assets module.
+
+It does conserve the total, and that matters for our design: `adjust_account_balance` reduces the source
+asset's leg by exactly the amount `add_new_entries` adds for the target
+(`assets/doctype/asset/mapper.py:362-390`), so accumulated depreciation in GL stays correct **and becomes
+attributable per asset**. Any replacement must reproduce that attribution, not merely the apportionment
+record (§8.4).
 
 `reschedule_depr_for_updated_asset` copies the active schedule, points the copy at the target asset and
 finance-book row, re-fetches details, scales the depreciation terms, adds notes, cancels the old schedule
@@ -605,7 +620,7 @@ facts, including the inventory issue, or the reversal is refused.
 |---|---|
 | `asset_transformation` | kind (`split`/`merge`), effective date, authority; unique `(company_id, command_receipt_id)` |
 | `asset_transformation_part` | transformation, role (`source`/`target`), asset, quantity, apportioned cost, apportioned accumulated depreciation per book, apportioned revaluation; unique `(company_id, asset_transformation_id, role, asset_id)`; deferred trigger requires Σ source = Σ target exactly per measure and book |
-| `asset_disposal` | asset, `disposal_kind` (`scrap`/`sale`/`capitalisation`/`transfer_out`), effective date, proceeds, source document line, `voucher_id`, `command_receipt_id`, `reverses_disposal_id`; **partial unique index: one unreversed disposal per asset**; unique `(company_id, command_receipt_id)` |
+| `asset_disposal` | asset, `disposal_kind` (`scrap`/`sale`/`capitalisation`/`transfer_out`), effective date, proceeds, source document line, `voucher_id`, `command_receipt_id`, `reverses_disposal_id`; **at most one unreversed disposal per asset** (deferred trigger under the asset lock); unique `(company_id, command_receipt_id)` |
 
 Apportionment is stored, so no posted depreciation journal is ever amended: the transformation states how
 much of the prior accumulated depreciation belongs to each target, and every projection follows from that.
@@ -628,7 +643,7 @@ split
 1 claim idempotency ; 2 lock the source asset ;
 3 validate quantity and compute apportionment per measure and book ;
 4 insert transformation + parts ; 5 open target asset identities ;
-6 close the source identity's active state (or reduce its quantity as an explicit part) ;
+6 close the source identity's active state, or keep it open when it survives as a target part ;
 7 generate a plan version per target and book ; 8 outbox ; 9 commit ; 10 project
 
 disposal
@@ -687,8 +702,12 @@ clears a link or edits a posted journal.
 15. **Invoice residual allocation is unlocked.** Read-then-write against the ledger
     (`assets/doctype/asset_repair/asset_repair.py:158-176`,
     `assets/doctype/asset_repair/asset_repair.py:459-514`).
-16. **Repair cost added in full to every finance book.** No apportionment
-    (`assets/doctype/asset_repair/asset_repair.py:242-254`).
+16. **Repair cost added to every finance book, and to GL once.** Each book's `value_after_depreciation`
+    rises by the full amount (`assets/doctype/asset_repair/asset_repair.py:242-254`), which is defensible —
+    each book measures the same asset — but `total_asset_cost` and `additional_asset_cost` are single fields
+    shared by all books while the GL debit happens once, so a two-book asset has no representation of which
+    book's depreciable base changed. The defect is the absent per-book depreciable-base record, not the
+    uniform amount.
 17. **Life extension added in full to every finance book.**
     (`assets/doctype/asset_repair/asset_repair.py:322-329`).
 18. **Submitted asset saved with validation suppressed.** `ignore_validate_update_after_submit`
@@ -702,7 +721,8 @@ clears a link or edits a posted journal.
     `db.set_value` (`assets/doctype/asset_repair/asset_repair.py:295-311`).
 22. **Split bypasses the purchase-quantity ceiling.** Via `flags.is_split_asset`
     (`assets/doctype/asset/mapper.py:218-230`, `assets/doctype/asset/asset.py:499-520`).
-23. **Split amends posted depreciation journals.** `add_reference_in_jv_on_split`
+23. **Split cancels and re-posts submitted depreciation journals and their GL rows.**
+    (`assets/doctype/asset/mapper.py:345-360`), reached from
     (`assets/doctype/asset/mapper.py:272-288`).
 24. **Split scales by float ratio with no residual rule.** Two children need not sum to the parent
     (`assets/doctype/asset/mapper.py:232-250`).

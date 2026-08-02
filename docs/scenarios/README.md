@@ -39,7 +39,7 @@ Citations are `path:line` and are verified mechanically by `tools/verify_refs.py
 | **S08** | [S08-supplier-subcontracting.md](S08-supplier-subcontracting.md) | Subcontract PO service → Subcontracting Order → RM reservation/send/return → partial Subcontracting Receipt → optional service Purchase Receipt | Supplier custody remains company inventory and the SLE→GL bridge stays exact, but **the same transfer and output consume 10/5 RM under BOM backflush versus 8/4 under transferred-material backflush**; the residual allocation is unlocked |
 | **S09** | [S09-quality-gated-production-and-receipt.md](S09-quality-gated-production-and-receipt.md) | Multi-row Purchase Receipt → post-transaction inspection → Job Card operation gate → separately gated Manufacture Stock Entry | Inventory and GL remain balanced under Accepted and Warn, but **Warn posts draft/Rejected evidence as ordinary stock and one allow-after row returns from the entire receipt loop**; exact scoped release and durable exceptions are absent |
 | **S10** | [S10-customer-owned-subcontracting-inward.md](S10-customer-owned-subcontracting-inward.md) | Subcontracted SO service → customer RM receipt/return → internal Work Order/Job Card/Manufacture → FG delivery/return → service + company-material Sales Invoice | Customer material moves through company warehouses at **zero company value but without an owner dimension**; gross delivery 10 and return 2 leaves net fulfilment 8 while status is Delivered |
-| **S11** | [S11-asset-lifecycle.md](S11-asset-lifecycle.md) | Purchase Receipt → Asset + CWIP capitalisation → monthly depreciation → capitalised repair → partial sale (implicit split) → scrap | The only flow whose **arithmetic does not close**: disposal removes `net_purchase_amount` and a *subtracted* accumulated depreciation, so a capitalised repair leaves 3,000.00 permanently in Fixed Assets and 3,858.37 in Accumulated Depreciation. Selling part of a multi-quantity asset silently creates a second asset and **amends posted depreciation journals** |
+| **S11** | [S11-asset-lifecycle.md](S11-asset-lifecycle.md) | Purchase Receipt → Asset + CWIP capitalisation → monthly depreciation → capitalised repair → partial sale (implicit split) → scrap | Every voucher balances and net assets are right, yet the **balance sheet is still wrong**: disposal removes `net_purchase_amount` and a *subtracted* accumulated depreciation, so a capitalised repair overstates Fixed Assets by 3,000.00 and Accumulated Depreciation by exactly the same amount — silently reclassifying cost as depreciation. Selling part of a multi-quantity asset creates a second asset and **cancels and re-posts submitted depreciation journals** |
 
 ## Reading order
 
@@ -90,6 +90,7 @@ largest gap between what the system appears to do and what it does.
 | Asset identity, acquisition, capitalisation and finance books | [doc 41](../logic/41-asset-identity-acquisition-and-finance-books.md) |
 | Depreciation schedules, methods, posting, shifts and revaluation | [doc 42](../logic/42-depreciation-engine-schedules-shifts-and-adjustments.md) |
 | Asset custody, maintenance, repair, split and disposal | [doc 43](../logic/43-asset-custody-maintenance-repair-and-disposal.md) |
+| Tranche C closure, A1–A26 and the asset schema | [doc 44](../logic/44-tranche-c-closure-and-our-asset-spec.md) |
 | The target schema and invariant register | [FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md) |
 
 ## What is left
@@ -97,7 +98,8 @@ largest gap between what the system appears to do and what it does.
 | Deliverable | Status |
 |---|---|
 | **Tranche B** | **COMPLETE** — [doc 40](../logic/40-tranche-b-coverage-closure-and-our-production-spec.md) closes measured coverage and the target production specification |
-| **Tranche C (Assets)** | **Investigated** — docs 41–43 and [S11](S11-asset-lifecycle.md); all 14 Assets parents cited, 0 gaps |
+| **Tranche C (Assets)** | **COMPLETE** — docs 41–43, closed by [doc 44](../logic/44-tranche-c-closure-and-our-asset-spec.md), walked by [S11](S11-asset-lifecycle.md); all 14 Assets parents cited, 0 gaps |
+| **Tranche F (Localisation, India GST first)** | **NEXT** — required capability, scoped in doc 44 §11 |
 | Application implementation | **Has not started** |
 
 All trade / inventory / accounts flows that cross three or more subsystems are covered by

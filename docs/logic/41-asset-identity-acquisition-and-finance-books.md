@@ -152,11 +152,13 @@ Three properties of that ordering matter:
 `expected_value_after_useful_life` (`assets/doctype/asset/asset.py:785-817`). `set_status` writes it
 with `db_set` (`assets/doctype/asset/asset.py:779-783`).
 
-Writers include asset submit/cancel, the daily maintenance scan (which sets `Out of Order` when a
-pending `Asset Repair` exists and `In Maintenance` when a maintenance task is due today,
-`assets/doctype/asset/asset.py:1070-1082`), and `Asset Capitalization`, which sets consumed assets to
-`Capitalized` and restores them on cancellation
-(`assets/doctype/asset_capitalization/asset_capitalization.py:467-485`).
+Writers include asset submit/cancel; the daily maintenance scan, which — **only for assets with
+`maintenance_required = 1` and no `disposal_date`** — sets `Out of Order` when a pending `Asset Repair`
+exists and `In Maintenance` when a maintenance task is due today
+(`assets/doctype/asset/asset.py:1070-1082`); `Asset Repair.validate`, which sets `Out of Order`
+unconditionally while its own status is `Pending` (`assets/doctype/asset_repair/asset_repair.py:177-187`,
+doc 43 §4.1); and `Asset Capitalization`, which sets consumed assets to `Capitalized` and restores them on
+cancellation (`assets/doctype/asset_capitalization/asset_capitalization.py:467-485`).
 
 `get_default_finance_book_idx` resolves the default book from the asset field or the company default
 (`assets/doctype/asset/asset.py:831-839`). If neither matches a finance-book row it returns `None`, and
@@ -220,7 +222,7 @@ document-side resolution matches on `base_net_amount`/`base_net_rate` while this
 
 | Situation | Probe | Decision |
 |---|---|---|
-| Composite Asset | none | always post |
+| Composite Asset | prior capitalisation GL | post unless the capitalisation already debited the target account, or no submitted capitalisation exists (`assets/doctype/asset/asset.py:984-1001`) |
 | no purchase document | none | do not post |
 | bought with invoice, fixed-asset account already debited on it | `GL Entry` exists | do not post |
 | bought with invoice, CWIP already booked on it | `GL Entry` exists | post |
@@ -451,10 +453,12 @@ require opening_number_of_booked_depreciations when opening depreciation exists
 reject total_number_of_depreciations <= opening_number_of_booked_depreciations
 ```
 
-`set_depr_rate_and_value_after_depreciation` computes
+`set_depr_rate_and_value_after_depreciation` returns immediately for a split child
+(`assets/doctype/asset/asset.py:219-221`) — which is the only thing stopping a split's scaled book value
+being overwritten — and otherwise computes
 `value_after_depreciation = net_purchase_amount − opening_accumulated_depreciation +
-additional_asset_cost` and `db_set`s it onto **every** finance-book row — the same value for all books —
-then clears the table entirely when `calculate_depreciation` is off
+additional_asset_cost` and `db_set`s it onto **every** finance-book row, the same value for all books, then
+clears the table entirely when `calculate_depreciation` is off
 (`assets/doctype/asset/asset.py:219-234`).
 
 `set_total_booked_depreciations` recounts booked depreciations by scanning the active schedule for rows
@@ -464,8 +468,16 @@ depreciation against the configured salvage value and *fills the field in* when 
 (`assets/doctype/asset/asset.py:705-732`).
 
 Both of those run from `on_update`, together with schedule creation
-(`assets/doctype/asset/asset.py:244-248`) — so an ordinary save of a *submitted* asset can rewrite
-finance-book counters and create or regenerate schedule documents.
+(`assets/doctype/asset/asset.py:244-248`), so they fire on **every draft save and again at submit**.
+
+They do **not** fire when a submitted asset is saved. Frappe routes a docstatus-1 save to
+`_action = "update_after_submit"` and runs only `on_update_after_submit`
+(`frappe/model/document.py:1447-1450`, `frappe/model/document.py:1889-1897`), which `Asset` does not define.
+That makes the submitted-asset case sharper rather than milder: when `AssetRepair.update_asset_value` or
+`set_split_asset_values` save a submitted asset with `flags.ignore_validate_update_after_submit`
+(`assets/doctype/asset_repair/asset_repair.py:242-254`, `assets/doctype/asset/mapper.py:232-250`), the amount
+fields are rewritten with **no validation and no derivation at all** — the only reason a schedule is
+regenerated is the explicit `reschedule_depreciation` call those callers make.
 
 ### 5.3 Schedule regeneration is decided by field comparison
 
@@ -592,7 +604,7 @@ keys, `ENABLE ROW LEVEL SECURITY` and `FORCE ROW LEVEL SECURITY`, and stable low
 
 | Target table | Key columns and constraints |
 |---|---|
-| `asset` | stable identity, item, category, acquisition kind, quantity, custody defaults, `state` projection excluded; unique `(company_id, asset_no)` |
+| `asset` | stable identity, item, category, acquisition kind, custody defaults; **no quantity column** — one asset per identified unit; `state` is a projection, not a column; unique `(company_id, asset_no)` |
 | `asset_category` | account map owner and default policy identity; unique `(company_id, code)` |
 | `asset_category_account` | one row per `(company_id, asset_category_id, target_company_id)`; account-type and currency checks as constraints |
 | `asset_policy_revision` | per asset and finance book: method, life, frequency, salvage, proration, shift policy, effective range, `state`, `supersedes_revision_id`; unique `(company_id, asset_id, finance_book_id, revision_no)`; approved ranges non-overlapping by exclusion constraint |
@@ -617,9 +629,9 @@ unique key makes a double run a no-op. Construction-in-progress residual is a vi
 
 | Target table | Purpose |
 |---|---|
-| `asset_location` / `asset_location_revision` | place hierarchy with `parent_id` + recursive CTE; measured area is a projection recomputed from immutable geometry revisions |
-| `asset_event` | typed lifecycle events: stable `event_code`, actor, occurred_at, references, payload; append-only, `reverses_event_id`; text is rendered, never stored as identity |
-| `asset_register_projection` | current cost, accumulated depreciation per book, net book value, state, location, custodian; rebuilt from facts with a projector checkpoint |
+| `asset_location` / `asset_location_geometry_revision` | place hierarchy with `parent_id` + recursive CTE; measured area is a projection recomputed from immutable geometry revisions |
+| `asset_lifecycle_event` | typed lifecycle detail keyed 1:1 to a row in the shared `domain_event` stream (§10): stable `event_code`, references, reason; text is rendered, never stored as identity |
+| `asset_state_projection`, `asset_custody_projection`, `asset_book_value_projection` | current state, location/custodian, and per-book cost/accumulated depreciation/net book value; rebuilt from facts with a projector checkpoint |
 
 ### 8.4 Write ordering for acquisition
 
@@ -691,6 +703,16 @@ the acquisition itself — and never deletes evidence.
     rejected (`assets/doctype/asset/asset.py:612-636`).
 17. **Activity subject is translated text.** The audit payload is a localised sentence
     (`assets/doctype/asset_activity/asset_activity.py:27-36`).
+18. **Capitalisation values a consumed asset before depreciating it.** `set_asset_values` and
+    `calculate_totals` fix `asset_value` and `total_value` at validate
+    (`assets/doctype/asset_capitalization/asset_capitalization.py:310-320`,
+    `assets/doctype/asset_capitalization/asset_capitalization.py:339-364`), but at submit the GL composer
+    depreciates the consumed asset to the posting date and reloads **before** building its disposal legs
+    (`assets/doctype/asset_capitalization/services/gl_composer.py:82-116`), while
+    `get_gl_entries_on_asset_disposal` computes `profit_amount = selling_amount − value_after_depreciation`
+    against the freshly reduced book value (`assets/doctype/asset/depreciation.py:639-695`). If a period
+    falls due between save and submit, the build books a phantom gain on the consumed asset and debits the
+    target with the pre-depreciation value.
 
 No deterministic owner lock or unique constraint was found around: purchase-line residual → asset
 insert; capitalisation total → target amount rewrite; `booked_fixed_asset` read → capitalisation

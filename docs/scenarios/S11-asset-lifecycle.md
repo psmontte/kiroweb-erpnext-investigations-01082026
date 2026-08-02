@@ -345,7 +345,7 @@ depr_booked_for_months = (date_diff(2026-04-30, 2026-01-31) + 1) / (365/12)
                        = 90 / 30.4166… = 2.9589…
 pending_months     = 60 − 2.9589… = 57.0410…
 pending_periods    = 57.0410…
-new base amount    = 97,946.23 / 57.0410… = 1,716.7176… → 1,716.72
+new base amount    = 97,946.23 / 57.0410959… = 1,717.1169… → 1,717.12
 ```
 
 `get_booked_depr_for_months_count` converts a **day count into fractional months** using `365/12`
@@ -353,14 +353,14 @@ new base amount    = 97,946.23 / 57.0410… = 1,716.7176… → 1,716.72
 division of the remaining periods. Four periods were booked, but the engine treats 2.9589 "months" as
 consumed.
 
-The new plan therefore has 4 posted rows carried over plus rows 4…60 at 1,716.72, with the final row
+The new plan therefore has 4 posted rows carried over plus rows 4…60 at 1,717.12, with the final row
 adjusted to land on 20,000.00:
 
 ```text
 Σ posted (rows 0..3)     = 5,053.77
-Σ rows 4..59 (56 rows)   = 56 × 1,716.72 = 96,136.32
-pending after row 59     = 123,000.00 − 5,053.77 − 96,136.32 = 21,809.91
-row 60                   = 21,809.91 − 20,000.00 = 1,809.91
+Σ rows 4..59 (56 rows)   = 56 × 1,717.12 = 96,158.72
+pending after row 59     = 123,000.00 − 5,053.77 − 96,158.72 = 21,787.51
+row 60                   = 21,787.51 − 20,000.00 = 1,787.51
 Σ all rows               = 103,000.00 = cost 123,000.00 − salvage 20,000.00  ✔
 ```
 
@@ -384,8 +384,8 @@ depreciation journal belongs to two schedule documents and neither owns it (doc 
 On 2026-05-31 one machine is sold for 45,000.00 on **SI-0001**, with the fixed-asset row pointing at
 ASS-0001 and quantity 1.
 
-Before that, period 5 posts on 2026-05-31: 1,716.72, taking accumulated to
-`5,053.77 + 1,716.72 = 6,770.49` and book value to `123,000.00 − 6,770.49 = 116,229.51`.
+Before that, period 5 posts on 2026-05-31: 1,717.12, taking accumulated to
+`5,053.77 + 1,717.12 = 6,770.89` and book value to `123,000.00 − 6,770.89 = 116,229.11`.
 
 ### 6.1 Validation and the implicit split
 
@@ -406,23 +406,34 @@ actual_qty 2, sale_qty 1 → remaining 1 → split_asset(ASS-0001, 1)
 ```text
 scaling_factor (new)      = 1 / 2 = 0.5
 ASS-0002: net_purchase_amount 60,000.00 ; additional_asset_cost 1,500.00
-          total_asset_cost 61,500.00 ; value_after_depreciation 58,114.755 → 58,114.76
+          total_asset_cost 61,500.00 ; value_after_depreciation 58,114.555 → 58,114.56
           asset_quantity 1 ; split_from ASS-0001
 ASS-0001: scaled by 1/2 as well → the same figures, asset_quantity 1
 ```
 
 Note the arithmetic: the *existing* asset is rescaled with `scaling_factor = remaining_qty / asset_quantity`
-in a second `process_asset_split` call, so both halves end at 50% of the pre-split values. The two halves
-sum back to the parent here only because the split is exactly 1-of-2; a 1-of-3 split multiplies by
-`1/3` and `2/3` as floats with no residual rule (doc 43 §9, defect 24).
+in a second `process_asset_split` call, so both halves end at 50% of the pre-split values. **They do not sum
+back to the parent even at 1-of-2**: `116,229.11 / 2 = 58,114.555`, which rounds to `58,114.56` for both
+halves, so the pair totals `116,229.12` — one cent more than the asset they came from. A 1-of-3 split
+multiplies by `1/3` and `2/3` as floats and drifts further, with no residual rule anywhere (doc 43 §9,
+defect 24). That cent is the only part of this scenario's final imbalance that is *not* the capitalised
+repair.
 
 `flags.is_split_asset` suppresses `validate_linked_purchase_documents`
 (`assets/doctype/asset/asset.py:499-520`), so neither half re-checks the receipt ceiling — necessary,
 since neither matches the receipt line any more.
 
 `update_finance_books` re-plans both assets by cancel-and-copy, and for the new asset walks the active
-schedule and **amends every posted depreciation journal** to reference ASS-0002 for its share
-(`assets/doctype/asset/mapper.py:272-288`). Five submitted journals are edited.
+schedule and rewrites every posted depreciation journal
+(`assets/doctype/asset/mapper.py:272-288`). "Rewrites" is literal: `add_reference_in_jv_on_split` flips the
+journal's `docstatus` to 2, calls `make_gl_entries(1)` to cancel the posted GL rows, flips it back to 1 and
+re-posts them (`assets/doctype/asset/mapper.py:345-360`). Five submitted journals and their GL rows are
+cancelled and re-created in place.
+
+It does, however, **conserve the total**: `adjust_account_balance` reduces the source asset's leg by exactly
+the amount `add_new_entries` adds for the target (`assets/doctype/asset/mapper.py:362-390`), so accumulated
+depreciation in GL stays correct and becomes attributable per asset. Keep that in mind for §10.4 — it is the
+one place upstream is *stricter* than a naive fact-sum design would be.
 
 ### 6.2 Depreciation to the disposal date
 
@@ -433,7 +444,7 @@ posting date, 2026-05-31 (`accounts/doctype/sales_invoice/services/fixed_assets.
 
 Period 5 already posted on exactly that date, so `set_depreciation_amount_for_disposal` computes a
 zero-day remainder and adds nothing (`deppreciation_schedule_controller.py:297-317`). Book value of the
-sold half stands at `116,229.51 / 2 = 58,114.76` after rounding.
+sold half stands at `116,229.11 / 2 = 58,114.56` after rounding.
 
 ### 6.3 GL
 
@@ -444,15 +455,15 @@ sold half stands at `116,229.51 / 2 = 58,114.76` after rounding.
 
 ```text
 net_purchase_amount (sold half)  = 60,000.00
-value_after_depreciation          = 58,114.76
-accumulated_depr_amount           = 60,000.00 − 58,114.76 = 1,885.24
-profit_amount = 45,000.00 − 58,114.76 = −13,114.76   → a loss
+value_after_depreciation          = 58,114.56
+accumulated_depr_amount           = 60,000.00 − 58,114.56 = 1,885.44
+profit_amount = 45,000.00 − 58,114.56 = −13,114.56   → a loss
 ```
 
 | Account | Debit | Credit |
 |---|---:|---:|
-| Accumulated Depreciation | **1,885.24** | |
-| Loss on Asset Disposal | **13,114.76** | |
+| Accumulated Depreciation | **1,885.44** | |
+| Loss on Asset Disposal | **13,114.56** | |
 | Fixed Asset — Machinery | | **60,000.00** |
 | Debtors | **45,000.00** | |
 | **Total** | **60,000.00** | **60,000.00** |
@@ -464,7 +475,7 @@ is why a fixed-asset row must use an asset-disposal income account
 Two things about `accumulated_depr_amount` deserve attention. First, it is **derived by subtraction**
 (`assets/doctype/asset/depreciation.py:696-716`), so it includes the 1,500.00 of capitalised repair that
 raised book value — the debit to Accumulated Depreciation here is not what that account actually
-accumulated for this half (which was `6,770.49 / 2 = 3,385.25`). Second, the two figures differ precisely
+accumulated for this half (which was `6,770.89 / 2 = 3,385.45`). Second, the two figures differ precisely
 because the repair was booked to the fixed-asset account while `net_purchase_amount` was left untouched
 (doc 42 §8, doc 43 §9 defect 27).
 
@@ -484,7 +495,7 @@ because the repair was booked to the fixed-asset account while `net_purchase_amo
 ## 7. Stage 6 — scrapping the other machine
 
 On 2026-06-30 ASS-0002 is scrapped. Period 6 posts first for that asset's own plan; for clarity take its
-book value at 2026-06-30 as **57,256.40** after one more period of `1,716.72 / 2 = 858.36`.
+book value at 2026-06-30 as **57,256.00** after one more period of `1,717.12 / 2 = 858.56`.
 
 `scrap_asset` writes `disposal_date` **before** validating
 (`assets/doctype/asset/depreciation.py:367-379`), validates status and dates
@@ -493,15 +504,15 @@ book value at 2026-06-30 as **57,256.40** after one more period of `1,716.72 / 2
 
 ```text
 net_purchase_amount = 60,000.00
-value_after_depreciation = 57,256.40
-accumulated_depr_amount = 2,743.60
-profit_amount = 0.00 − 57,256.40 = −57,256.40 → loss
+value_after_depreciation = 57,256.00
+accumulated_depr_amount = 2,744.00
+profit_amount = 0.00 − 57,256.00 = −57,256.00 → loss
 ```
 
 | Account | Debit | Credit |
 |---|---:|---:|
-| Accumulated Depreciation | **2,743.60** | |
-| Loss on Asset Disposal | **57,256.40** | |
+| Accumulated Depreciation | **2,744.00** | |
+| Loss on Asset Disposal | **57,256.00** | |
 | Fixed Asset — Machinery | | **60,000.00** |
 | **Total** | **60,000.00** | **60,000.00** |
 
@@ -527,35 +538,71 @@ stated account setup.
 | Depreciation ×4 | 4 JE | **4** | **8** | 0 | 4 `journal_entry` links, book value, asset `status`, `depr_entry_posting_status` |
 | Repair save | Asset Repair draft | 0 | 0 | 0 | **asset `status` → `Out of Order`** |
 | Repair submit | Asset Repair 1 + PI row 1 + ADS 1 | 0 | **2** | 0 | `total_asset_cost`, `additional_asset_cost`, book value, ADS-0001 cancelled |
-| Depreciation ×1 | 1 JE | **1** | **2** | 0 | 1 link, book value |
-| Sale | SI 1 + item 1 + Asset 1 (split) + ADS 2 | 0 | **3** asset legs + invoice legs | 0 | 5 JE **amended**, scaled amounts on both assets, `disposal_date`, `status` |
+| Depreciation ×1 (period 5) | 1 JE | **1** | **2** | 0 | 1 link, book value |
+| Sale | SI 1 + item 1 + Asset 1 (split) + ADS 2 | 0 | **3** asset legs + invoice legs | 0 | 5 JE cancelled and **re-posted**, scaled amounts on both assets, `disposal_date`, `status` |
+| Depreciation ×1 (period 6, scrapped half only) | 1 JE | **1** | **2** | 0 | 1 link, book value |
 | Scrap | 1 JE | **1** | **3** | 0 | `disposal_date`, `journal_entry_for_scrap`, `status` |
-| **Total** | | **6 depreciation/disposal JE** | **22 economic GL** | **0 SLE** | many direct writes |
+| **Total** | | **7 depreciation/disposal JE** | **24 economic GL** | **0 SLE** | many direct writes |
+
+Period 6 posts for **ASS-0002 only**. ASS-0001 was set to `Sold`, and `get_depreciable_assets_data` selects
+only `Submitted` and `Partially Depreciated` assets
+(`assets/doctype/asset/depreciation.py:81-112`), so the sold half stops depreciating — correctly.
 
 The complete accounting proof across the asset's life, treating the two halves together:
 
 ```text
 receipt:        Dr CWIP 120,000.00        / Cr Received But Not Billed 120,000.00
 recognition:    Dr Fixed Asset 120,000.00 / Cr CWIP 120,000.00
-depreciation:   Dr Depreciation Expense 6,770.49 / Cr Accumulated Depreciation 6,770.49
+depreciation:   Dr Depreciation Expense 6,770.89 / Cr Accumulated Depreciation 6,770.89   (periods 1–5)
 repair:         Dr Fixed Asset 3,000.00   / Cr Repairs Expense 3,000.00
-extra period:   Dr Depreciation Expense 1,716.72 / Cr Accumulated Depreciation 1,716.72   (period 6, both halves)
-sale:           Dr Accum. Depr 1,885.24 + Dr Loss 13,114.76 + Dr Debtors 45,000.00
+period 6:       Dr Depreciation Expense   858.56 / Cr Accumulated Depreciation   858.56   (ASS-0002 only)
+sale:           Dr Accum. Depr 1,885.44 + Dr Loss 13,114.56 + Dr Debtors 45,000.00
                 / Cr Fixed Asset 60,000.00 (+ ordinary invoice legs)
-scrap:          Dr Accum. Depr 2,743.60 + Dr Loss 57,256.40 / Cr Fixed Asset 60,000.00
-ending:         Fixed Asset 123,000.00 − 60,000.00 − 60,000.00 = 3,000.00 residual
+scrap:          Dr Accum. Depr 2,744.00 + Dr Loss 57,256.00 / Cr Fixed Asset 60,000.00
 ```
 
-That residual is the point of the scenario. **The books do not close cleanly**, because the two disposals
-each removed `net_purchase_amount` (60,000.00) while the fixed-asset account had been debited
-123,000.00 — the extra 3,000.00 being the capitalised repair, which `split_asset` scaled into
-`additional_asset_cost` but which the disposal legs never remove
-(`assets/doctype/asset/depreciation.py:639-695` credits `net_purchase_amount` only). Symmetrically,
-Accumulated Depreciation is debited `1,885.24 + 2,743.60 = 4,628.84` against actual accumulated postings
-of `6,770.49 + 1,716.72 = 8,487.21`, leaving 3,858.37 stranded there.
+Both accounts end non-zero:
 
-Both discrepancies come from the same root cause: **cost and accumulated depreciation are derived by
-subtraction from mutable scalars rather than being read from their own ledgers.**
+```text
+Fixed Asset:              123,000.00 debited − 120,000.00 removed = 3,000.00 left (debit)
+Accumulated Depreciation:   7,629.45 posted  −   4,629.44 removed = 3,000.01 left (credit)
+```
+
+### 8.1 What the residuals actually prove
+
+The two residuals are **the same number with opposite signs**, and that is not a coincidence of these
+inputs. Write `P` for total posted depreciation. Each disposal debits accumulated depreciation with
+`net_purchase_amount − value_after_depreciation`, and the two halves' book values sum to `123,000.00 − P`:
+
+```text
+accumulated debited = 120,000.00 − (vad₁ + vad₂) = 120,000.00 − (123,000.00 − P)
+AccDep residual     = P − (120,000.00 − 123,000.00 + P) = 3,000.00
+Fixed-asset residual= 123,000.00 − 120,000.00            = 3,000.00
+```
+
+Both equal `additional_asset_cost` exactly, independently of the instalment, the number of periods, or when
+the sale happened. The extra **0.01** on the accumulated side is the split-rounding cent from §6.1, nothing
+more.
+
+So the honest finding is narrower and more interesting than "the books do not close":
+
+- **Net book value removed is correct.** The two residuals cancel, so total assets are right.
+- **The gain and the loss are correct.** Both derive from `value_after_depreciation`, which tracked the
+  capitalised repair properly.
+- **The balance-sheet split is wrong.** Cost is overstated by 3,000.00 and accumulated depreciation is
+  overstated by 3,000.00. The capitalised repair is **silently reclassified as depreciation** at disposal.
+
+That is invisible in the P&L and invisible in net assets. It is visible in the gross-cost and
+accumulated-depreciation columns of every fixed-asset register, in depreciation-to-cost ratios, and in any
+disclosure note that reports cost and accumulated depreciation separately — which is to say, in exactly the
+places a statutory audit looks.
+
+The root cause is still the one this scenario exists to demonstrate: **disposal removes
+`net_purchase_amount` and an accumulated-depreciation figure derived by subtraction
+(`assets/doctype/asset/depreciation.py:639-695`,
+`assets/doctype/asset/depreciation.py:696-716`), rather than reading each amount from its own ledger.** Any
+cost addition that raises book value without raising `net_purchase_amount` produces this reclassification,
+and a revaluation (doc 42 §8) produces it too.
 
 ### 8.1 Evidence versus projection
 
@@ -651,7 +698,8 @@ so a missed run self-heals and a double run is a no-op (doc 41 §8.2).
 
 `depreciation_plan` version 1 is generated from the approved `asset_policy_revision`; each period is a
 `depreciation_plan_period` with an explicit `basis_days`. Posting inserts `depreciation_posting` keyed by
-`depreciation_period`, with a **partial unique index on one unreversed posting per period** (doc 42 §11.2).
+`depreciation_period`, with **at most one unreversed posting per period**, enforced by a deferred trigger
+under the asset/book lock (doc 42 §11.2). A partial unique index would forbid re-posting after a reversal.
 The four January–April periods are four facts; the plan version they satisfy is recorded on each.
 
 The repair generates plan version 2. Version 1 is superseded, not cancelled, and **no posted fact moves**:
@@ -673,20 +721,41 @@ never silently suspended (doc 43 §8.3).
 
 ### 10.4 Disposal
 
-Each disposal is an `asset_disposal` with a partial unique index of one unreversed disposal per asset. Its
-voucher is built from **facts, not subtraction**:
+Each disposal is an `asset_disposal` with **at most one unreversed disposal per asset**, enforced by a
+deferred trigger counting unreversed rows under the asset lock (a partial unique index would forbid
+re-disposing after a reversal, which §9 shows is a legitimate flow). Its voucher is built from **facts, not
+subtraction**.
+
+Because §10.1 gives each machine its own identity, the repaired machine carries its own repair in full —
+cost 60,000.00 + 3,000.00, salvage 10,000.00 — rather than having a single-machine repair smeared across two
+units. Its own plan yields period instalments of 833.33, a 26.88 prorated first period, and a post-repair
+instalment of `(63,000.00 − 10,000.00 − 2,526.87) / 57 = 885.49`:
 
 ```text
-cost removed                = Σ asset_cost_event for this asset      = 61,500.00
-accumulated depr. removed   = Σ depreciation_posting for this asset  = 4,243.61
-revaluation reserve released= Σ asset_revaluation                    = 0.00
-proceeds                    = 45,000.00
-gain/loss                   = proceeds − (cost − accumulated − reserve)
+cost removed                 = Σ asset_cost_event                    = 63,000.00
+accumulated depr. removed    = Σ depreciation_posting (5 periods)     =  3,412.36
+revaluation reserve released = Σ asset_revaluation                    =      0.00
+proceeds                     = 45,000.00
+gain/loss                    = 45,000.00 − (63,000.00 − 3,412.36 − 0.00) = −14,587.64
 ```
 
-Both machines' disposals therefore remove exactly what was posted, and the fixed-asset and
-accumulated-depreciation accounts both reach zero. The 3,000.00 and 3,858.37 residuals of §8 cannot exist,
-because no leg is derived from a mutable scalar.
+The loss differs from §6.3's 13,114.56 precisely *because* the economics differ: upstream spread a
+single-machine repair across two units and then halved it, so the machine that was actually repaired carried
+only 1,500.00 of the 3,000.00 it consumed. Attributing cost to the unit that incurred it is the point of
+one-asset-per-unit, not a rounding difference.
+
+Both machines' disposals remove exactly what was posted, so:
+
+```text
+Fixed Asset balance(asset)               = 63,000.00 − 63,000.00 = 0.00
+Accumulated Depreciation balance(asset)  =  3,412.36 −  3,412.36 = 0.00
+Revaluation reserve balance(asset)       =      0.00
+```
+
+The 3,000.00 reclassification of §8 cannot occur, because `cost_removed` and `accumulated_removed` are each
+read from their own ledger rather than derived by subtraction. The split cent of §6.1 cannot occur either:
+there is no split, and where a genuine transformation is needed, `asset_transformation_part` carries exact
+apportionment with one designated residual part.
 
 Cancelling a sale reverses the disposal fact only; there is no split to leave behind, and if a genuine
 transformation had occurred it would be reversed by its own `asset_transformation` reversal with stored
@@ -712,7 +781,7 @@ apportionment (doc 43 §8.4).
 | Draft repair side effect | suspends depreciation via status | none |
 | Splitting | document copy, float scaling, journals amended | explicit transformation with stored apportionment, or unnecessary |
 | Disposal cost removed | `net_purchase_amount` scalar | Σ cost events |
-| Disposal accumulated depreciation | cost − book value | Σ postings |
+| Disposal accumulated depreciation | cost − book value (reclassifies additions) | Σ postings |
 | Revaluation at disposal | absorbed into accumulated depreciation | released from its own reserve |
 | Disposal uniqueness | none | one unreversed disposal per asset |
 | Disposal callers | four, each writing status | one disposal service |
@@ -732,14 +801,18 @@ apportionment (doc 43 §8.4).
    its journals, and copies those journals into the successor.
 4. **A saved draft repair silently suspends depreciation** because posting selection reads mutable asset
    status.
-5. **Cost additions are applied to every finance book in full**, with no apportionment.
+5. **Cost additions are applied to every finance book in full.** With one book that is right; the defect
+   is the GL double-count it would cause with two, and the life extension applied uniformly.
 6. **Re-planning after a cost change converts booked periods into fractional months** via `365/12`, so the
    new instalment is not a clean division of remaining periods — although the plan still totals exactly.
 7. **Selling part of a multi-quantity asset silently creates a second asset**, scales every amount by a
-   float ratio, and **amends posted depreciation journals**.
-8. **Disposal removes `net_purchase_amount` and a subtracted accumulated depreciation**, so capitalised
-   repairs and revaluations leave permanent residuals in the fixed-asset and accumulated-depreciation
-   accounts — 3,000.00 and 3,858.37 in this scenario.
+   float ratio that does not conserve even at 1-of-2 (one cent), and **cancels and re-posts submitted
+   depreciation journals and their GL rows** — while, to its credit, conserving the accumulated-depreciation
+   total across the two assets.
+8. **Disposal removes `net_purchase_amount` and a subtracted accumulated depreciation.** Net book value and
+   gain/loss stay correct, but cost and accumulated depreciation are each overstated by exactly the
+   capitalised addition — 3,000.00 here — so the addition is silently reclassified as depreciation on the
+   balance sheet. Revaluations reclassify the same way.
 9. **Cancelling a sale does not undo the split** it caused.
 10. **Every state answer is a mutable scalar** written by asset submit, movements, repairs, splits,
     schedules, scheduled jobs and four disposal callers.
@@ -751,8 +824,9 @@ schedules, idempotent posting, shift plans, reconciled revaluation, dated dispos
 before projection, relational and serializable depreciation), and **A19–A26** (event-sourced custody,
 non-cyclic maintenance, allocated repair cost, authorised transformation, single disposal, evidence before
 projection, relational and serializable custody/service/disposal). It also reuses **F1** (balanced
-vouchers) from S04 — and demonstrates the one case in this repository where a subsystem's own arithmetic
-breaks that invariant's *intent* while keeping each individual voucher balanced.
+vouchers) from S04 — and demonstrates the one case in this repository where every voucher balances, net
+assets are right, and the balance sheet is still wrong, because two accounts are misstated by equal and
+opposite amounts.
 
 ---
 

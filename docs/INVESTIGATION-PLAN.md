@@ -50,7 +50,7 @@ Consolidated target design: **`docs/design/FINAL-SCHEMA.md`** (finalised tables,
 business rules, lifecycle state machine, fulfilment views, settlement model, invariant register).
 
 Citation verification across `docs/logic/`: superseded — see the current coverage matrix
-(**5,095 citations, 0 problems** across logic and scenarios, shorthand included).
+(**5,181 citations, 0 problems** across logic and scenarios, shorthand included).
 
 ~~**Still named but not chased**~~: putaway rules (doc 27 §3), warehouse capacity (doc 27 §3, doc 16
 §4), stock closing entry (doc 27, S05 §6), loyalty program internals (doc 31 §4), payment-gateway
@@ -77,7 +77,7 @@ invoice → payment → FX revaluation — plus everything needed to call the th
 
 **Coverage: `Accounts`, `Stock`, `Selling`, `Buying`, `Manufacturing` and `Subcontracting` are at
 zero uncited DocTypes** — submittable and configuration alike (`docs/COVERAGE.md`, generated).
-Citations: **5,095 verified, 0 problems**, including the shorthand form.
+Citations: **5,181 verified, 0 problems**, including the shorthand form.
 
 Three findings from this closure changed how confident we are in earlier decisions:
 
@@ -126,7 +126,8 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 | ~~**A**~~ | ~~**Trade / inventory / accounts closure**~~ — Journal Entry + CoA + dimensions, remaining stock documents, tax determination, pricing determination, upstream trade + parties, batch processes + instruments + recurring, stock configuration | the remainder | **DONE** — `docs/logic/26`–`32`, `docs/scenarios/S04`–`S06`. Accounts/Stock/Selling/Buying at **zero uncited DocTypes** |
 | ~~**B**~~ | ~~**Manufacturing** — BOM (+ cost roll-up, exploded items, update-cost job), Work Order, Job Card, Operations/Routing, Workstation capacity, Production Plan, Master Production Schedule, scrap & rework, WIP accounting~~ | 48 total / 18 parents (8 submittable) | **DONE** — docs 33–37 + S07; 18/18 parent controllers cited, 0 gaps |
 | ~~**B**~~ | ~~**Subcontracting deep dive** — order/receipt lifecycle, supplied-item consumption, RM transfer, `Subcontracting BOM`, customer-owned inward flow~~ | 13 total / 4 parents (3 submittable) | **DONE** — doc 38 + S08 + S10; 4/4 parent controllers cited, 0 gaps |
-| ~~**C**~~ | ~~**Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement~~ | 26 total / 14 parents (8 submittable) | **DONE** — docs 41–43 + S11; 14/14 parent controllers cited, 0 gaps |
+| ~~**C**~~ | ~~**Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement~~ | 26 total / 14 parents (8 submittable) | **DONE** — docs 41–44 + S11; 14/14 parent controllers cited, 0 gaps |
+| **F** | **Localisation — India GST first** — jurisdiction as data, HSN/SAC, place of supply, CGST/SGST/IGST/cess components, reverse charge, TDS/TCS interaction, statutory numbering, GSTR/e-invoice extracts, amendment and credit-note semantics | cross-cutting | **NEXT** — required capability; scoped in [doc 44 §11](logic/44-tranche-c-closure-and-our-asset-spec.md). ERPNext's `@allow_regional` overlay is **rejected** (doc 21 §4, doc 42 §4.3) |
 | ~~**D**~~ | ~~**Projects, Support, Maintenance, CRM**~~ — project costing, timesheet → billing, Support (11), Maintenance (5), CRM lead/opportunity/prospect (28) | ~75 | **OUT OF SCOPE** — dropped by decision. Not investigated, not built. |
 | ~~**B**~~ | ~~**Quality Management + operational quality** — Quality Management records plus Stock-owned inspection templates/readings and gates on receipts, deliveries, Stock Entry and Job Card~~ | 16 total / 8 module parents, plus 4 Stock parents | **DONE** — doc 39 + S09; all 12 parents cited, 0 gaps |
 | ~~**E**~~ | ~~**Platform mechanics we must replace, not copy**~~ — permission model, naming series, `hooks.py` extensibility, `@allow_regional` overlay, background jobs + scheduler, patch/migration system, query-report framework, custom fields & Customize Form, virtual doctypes | — | **DONE** — `docs/logic/18`–`25`, with a build/buy/drop decision per capability in `25-our-platform-spec.md` |
@@ -162,8 +163,11 @@ quality-gated receipt/production; **S10** customer-owned subcontracting inward.
 4. ~~**Tranche B** — manufacturing → subcontracting → quality → closure/specification~~ —
    **complete**, docs 33–40 and scenarios S07–S10. Doc 40 consolidates the measured closure, M1–M69,
    target schema and build order.
-5. ~~**Tranche C** (assets + depreciation)~~ — **complete**, `docs/logic/41`–`43` and `S11`; invariant
-   register **A1–A26**.
+5. ~~**Tranche C** (assets + depreciation)~~ — **complete**, `docs/logic/41`–`44` and `S11`; invariant
+   register **A1–A26**. Doc 44 consolidates the measured closure, enforcement mapping, asset schema and
+   build order.
+5a. **Tranche F** (localisation, **India GST first**) — **next**, and now a confirmed requirement rather
+   than an open question. Scoped in doc 44 §11.
 6. ~~**Tranche D**~~ — **dropped**: no CRM, no projects, no support.
 7. **Implementation** — has not started.
 
@@ -181,9 +185,12 @@ Answers change the order and the depth, not the method.
 2. **Inventory features that change the core design** — which of these are real requirements:
    batch/serial with expiry and FEFO picking, stock reservation, multi-warehouse transfers,
    landed cost, subcontracting, consignment/customer-owned stock?
-3. **Localisation** — which countries' tax regimes must v1 handle? If more than one, Tranche E's
-   regional-overlay investigation becomes urgent, because that is the mechanism ERPNext uses to inject
-   country-specific fields and override tax calculation.
+3. ~~**Localisation**~~ — **answered: India GST is required, and it is the priority.** More than one
+   regime is in scope, so replacing the regional-overlay mechanism is now urgent rather than theoretical —
+   ERPNext resolves `@erpnext.allow_regional` overrides from company country at call time (doc 21 §4), and
+   doc 42 §4.3 found that mechanism sitting directly on the declining-balance depreciation calculation. We
+   reject it. Tranche F is scoped in [doc 44 §11](logic/44-tranche-c-closure-and-our-asset-spec.md).
+   Still open: which **additional** jurisdictions v1 must handle alongside India.
 4. **Scale targets** — rough rows/day on the ledgers, number of companies, concurrent users. This decides
    whether balances are materialised (doc 01 §1.9) or computed, and whether the valuation projection needs
    partitioning.

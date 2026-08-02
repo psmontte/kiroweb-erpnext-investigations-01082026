@@ -66,7 +66,9 @@ consolidates the exact measured closure, M1–M69, enforcement layers, target pr
 order. `Accounts`, `Stock`, `Selling`, `Buying`, `Manufacturing`, `Subcontracting` and `Quality
 Management` all have zero uncited submittable and zero uncited configuration DocTypes. The 25 deliberate
 exclusions listed above are retained. **Tranche C (Assets) is also complete**: all 14 Assets parents are
-cited by docs 41–43 and S11. Application implementation has not started.
+cited by docs 41–43, closed by [doc 44](logic/44-tranche-c-closure-and-our-asset-spec.md), and walked
+end to end by [S11](scenarios/S11-asset-lifecycle.md). Application implementation has not started; the
+remaining named gap is localisation, India GST first (doc 44 §11).
 
 ## Closure ledger
 
@@ -117,8 +119,8 @@ ledger, freezing, balance-must-be) has not been read line by line.
 4. `tools/verify_refs.py` reports **0 problems** across all doc directories — no unresolved paths,
    no out-of-range lines, and no ambiguous shorthand refs. This covers both full citations and the
    `` (`:NNN`) `` shorthand; the shorthand is the bulk of the corpus, so verifying it is what makes
-   the "every claim is checkable" statement true. Current: **4373** citations in `docs/logic` and
-   **722** in `docs/scenarios`, all resolving (**5095 total**).
+   the "every claim is checkable" statement true. Current: **4455** citations in `docs/logic` and
+   **726** in `docs/scenarios`, all resolving (**5181 total**).
 5. This table is regenerated and checked.
 
 ### Status against that definition
@@ -128,7 +130,7 @@ ledger, freezing, balance-must-be) has not been read line by line.
 | 1 | `uncited_submittable` = 0 | Accounts **0** ✔, Stock **0** ✔, Selling **0** ✔, Buying **0** ✔, Manufacturing **0** ✔, Subcontracting **0** ✔, Quality Management **0** ✔ |
 | 2 | Config DocTypes cited or excluded | **✔ 0 uncited config** in every audited module; Stock operational-QI exclusions removed after doc 39 |
 | 3 | Scenario per cross-subsystem flow | **✔** S01–S11 complete, including the full asset lifecycle |
-| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 5095 citations** |
+| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 5181 citations** |
 | 5 | Table regenerated | **✔** |
 
 **Trade-core definition remains met.** `Accounts`, `Stock`, `Selling` and `Buying` have zero uncited
@@ -157,4 +159,6 @@ submittable and zero uncited configuration parents.
 [Docs 41–43](logic/41-asset-identity-acquisition-and-finance-books.md) and
 [S11](scenarios/S11-asset-lifecycle.md) cover identity, acquisition, capitalisation, finance books,
 depreciation schedules and posting, shifts, revaluation, custody, maintenance, repair, split and disposal,
-adding invariants **A1–A26**. Application implementation has not started.
+adding invariants **A1–A26**; [doc 44](logic/44-tranche-c-closure-and-our-asset-spec.md) consolidates the
+measured closure, the enforcement mapping, the asset schema and the build order. Application implementation
+has not started.

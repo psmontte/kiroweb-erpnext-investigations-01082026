@@ -230,13 +230,22 @@ gl_entry(id, voucher_id, company_id, account_id, posting_date date,
          party_id, cost_center_id, project_id, finance_book_id,
          source_line_type text, source_line_id bigint,   -- line-level provenance, mandatory for trade docs
          settles_voucher_id bigint REFERENCES voucher(id),  -- typed; replaces against_voucher_*
+         asset_id bigint NULL,                           -- company-scoped FK to asset (§19); see CHECK below
+         finance_book_id bigint NULL,
          report_type report_type_enum NOT NULL,          -- denormalised for CHECKs and reports
          is_opening bool NOT NULL DEFAULT false)
    CHECK (debit >= 0 AND credit >= 0 AND NOT (debit > 0 AND credit > 0))
    CHECK (amount = debit - credit)
    CHECK (report_type <> 'profit_and_loss' OR cost_center_id IS NOT NULL)
+   -- asset accountability: every leg touching an asset-role account names the asset it belongs to,
+   -- which is what makes the §20.4 and §21.4 per-asset reconciliations computable at all
+   CHECK (asset_id IS NOT NULL OR account_id NOT IN (SELECT … asset-role accounts))
+      -- implemented as a trigger over account.account_type IN ('fixed_asset','capital_work_in_progress',
+      -- 'accumulated_depreciation','revaluation_reserve','impairment','asset_disposal')
+   CHECK (finance_book_id IS NULL OR asset_id IS NOT NULL)
    INDEX (company_id, posting_date, account_id) INCLUDE (amount)
    INDEX (voucher_id) ; INDEX (settles_voucher_id) ; INDEX (party_id, account_id)
+   INDEX (company_id, asset_id, account_id, finance_book_id) INCLUDE (amount) WHERE asset_id IS NOT NULL
 gl_entry_dimension(company_id, gl_entry_id, dimension_id, dimension_value_id)
    PK (company_id, gl_entry_id, dimension_id)
 
@@ -760,11 +769,13 @@ command_business_commit(id, company_id, command_receipt_id, business_commit_toke
    CHECK (authoritative_root_count > 0)
    -- append-only marker inserted in the fact transaction; deferred trigger recomputes both hashes/count
 
-production_aggregate_owner(id, company_id, aggregate_type production_aggregate_enum,
-                           aggregate_id bigint, next_event_position bigint NOT NULL, row_version bigint)
+domain_aggregate_owner(id, company_id, aggregate_type domain_aggregate_enum,
+                       aggregate_id bigint, next_event_position bigint NOT NULL, row_version bigint)
    UNIQUE (company_id, aggregate_type, aggregate_id)
-production_event(id, company_id, aggregate_owner_id, event_position bigint,
-                 event_type production_event_enum, command_receipt_id, child_ordinal integer,
+   -- domain_aggregate_enum covers production aggregates AND asset aggregates
+   -- (asset, asset_finance_book, asset_location, maintenance_task, asset_service, asset_transformation)
+domain_event(id, company_id, aggregate_owner_id, event_position bigint,
+                 event_type domain_event_enum, command_receipt_id, child_ordinal integer,
                  business_commit_id, reverses_event_id bigint NULL,
                  occurred_at timestamptz, actor_id, payload jsonb)
    UNIQUE (company_id, aggregate_owner_id, event_position)
@@ -778,8 +789,8 @@ transactional_outbox(id, company_id, event_id bigint NOT NULL,
                      state outbox_state_enum, lease_owner text NULL, lease_until timestamptz NULL,
                      attempts integer NOT NULL DEFAULT 0, available_at timestamptz, published_at NULL)
    UNIQUE (company_id, event_id)
-   FOREIGN KEY (company_id,event_id) REFERENCES production_event(company_id,id)
-   -- event type, aggregate, position and payload are always joined/derived from production_event
+   FOREIGN KEY (company_id,event_id) REFERENCES domain_event(company_id,id)
+   -- event type, aggregate, position and payload are always joined/derived from domain_event
 
 projection_checkpoint(id, company_id, projector_code varchar(64),
                       aggregate_owner_id, last_event_position bigint,
@@ -804,7 +815,7 @@ a crash between them is recovered by discovery. Terminal failure is recorded in 
 transaction after business rollback, and is retained. Thus the receipt survives rollback, while no
 partial business facts do. Same-key/same-hash replay is deterministic in every state.
 
-**Event/outbox protocol.** The fact transaction locks one `production_aggregate_owner`, takes exactly
+**Event/outbox protocol.** The fact transaction locks one `domain_aggregate_owner`, takes exactly
 `next_event_position`, inserts the event and its one outbox row, then advances the owner by one. All three
 changes commit or roll back together, so aborted transactions consume no position and committed streams
 are contiguous. Deferred triggers reject an event without exactly one outbox row, an outbox without its
@@ -1625,9 +1636,12 @@ of this document apply: `company_id` everywhere, RLS + `FORCE RLS`, money `numer
 `numeric(21,9)`, percent `numeric(9,6)`, stable lower-case enum codes, append-only facts with
 reversal/supersession, projections rebuildable.
 
-Upstream derives cost, accumulated depreciation and state by subtracting mutable scalars, which is why
-S11 §8 ends with 3,000.00 stranded in Fixed Assets and 3,858.37 in Accumulated Depreciation. Every
-structure below exists to make that arithmetic impossible.
+Upstream derives cost, accumulated depreciation and state by subtracting mutable scalars. In S11 §8 that
+leaves 3,000.00 in Fixed Assets and an offsetting 3,000.01 in Accumulated Depreciation: net book value and
+gain/loss are right, but both balance-sheet accounts are overstated by the capitalised addition, which is
+silently reclassified as depreciation. Every structure below exists to make that reclassification
+unrepresentable — each amount is read from its own ledger, and every asset-role `gl_entry` leg carries
+`asset_id` so the reconciliation is a real query.
 
 ```sql
 asset(id, company_id, asset_no varchar(64), asset_name text, item_id, asset_category_id,
@@ -1658,6 +1672,9 @@ asset_category_account(id, company_id, asset_category_id, target_company_id,
 asset_component(id, company_id, parent_asset_id, member_asset_id, added_at, removed_at NULL)
    UNIQUE (company_id, parent_asset_id, member_asset_id, added_at)
    CHECK (parent_asset_id <> member_asset_id)
+   CHECK (removed_at IS NULL OR removed_at > added_at)
+   -- deferred: a parent cannot be disposed while any member has removed_at IS NULL; a member's
+   -- component_absorption disposal sets removed_at in the same transaction
 ```
 
 ### 19.1 Acquisition and bounded source allocation
@@ -1670,8 +1687,9 @@ asset_acquisition(id, company_id, asset_id, acquisition_no integer,
       command_receipt_id, reverses_acquisition_id bigint NULL, created_at, created_by)
    UNIQUE (company_id, asset_id, acquisition_no)
    UNIQUE (company_id, command_receipt_id)
-   UNIQUE (company_id, asset_id) WHERE reverses_acquisition_id IS NULL AND acquisition_no = 1
+   UNIQUE (company_id, reverses_acquisition_id) WHERE reverses_acquisition_id IS NOT NULL
    CHECK (amount >= 0)
+   -- deferred trigger under the asset lock: exactly one unreversed acquisition_no = 1 row
 
 asset_source_allocation(id, company_id, asset_id,
       source_kind asset_source_enum /*purchase_line|consumed_stock_move|consumed_asset|service_claim|opening*/,
@@ -1683,7 +1701,11 @@ asset_source_allocation(id, company_id, asset_id,
       NULLS NOT DISTINCT
    UNIQUE (company_id, reverses_allocation_id) WHERE reverses_allocation_id IS NOT NULL
    CHECK (amount >= 0 AND (qty IS NULL OR qty > 0))
+   CHECK (source_kind <> 'purchase_line' OR qty IS NOT NULL)
    CHECK (num_nonnulls(asset_acquisition_id, asset_service_event_id) = 1)
+   -- L2 trigger: the source line's item_id MUST equal asset.item_id for purchase_line and
+   -- consumed_stock_move kinds. This is what structurally closes doc 41 §9 defect 1 (ERPNext never
+   -- compares item code when resolving the link).
    -- deferred trigger, evaluated while the SOURCE line owner is locked:
    --   Σ unreversed qty    <= source line received/issued quantity
    --   Σ unreversed amount <= source line net amount (or GL residual for a service claim)
@@ -1699,7 +1721,8 @@ residual constraint.
 ```sql
 asset_cost_event(id, company_id, asset_id, event_no integer,
       cost_kind asset_cost_enum /*acquisition|addition|improvement|landed_cost|repair_capitalisation|
-                                 revaluation_up|revaluation_down|impairment|transformation_in|transformation_out*/,
+                                 revaluation_up|revaluation_down|impairment|transformation_in|
+                                 transformation_out|backdate_adjustment*/,
       effective_on date, amount numeric(19,4) NOT NULL,   -- SIGNED
       finance_book_id bigint NULL,                        -- NULL = applies to all books by policy
       asset_acquisition_id NULL, asset_service_event_id NULL, asset_revaluation_id NULL,
@@ -1717,8 +1740,12 @@ asset_recognition(id, company_id, asset_id, recognition_no integer,
       command_receipt_id, reverses_recognition_id bigint NULL)
    UNIQUE (company_id, asset_id, recognition_no)
    UNIQUE (company_id, command_receipt_id)
-   UNIQUE (company_id, asset_id) WHERE reverses_recognition_id IS NULL
+   UNIQUE (company_id, reverses_recognition_id) WHERE reverses_recognition_id IS NOT NULL
    CHECK (amount > 0)
+   -- "at most one UNREVERSED recognition" is a deferred constraint trigger evaluated while the asset
+   -- owner is locked, counting rows not referenced by any reverses_recognition_id. A partial unique
+   -- index on `WHERE reverses_recognition_id IS NULL` would mean "one non-reversing row" and would
+   -- permanently forbid re-recognition after a reversal.
 ```
 
 `asset_recognition` replaces `booked_fixed_asset`, the four `frappe.db.exists` GL probes and the
@@ -1744,7 +1771,7 @@ reconciled continuously against the construction-in-progress account rather than
 
 ```sql
 asset_capitalisation(id, company_id, doc_no, target_asset_id, posting_at timestamptz,
-      target_account_id, total_value numeric(19,4), state posting_state_enum,
+      target_account_id, total_value numeric(19,4), state doc_state_enum,
       voucher_id bigint REFERENCES voucher(id), command_receipt_id,
       reverses_capitalisation_id bigint NULL)
    UNIQUE (company_id, doc_no)
@@ -1752,9 +1779,17 @@ asset_capitalisation(id, company_id, doc_no, target_asset_id, posting_at timesta
    CHECK (total_value >= 0)
 asset_capitalisation_stock(id, company_id, asset_capitalisation_id, line_no integer,
       item_id, warehouse_id, owner_id, custodian_id, qty numeric(21,9),
-      stock_move_id bigint NOT NULL, realised_value numeric(19,4))
+      stock_move_id bigint NOT NULL)
    UNIQUE (company_id, asset_capitalisation_id, line_no)
-   CHECK (qty > 0 AND realised_value >= 0)
+   CHECK (qty > 0)
+asset_capitalisation_stock_value(id, company_id, asset_capitalisation_stock_id,
+      stock_value_event_id bigint NOT NULL, realised_value_delta numeric(19,4) NOT NULL,
+      asset_cost_event_id bigint NOT NULL, command_receipt_id, child_ordinal integer)
+   UNIQUE (company_id, asset_capitalisation_stock_id, stock_value_event_id)
+   -- mirrors production_input_value (§14): consumed value is a one-to-one allocation of an authoritative
+   -- stock_value_event, and deltas are SIGNED so a backdated replay appends an adjustment instead of
+   -- mutating a frozen scalar. asset_cost_enum carries a `backdate_adjustment` member for the matching
+   -- cost event and its linked adjustment voucher.
 asset_capitalisation_asset(id, company_id, asset_capitalisation_id, line_no integer,
       consumed_asset_id, asset_disposal_id bigint NOT NULL, carrying_value numeric(19,4))
    UNIQUE (company_id, asset_capitalisation_id, line_no)
@@ -1776,19 +1811,31 @@ Deferred constraint:
 
 ```text
 asset_capitalisation.total_value
-  = Σ stock realised_value + Σ consumed asset carrying_value + Σ service amount
-  = Σ asset_cost_event.amount for this capitalisation      (exact, numeric(19,4))
+  = Σ unreversed asset_capitalisation_stock_value.realised_value_delta
+  + Σ consumed asset carrying_value
+  + Σ service amount
+  = Σ unreversed asset_cost_event.amount for this capitalisation
+        (exact at numeric(19,4), evaluated through the valuation watermark so a backdated
+         stock_value_event adjustment appends matching delta and cost-event rows)
 ```
 
 ### 19.4 Asset state is projected
 
 ```sql
-asset_lifecycle_event(id, company_id, asset_id, event_no integer,
+-- Asset lifecycle and custody events are rows in the SHARED domain_event stream (§10), not a parallel
+-- one: the fact transaction locks the asset's domain_aggregate_owner, takes next_event_position, inserts one
+-- domain_event and exactly one transactional_outbox row referencing it, and projectors advance
+-- projection_checkpoint(company_id, projector_code, aggregate_owner_id) contiguously. The tables below are
+-- typed detail keyed 1:1 to that event, so nothing duplicates aggregate, position or payload.
+-- domain_aggregate_enum, domain_event_enum, command_kind_enum and voucher_kind_enum all gain asset members:
+-- recognition, depreciation, revaluation, capitalisation, transformation, disposal, custody, service.
+
+asset_lifecycle_event(id, company_id, asset_id, domain_event_id bigint NOT NULL,
       event_code asset_lifecycle_enum /*created|recognised|in_service|under_maintenance|out_of_order|
                                        impaired|transformed|disposed|restored|cancelled*/,
-      occurred_at timestamptz, actor_id, source_type text NULL, source_id bigint NULL,
-      reason_code text NULL, command_receipt_id, reverses_event_id bigint NULL, payload jsonb)
-   UNIQUE (company_id, asset_id, event_no)
+      source_type text NULL, source_id bigint NULL, reason_code text NULL)
+   UNIQUE (company_id, domain_event_id)
+   FOREIGN KEY (company_id, domain_event_id) REFERENCES domain_event(company_id, id)
    -- append-only. Human-readable text is RENDERED from event_code + payload at read time;
    -- no translated sentence is ever stored as the event's identity (doc 41 §6).
 ```
@@ -1861,7 +1908,8 @@ depreciation_plan_period(id, company_id, depreciation_plan_id, period_no integer
       shift_code varchar(32) NULL, shift_factor_revision_id bigint NULL,
       planned_amount numeric(19,4) NOT NULL, planned_accumulated numeric(19,4) NOT NULL,
       is_residual_period bool NOT NULL DEFAULT false,
-      zero_reason zero_amount_reason_enum NULL)
+      zero_reason zero_amount_reason_enum NULL
+         /*fully_depreciated|salvage_reached|shift_idle|suspended_by_policy|rounding*/)
    UNIQUE (company_id, depreciation_plan_id, period_no)
    UNIQUE (company_id, depreciation_plan_id, period_end)
    EXCLUDE USING gist (depreciation_plan_id WITH =,
@@ -1879,10 +1927,15 @@ plan (doc 42 §12, defects 4 and 10). The exclusion constraint makes overlapping
 Deferred constraints per plan version:
 
 ```text
-Σ planned_amount = depreciable_base                                   (exact)
-max(planned_accumulated) + salvage_value = opening_book_value + Σ future cost events
+Σ planned_amount = depreciable_base                                        (exact, at generation)
+max(planned_accumulated) + salvage_value = opening_book_value              (at generation)
 exactly one period has is_residual_period = true when a residual exists
 ```
+
+Both equalities are evaluated **at generation**, against the values frozen on the plan row. A later cost
+event does not invalidate an existing plan version; by §22 it generates version `N+1`. Stating the second
+equality against "future cost events" would be unevaluable, because a deferred constraint is checked at
+commit and those events do not exist yet.
 
 ### 20.3 Periods, postings and attempts
 
@@ -1890,7 +1943,10 @@ exactly one period has is_residual_period = true when a residual exists
 depreciation_period(id, company_id, asset_id, finance_book_id,
       period_start date, period_end date, is_partial_to_disposal bool NOT NULL DEFAULT false)
    UNIQUE (company_id, asset_id, finance_book_id, period_end)
+   EXCLUDE USING gist (company_id WITH =, asset_id WITH =, finance_book_id WITH =,
+      daterange(period_start, period_end, '[]') WITH &&)
    CHECK (period_end >= period_start)
+   -- the exclusion is what stops a partial-to-disposal period overlapping a full period
 
 depreciation_posting(id, company_id, depreciation_period_id,
       satisfies_plan_id bigint NOT NULL, satisfies_period_no integer NOT NULL,
@@ -1900,10 +1956,13 @@ depreciation_posting(id, company_id, depreciation_period_id,
       command_receipt_id, reverses_posting_id bigint NULL,
       reversal_dating reversal_dating_enum NULL /*original_period|reversal_date*/)
    UNIQUE (company_id, command_receipt_id)
-   UNIQUE (company_id, depreciation_period_id) WHERE reverses_posting_id IS NULL
    UNIQUE (company_id, reverses_posting_id) WHERE reverses_posting_id IS NOT NULL
    CHECK (amount > 0)
    CHECK ((reverses_posting_id IS NULL) = (reversal_dating IS NULL))
+   -- A12's "at most one UNREVERSED posting per period" is a deferred constraint trigger evaluated
+   -- while the (asset, finance_book) owner is locked, counting rows not referenced by any
+   -- reverses_posting_id. It must NOT be a partial unique index on `WHERE reverses_posting_id IS NULL`:
+   -- that reads as "one non-reversing row" and would make reverse-then-repost impossible.
 
 depreciation_posting_attempt(id, company_id, depreciation_period_id, attempt_no integer,
       outcome depreciation_attempt_enum /*posted|failed|skipped_period_closed|skipped_not_due*/,
@@ -1945,19 +2004,36 @@ asset_book_value_projection(company_id, asset_id, finance_book_id, as_of_date,
       revaluation_reserve numeric(19,4), impairment numeric(19,4),
       net_book_value numeric(19,4), periods_posted integer, periods_remaining integer,
       active_plan_id bigint, computed_at, last_event_position bigint)
+      -- last_event_position is a position in the SHARED domain_event stream for this asset's
+      -- aggregate owner, so a rebuild replays exactly the same sequence
    PRIMARY KEY (company_id, asset_id, finance_book_id, as_of_date)
 ```
 
-Continuous deferred checks, per asset and book:
+**The multi-book GL model, stated once.** Cost is debited to the fixed-asset account **once** and is
+book-agnostic: `asset_cost_event.finance_book_id` is `NULL` for an ordinary addition, and each book's
+depreciable base changes through the next `depreciation_plan` version, not through a per-book cost row.
+Depreciation, by contrast, posts **per finance book**, so accumulated-depreciation legs always carry
+`finance_book_id` and any balance-sheet read that does not filter on it is wrong for a multi-book asset.
+This is the upstream behaviour recorded in doc 42 §5.2 (one journal per book, `finance_book` on the
+journal); we keep it and make the book explicit on every leg.
 
-1. `Σ depreciation_posting.amount` (unreversed) **=** accumulated depreciation in `gl_entry` for that
-   category's accumulated-depreciation account and finance book;
-2. `Σ asset_cost_event` cost-class amounts **=** `gl_entry` movement on the fixed-asset account;
+Continuous deferred checks:
+
+1. **per asset and book** — `Σ depreciation_posting.amount + Σ depreciation_attribution.amount`
+   (unreversed) **=** accumulated depreciation in `gl_entry` for that category's accumulated-depreciation
+   account, filtered on `asset_id` and `finance_book_id`;
+2. **per asset** — `Σ asset_cost_event` cost-class amounts **=** `gl_entry` movement on the fixed-asset
+   account for that `asset_id`, unfiltered by book;
 3. `Σ asset_revaluation` **=** `gl_entry` movement on the reserve/impairment accounts;
 4. `net_book_value >= salvage_value` for any asset with an unreversed active plan;
 5. no `depreciation_posting` exists for a period beyond the active plan's `final_period_end`; and
 6. `net_book_value = gross_cost − accumulated_depreciation + revaluation_reserve − impairment`, each term
-   read from its **own** facts and never by subtraction from a mutable scalar.
+   read from its **own** facts and never by subtraction from a mutable scalar; and
+7. **no fact may be dated at or before an unreversed disposal's `effective_on`.** A deferred trigger under
+   the asset lock refuses backdated `asset_cost_event`, `depreciation_posting`, `asset_revaluation` and
+   `asset_custody_event` rows while an unreversed disposal exists, so a correction must reverse the disposal
+   first — the order §22 already prescribes. Without this rule the zero-balance assertion in §21.4 can be
+   broken after the fact by an insert nothing else forbids.
 
 ---
 
@@ -1974,19 +2050,23 @@ asset_location_geometry_revision(id, company_id, asset_location_id, revision_no 
    -- hierarchy is parent_id + recursive CTE; aggregate area is a PROJECTION recomputed from
    -- immutable geometry revisions, never an incrementally patched scalar (doc 41 §6)
 
-asset_custody_event(id, company_id, asset_id, event_no integer,
+asset_custody_event(id, company_id, asset_id, domain_event_id bigint NOT NULL,
       event_kind custody_event_enum /*receipt|issue|transfer|return|transfer_out*/,
       effective_at timestamptz,
       from_location_id NULL, to_location_id NULL,
       from_custodian_id NULL, to_custodian_id NULL,
       reason_code text NULL, source_type text NULL, source_id bigint NULL,
       authorised_by, command_receipt_id, reverses_event_id bigint NULL)
-   UNIQUE (company_id, asset_id, event_no)
+   UNIQUE (company_id, domain_event_id)
    UNIQUE (company_id, command_receipt_id)
-   CHECK (num_nonnulls(to_location_id, to_custodian_id, from_location_id, from_custodian_id) > 0)
+   FOREIGN KEY (company_id, domain_event_id) REFERENCES domain_event(company_id, id)
+   CHECK (num_nonnulls(to_location_id, to_custodian_id) > 0)
    CHECK (to_location_id IS NULL OR from_location_id IS NULL OR to_location_id <> from_location_id)
-   -- L2 trigger while the asset is locked: from_* must equal the current projection (chain continuity),
-   -- and effective_at must not precede the latest unreversed event
+   CHECK (to_custodian_id IS NULL OR from_custodian_id IS NULL OR to_custodian_id <> from_custodian_id)
+   -- L2 trigger while the asset is locked: from_* must equal the to_* of the latest UNREVERSED
+   -- asset_custody_event (chain continuity), and effective_at must not precede it. Continuity is checked
+   -- against the event chain, never against asset_custody_projection -- a projection cannot authorise
+   -- (doc 44 §7). An event must CHANGE at least one dimension, not merely mention one.
 ```
 
 Source dimensions are **stored**, not inferred from the asset's current values, so a custody chain is
@@ -2012,7 +2092,9 @@ maintenance_occurrence(id, company_id, maintenance_task_revision_id, occurrence_
       command_receipt_id, reverses_occurrence_id bigint NULL)
    UNIQUE (company_id, maintenance_task_revision_id, occurrence_no)
    UNIQUE (company_id, maintenance_task_revision_id, due_date)
+      WHERE state <> 'cancelled' AND reverses_occurrence_id IS NULL
    CHECK ((state = 'completed') = (completed_on IS NOT NULL))
+   -- the partial predicate lets a cancelled occurrence be re-planned for the same due date
 ```
 
 `overdue` is a **view** (`due_date < current_date AND state = 'planned'`), not a stored value maintained by a
@@ -2028,7 +2110,8 @@ asset_service_event(id, company_id, asset_id, service_no integer,
       service_kind service_kind_enum /*repair|improvement|inspection|calibration*/,
       failed_at timestamptz NULL, completed_at timestamptz NULL,
       downtime_minutes integer NULL, actions text, capitalise bool NOT NULL DEFAULT false,
-      state service_state_enum, command_receipt_id, reverses_service_id bigint NULL)
+      state service_state_enum /*pending|in_progress|completed|cancelled*/,
+      command_receipt_id, reverses_service_id bigint NULL)
    UNIQUE (company_id, asset_id, service_no)
    UNIQUE (company_id, command_receipt_id)
    CHECK (completed_at IS NULL OR failed_at IS NULL OR completed_at >= failed_at)
@@ -2045,11 +2128,14 @@ asset_service_cost_allocation(id, company_id, asset_service_event_id,
    --   Σ unreversed amount across ALL service events <= source residual
    --   (GL movement on that account for that invoice, or the issued move's realised value)
 
-asset_service_book_apportionment(id, company_id, asset_service_cost_allocation_id,
-      finance_book_id, amount numeric(19,4), asset_cost_event_id bigint NOT NULL)
+asset_service_book_effect(id, company_id, asset_service_cost_allocation_id,
+      finance_book_id, depreciable_base_delta numeric(19,4) NOT NULL,
+      resulting_plan_id bigint NOT NULL)
    UNIQUE (company_id, asset_service_cost_allocation_id, finance_book_id)
-   CHECK (amount >= 0)
-   -- deferred: Σ amount per allocation = allocation.amount  (exact)
+   -- NOT a split of the cost. One book-agnostic asset_cost_event carries the whole addition and GL is
+   -- debited once; each book's depreciable base rises by the FULL amount, because each book is an
+   -- independent measurement of the same asset. Splitting 3,000 into 1,500 + 1,500 would make both books
+   -- understate cost and future depreciation.
 
 asset_life_extension(id, company_id, asset_service_event_id, finance_book_id,
       months_added integer NOT NULL, resulting_policy_revision_id bigint NOT NULL)
@@ -2081,14 +2167,19 @@ asset_transformation_part(id, company_id, asset_transformation_id,
    UNIQUE (company_id, asset_transformation_id, part_role, asset_id, finance_book_id)
       NULLS NOT DISTINCT
    CHECK (apportioned_cost >= 0 AND apportioned_accumulated >= 0)
-   -- deferred, per finance book:
+   -- deferred, per finance book, BOTH directions:
    --   Σ source apportioned_cost        = Σ target apportioned_cost
    --   Σ source apportioned_accumulated = Σ target apportioned_accumulated
    --   Σ source apportioned_revaluation = Σ target apportioned_revaluation
    --   exactly one target part carries is_residual_part when a rounding residual exists
+   -- AND source-side agreement with the source asset's actual facts as of effective_on:
+   --   Σ source apportioned_cost        = Σ asset_cost_event(source, cost classes)
+   --   Σ source apportioned_accumulated = Σ depreciation_posting(source) + Σ depreciation_attribution
+   --   Σ source apportioned_revaluation = Σ asset_revaluation(source)
+   -- Internal conservation alone would let a transformation apportion the wrong total and still pass.
 
 asset_disposal(id, company_id, asset_id, disposal_no integer,
-      disposal_kind disposal_enum /*scrap|sale|capitalisation|transfer_out|write_off*/,
+      disposal_kind disposal_enum /*scrap|sale|capitalisation|transfer_out|write_off|component_absorption*/,
       effective_on date, proceeds numeric(19,4) NOT NULL DEFAULT 0,
       source_doc_type text NULL, source_doc_id bigint NULL, source_line_id bigint NULL,
       cost_removed numeric(19,4) NOT NULL, accumulated_removed numeric(19,4) NOT NULL,
@@ -2098,10 +2189,37 @@ asset_disposal(id, company_id, asset_id, disposal_no integer,
       command_receipt_id, reverses_disposal_id bigint NULL)
    UNIQUE (company_id, asset_id, disposal_no)
    UNIQUE (company_id, command_receipt_id)
-   UNIQUE (company_id, asset_id) WHERE reverses_disposal_id IS NULL
    UNIQUE (company_id, reverses_disposal_id) WHERE reverses_disposal_id IS NOT NULL
    CHECK (proceeds >= 0 AND cost_removed >= 0 AND accumulated_removed >= 0)
+   CHECK (voucher_id IS NOT NULL OR disposal_kind = 'component_absorption')
+   -- A23's "exactly one unreversed disposal" is a deferred trigger under the asset lock counting rows
+   -- not referenced by any reverses_disposal_id -- NOT a partial unique index, which would forbid
+   -- re-disposal after a reversed sale (the flow S11 §9 step 2 walks through).
+
+asset_disposal_book(id, company_id, asset_disposal_id, finance_book_id,
+      accumulated_removed numeric(19,4) NOT NULL, revaluation_released numeric(19,4) NOT NULL DEFAULT 0,
+      transformation_attributed numeric(19,4) NOT NULL DEFAULT 0,
+      gain_loss numeric(19,4) NOT NULL)
+   UNIQUE (company_id, asset_disposal_id, finance_book_id)
+   -- deferred: per book, accumulated_removed = Σ depreciation_posting + Σ depreciation_attribution,
+   -- revaluation_released = Σ asset_revaluation, and the parent's totals = Σ over books
+
+depreciation_attribution(id, company_id, asset_transformation_part_id, asset_id, finance_book_id,
+      amount numeric(19,4) NOT NULL,      -- SIGNED: negative on the source, positive on the target
+      voucher_id bigint NOT NULL REFERENCES voucher(id),
+      command_receipt_id, reverses_attribution_id bigint NULL)
+   UNIQUE (company_id, asset_transformation_part_id, finance_book_id)
+   CHECK (amount <> 0)
+   -- Without this, a split target's Σ depreciation_posting is zero while GL holds its share of
+   -- accumulated depreciation, and its disposal cannot zero the account. ERPNext does conserve this
+   -- (doc 43 §5: adjust_account_balance reduces the source leg by what add_new_entries adds), so
+   -- omitting it would be a regression, not a simplification.
 ```
+
+`accumulated_removed` at disposal is therefore
+`Σ depreciation_posting + Σ depreciation_attribution` per book, and §20.4 check 1 compares that same sum to
+GL. Every asset-role GL leg carries `asset_id` and, where book-scoped, `finance_book_id` (§3), which is what
+makes both sides of the comparison expressible.
 
 Splitting is an authorised transformation with **stored apportionment**, so no posted depreciation journal
 is ever amended (doc 43 §5, S11 §6.1) and float scaling with no residual rule is impossible.
@@ -2176,24 +2294,26 @@ They extend the registers in §9 and §18. Structurally:
 - **A4/A21** — additions are `asset_cost_event` rows with per-book apportionment, never scalar rewrites;
 - **A5/A11** — policy is an approved non-overlapping revision and plans are immutable versions whose
   periods sum exactly to the depreciable base;
-- **A12** — `UNIQUE (company_id, depreciation_period_id) WHERE reverses_posting_id IS NULL` is the
-  one-posting-per-period guarantee, with durable per-period attempt outcomes;
+- **A12** — a deferred unreversed-count trigger on `depreciation_period`, evaluated under the asset/book
+  lock, is the one-posting-per-period guarantee, with durable per-period attempt outcomes;
 - **A13** — shift plans are `shift_code` + factor revisions, conserved by the plan-total constraint;
 - **A14/A25** — revaluation, impairment, cost and accumulated depreciation each reconcile to their **own**
   GL accounts, so disposal never reclassifies one as another;
 - **A19** — custody events store `from_*` and `to_*` and are chain-continuity checked;
-- **A22** — splitting is `asset_transformation` with exact stored apportionment; posted journals are
-  immutable;
-- **A23** — `UNIQUE (company_id, asset_id) WHERE reverses_disposal_id IS NULL` is the single-disposal
-  guarantee, and the disposal voucher is derived from four fact sums; and
+- **A22** — splitting is `asset_transformation` with exact stored apportionment plus a
+  `depreciation_attribution` fact per part, so GL attribution follows the apportionment and posted journals
+  stay immutable;
+- **A23** — a deferred unreversed-count trigger per asset is the single-disposal guarantee; the disposal
+  voucher is derived from the fact sums including `depreciation_attribution`, per finance book; and
 - **A26** — acquisition, recognition, posting, service allocation, transformation and disposal are all
   bounded writes under deterministic asset (and source) locks with idempotency keys.
 
 Every A invariant requires a schema refusal test; allocation, locking and idempotency invariants
 additionally require concurrent interleaving and retry tests.
 [S11](../scenarios/S11-asset-lifecycle.md) is the end-to-end acceptance fixture, and its acceptance
-criterion is explicit: **after both disposals the fixed-asset and accumulated-depreciation balances for the
-asset are exactly zero** — the residuals upstream leaves behind must be unrepresentable.
+criterion is explicit: **after disposal the fixed-asset, per-book accumulated-depreciation and
+revaluation-reserve balances for that asset are exactly zero** — so the equal-and-opposite overstatement
+upstream leaves behind is unrepresentable, and so is the split-rounding cent.
 
 ---
 

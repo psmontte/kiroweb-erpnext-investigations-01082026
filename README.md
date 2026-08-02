@@ -2,7 +2,7 @@
 
 **Investigation mode.** We are documenting the Frappe/ERPNext data model and business logic first;
 **application implementation has not started** and starts only once the investigation is declared
-complete; Assets (Tranche C) are now investigated. Coverage map and remaining work:
+complete. Assets (Tranche C) are done; localisation with India GST (Tranche F) is next. Coverage map and remaining work:
 [docs/INVESTIGATION-PLAN.md](docs/INVESTIGATION-PLAN.md).
 
 Parsed the full standard app set — `frappe`, `erpnext`, `payments`, `hrms`, `webshop`:
@@ -113,16 +113,21 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       submittable and configuration alike; see [`docs/COVERAGE.md`](docs/COVERAGE.md) (generated)
       and the closure statement in
       [`docs/logic/32`](docs/logic/32-stock-configuration-and-remaining-masters.md) §5.
-      **5,095 citations verified, 0 problems.**
+      **5,181 citations verified, 0 problems.**
 - [x] **Tranche B complete** (`docs/logic/33`–`40`, scenarios `S07`–`S10`) — manufacturing,
       supplier/customer-owned subcontracting, quality, coverage closure and the consolidated production
       specification. Final measured coverage: **Manufacturing 18/18**, **Subcontracting 4/4** and
       **Quality Management 8/8** parent controllers cited, with **0 submittable and 0 configuration
       gaps**; see [`docs/logic/40`](docs/logic/40-tranche-b-coverage-closure-and-our-production-spec.md).
-- [x] **Tranche C complete** (`docs/logic/41`–`43`, scenario `S11`) — asset identity/acquisition and
-      finance books, the depreciation engine (schedules, methods, shifts, revaluation), and custody,
-      maintenance, repair, split and disposal. **Assets: 14/14 parent controllers cited, 0 submittable
-      and 0 configuration gaps.** Invariant register **A1–A26**.
+- [x] **Tranche C complete** (`docs/logic/41`–`44`, scenario `S11`) — asset identity/acquisition and
+      finance books, the depreciation engine (schedules, methods, shifts, revaluation), custody,
+      maintenance, repair, split and disposal, and the consolidated asset specification. **Assets: 14/14
+      parent controllers cited, 0 submittable and 0 configuration gaps.** Invariant register **A1–A26**;
+      see [`docs/logic/44`](docs/logic/44-tranche-c-closure-and-our-asset-spec.md).
+- [ ] **Tranche F — localisation, India GST first** (**next; confirmed requirement**) — jurisdiction as
+      data, HSN/SAC, place of supply, CGST/SGST/IGST/cess components, reverse charge, TDS/TCS, statutory
+      numbering and GSTR/e-invoice extracts. ERPNext's `@allow_regional` overlay is rejected; scoped in
+      [`docs/logic/44` §11](docs/logic/44-tranche-c-closure-and-our-asset-spec.md).
 - [x] ~~Tranche D~~ — CRM, projects, support: **out of scope** by decision
-- [ ] Build — **application implementation has not started**; every audited module is now investigated,
-      so the remaining gate is declaring the investigation complete
+- [ ] Build — **application implementation has not started**; every audited module is investigated, so the
+      remaining gates are localisation (Tranche F) and declaring the investigation complete
