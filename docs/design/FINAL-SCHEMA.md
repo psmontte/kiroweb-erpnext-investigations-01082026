@@ -2834,11 +2834,21 @@ principal_company_membership(id, principal_id, company_id,
     granted_at timestamptz NOT NULL, granted_by bigint NOT NULL, reason text NULL,
     expires_at timestamptz NULL, revoked_at timestamptz NULL, revoked_by bigint NULL,
     revoked_reason text NULL)
-   UNIQUE (principal_id, company_id) WHERE revoked_at IS NULL
+   UNIQUE (principal_id, company_id)          -- TOTAL, deliberately: see the note below
    CHECK (expires_at IS NULL OR expires_at > granted_at)
    CHECK ((revoked_at IS NULL) = (revoked_by IS NULL))
-   -- The outer bound on every session's scope: a session cannot be issued for a company the principal
-   -- is not a live member of, and revoking membership invalidates outstanding sessions (§29.1).
+   -- The outer bound on every session's scope, enforced at TWO layers with different jobs:
+   --   L1  the FK from principal_auth_session proves the pair was EVER granted;
+   --   L2  begin_tenant_transaction (§29.1) proves the grant is LIVE right now.
+   -- The unique constraint is total rather than `WHERE revoked_at IS NULL`, because PostgreSQL cannot
+   -- use a PARTIAL unique index as a foreign-key target — a partial index would make the FK below
+   -- undeclarable, and dropping the FK would put the whole bound in application-reachable code. So
+   -- there is exactly ONE row per (principal, company) for all time: revocation sets `revoked_at`,
+   -- and a re-grant clears it and writes a fresh `granted_at`/`granted_by`. The audit history of
+   -- grant/revoke/re-grant is `principal_auth_event` (`membership_granted` / `membership_revoked`),
+   -- not this row, which is current state.
+   -- Revoking membership invalidates outstanding sessions immediately, because §29.1 re-checks
+   -- liveness on every transaction rather than trusting the session row.
    -- Administered outside the application role.  [NOT COMPANY-SCOPED]
 
 principal_credential(id, principal_id,
@@ -2892,6 +2902,7 @@ principal_auth_event(id, occurred_at timestamptz NOT NULL,
       /*authenticated|denied_credential|denied_disabled|denied_expired|denied_scope|
         denied_membership|locked_out|session_issued|session_revoked|session_expired|
         credential_issued|credential_rotated|credential_revoked|
+        membership_granted|membership_revoked|
         delegation_granted|delegation_used|delegation_revoked|authenticator_error*/,
     mechanism credential_kind_enum NULL,
     source_address inet NULL, agent_hash bytea NULL,
@@ -2939,6 +2950,24 @@ delegation_grant(id, from_principal_id, to_principal_id, company_id NOT NULL,
 The conventions header defines the shape; this is what the six protected tables above are for.
 
 ```sql
+-- The protected context table. Named in the conventions header; defined here.
+-- `app_role` holds NO privileges on it: it cannot INSERT (so it cannot forge a context), cannot
+-- SELECT (so it reads scope only through the STABLE function below), and cannot DELETE.
+authenticated_tenant_context(
+    backend_pid   integer     NOT NULL,
+    txid          bigint      NOT NULL,
+    principal_id  bigint      NOT NULL,
+    company_id    bigint      NOT NULL,
+    established_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+    PRIMARY KEY (backend_pid, txid))
+   -- The PK is what makes "raises on ambiguity" true rather than aspirational: a second
+   -- begin_tenant_transaction in the same transaction cannot insert a conflicting row, so a
+   -- connection cannot acquire two scopes and let the reader pick. Re-calling with the SAME
+   -- (principal, company) is idempotent; re-calling with a different company raises.
+   -- Rows are transaction-scoped: an ON COMMIT/ON ROLLBACK cleanup plus a pid-and-txid predicate in
+   -- the reader mean a pooled connection reused by the next request starts with no tenant, which is
+   -- one of the required application-role tests in the conventions header.  [NOT COMPANY-SCOPED]
+
 -- Written only by the authentication gateway role, after credential verification.
 -- The application role never sees a session token's plaintext beyond the request that presented it.
 
@@ -2963,14 +2992,26 @@ BEGIN
     RAISE EXCEPTION 'tenant context unresolved';   -- a DENIAL, never a downgrade
   END IF;
   INSERT INTO authenticated_tenant_context (backend_pid, txid, principal_id, company_id)
-  VALUES (pg_backend_pid(), txid_current(), v_principal, v_company);
+  VALUES (pg_backend_pid(), txid_current(), v_principal, v_company)
+  ON CONFLICT (backend_pid, txid) DO NOTHING;         -- idempotent for the same scope
+  IF NOT EXISTS (SELECT 1 FROM authenticated_tenant_context
+                  WHERE backend_pid = pg_backend_pid() AND txid = txid_current()
+                    AND principal_id = v_principal AND company_id = v_company) THEN
+    RAISE EXCEPTION 'tenant context already established for a different scope';
+  END IF;
 END $$;
 
 CREATE FUNCTION authenticated_company_id() RETURNS bigint
 LANGUAGE sql STABLE AS $$
   SELECT company_id FROM authenticated_tenant_context
    WHERE backend_pid = pg_backend_pid() AND txid = txid_current()
-$$;   -- raises on ambiguity; returns NULL when absent, and NULL denies every policy row
+$$;   -- returns NULL when absent, and NULL denies every policy row; the PK makes it single-valued
+
+CREATE FUNCTION authenticated_principal_id() RETURNS bigint
+LANGUAGE sql STABLE AS $$
+  SELECT principal_id FROM authenticated_tenant_context
+   WHERE backend_pid = pg_backend_pid() AND txid = txid_current()
+$$;   -- the sibling §30's row predicates and §31.1's group policy read
 ```
 
 Four properties, each the negation of a specific upstream defect:
@@ -3207,8 +3248,13 @@ CREATE POLICY group_scope ON <group_table>
   USING      (company_group_id = ANY (authenticated_group_ids()))
   WITH CHECK (company_group_id = ANY (authenticated_group_ids()));
 
+-- SECURITY DEFINER, and that is load-bearing rather than convenient: `delegation_grant` is itself
+-- company-scoped, so a STABLE INVOKER function would be evaluated under the caller's own company
+-- policy and could not see a grant issued in a sibling company. The group boundary would then depend
+-- on the company boundary it is supposed to sit beside. Owned by the authentication-gateway role,
+-- fixed search_path, EXECUTE granted to app_role only.
 CREATE FUNCTION authenticated_group_ids() RETURNS bigint[]
-LANGUAGE sql STABLE AS $$
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public AS $$
   SELECT coalesce(array_agg(DISTINCT g.company_group_id), '{}')
     FROM delegation_grant g
    WHERE g.to_principal_id = authenticated_principal_id()
@@ -3217,7 +3263,16 @@ LANGUAGE sql STABLE AS $$
      AND g.revoked_at IS NULL
      AND g.expires_at > now()
 $$;
+REVOKE ALL ON FUNCTION authenticated_group_ids() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION authenticated_group_ids() TO app_role;
 ```
+
+The function is `SECURITY DEFINER` and therefore bypasses the company policy on `delegation_grant` — which is
+a privilege escalation if written carelessly, so two things bound it. It takes **no arguments**: the principal
+comes from `authenticated_principal_id()`, i.e. from the protected context row, so a caller cannot ask about
+someone else's grants. And it returns only `company_group_id` values, never grant rows, so it cannot be used to
+enumerate the grant table. Its owner, grants and fixed `search_path` are migration-tested exactly as
+`begin_tenant_transaction`'s are.
 
 Three properties follow, and each is the point of doing it this way rather than exempting:
 
