@@ -109,6 +109,24 @@ schema, write/reversal ordering and build sequence. **Application implementation
 | 43 | [43-asset-custody-maintenance-repair-and-disposal.md](43-asset-custody-maintenance-repair-and-disposal.md) | custody as scalars recomputed from movement history; the maintenance planner and its logs writing to each other; Asset Repair's ledger-checked invoice residual, per-book cost duplication and a cancellation that leaves the stock issue posted; splitting an asset by document copy that **amends posted depreciation journals**; and the four disposal callers sharing one derivation |
 | 44 | [44-tranche-c-closure-and-our-asset-spec.md](44-tranche-c-closure-and-our-asset-spec.md) | **Tranche C deliverable**: measured closure across every audited module, A1–A26 mapped to enforcement layers, the concrete asset schema, deterministic locks/idempotency, write and reversal ordering, the Adopt/Change/Reject matrix, the pinned defect catalog, the build sequence — and the localisation/India-GST boundary that comes next |
 
+### Tranche F — localisation, India GST first (**in progress**)
+
+India GST is **not in ERPNext**: removed in v14 (`patches/v14_0/remove_india_localisation.py:5-21`) and
+maintained as `resilient-tech/india-compliance`, pinned at `205c3de` (`17.0.0-dev`, 50,407 Python LOC, 27
+DocTypes). Verify Tranche F citations with the third app root:
+
+```bash
+python3 tools/verify_refs.py --docs docs/logic \
+  --app erpnext=/projects/sandbox/erpnext/erpnext \
+  --app frappe=/projects/sandbox/frappe/frappe \
+  --app india_compliance=/projects/sandbox/india_compliance/india_compliance
+```
+
+| Read | File | Covers |
+|---|---|---|
+| 45 | [45-gst-registration-settings-hsn-and-tax-structure.md](45-gst-registration-settings-hsn-and-tax-structure.md) | why GST cannot be read from ERPNext; how the app attaches (`doc_events` + **custom fields toggled by a settings checkbox**); GSTIN's seven category-specific formats and mod-36 check digit; GSTIN status as a cached external fact whose validation can arrive **after** the write; GST Settings gating scheduler rows; five components → fifteen account roles; the `gst_rate == tax_rate × 2` intra-state rule; HSN/SAC and its unversioned bulk push into item masters |
+
+
 Assets are documented in docs **41–44** plus **[S11](../scenarios/S11-asset-lifecycle.md)**: all 14
 parent controllers are cited with zero submittable and zero configuration gaps, and the register runs
 **A1–A26**. S11 is the one scenario in this repository where every voucher balances, net assets are right,

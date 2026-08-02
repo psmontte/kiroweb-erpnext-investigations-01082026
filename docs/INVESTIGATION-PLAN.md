@@ -4,7 +4,10 @@ We are in **investigation mode**: the output of this repo is documents, not appl
 **Application implementation has not started.** Every audited module — including Assets (Tranche C) —
 is now investigated; building starts only once the investigation is declared complete.
 
-Anchor commits for everything so far: `erpnext@ceefd4add7` (v17.0.0-dev), `frappe@5da68e856c`.
+Anchor commits for everything so far: `erpnext@ceefd4add7` (v17.0.0-dev), `frappe@5da68e856c`, and — for
+Tranche F only — `india-compliance@205c3de939` (`develop`, `17.0.0-dev`, requires `frappe >=17.0.0-dev`).
+**India GST is not in ERPNext core**: it was removed in v14 and lives in a separate app
+(`patches/v14_0/remove_india_localisation.py:5-21`), so Tranche F pins a third repository.
 
 ---
 
@@ -127,7 +130,19 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 | ~~**B**~~ | ~~**Manufacturing** — BOM (+ cost roll-up, exploded items, update-cost job), Work Order, Job Card, Operations/Routing, Workstation capacity, Production Plan, Master Production Schedule, scrap & rework, WIP accounting~~ | 48 total / 18 parents (8 submittable) | **DONE** — docs 33–37 + S07; 18/18 parent controllers cited, 0 gaps |
 | ~~**B**~~ | ~~**Subcontracting deep dive** — order/receipt lifecycle, supplied-item consumption, RM transfer, `Subcontracting BOM`, customer-owned inward flow~~ | 13 total / 4 parents (3 submittable) | **DONE** — doc 38 + S08 + S10; 4/4 parent controllers cited, 0 gaps |
 | ~~**C**~~ | ~~**Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement~~ | 26 total / 14 parents (8 submittable) | **DONE** — docs 41–44 + S11; 14/14 parent controllers cited, 0 gaps |
-| **F** | **Localisation — India GST first** — jurisdiction as data, HSN/SAC, place of supply, CGST/SGST/IGST/cess components, reverse charge, TDS/TCS interaction, statutory numbering, GSTR/e-invoice extracts, amendment and credit-note semantics | cross-cutting | **NEXT** — required capability; scoped in [doc 44 §11](logic/44-tranche-c-closure-and-our-asset-spec.md). ERPNext's `@allow_regional` overlay is **rejected** (doc 21 §4, doc 42 §4.3) |
+| **F** | **Localisation — India GST first** — jurisdiction as data, HSN/SAC, place of supply, CGST/SGST/IGST/cess components, reverse charge, TDS/TCS interaction, statutory numbering, GSTR/e-invoice extracts, amendment and credit-note semantics | 27 parents in `india_compliance` | **IN PROGRESS** — doc 45 done (registration, settings, HSN, tax structure). ERPNext's `@allow_regional` overlay is **rejected** (doc 21 §4, doc 42 §4.3) |
+
+### Tranche F deliverables
+
+| Order | Document | Scope |
+|---:|---|---|
+| 45 | [`45-gst-registration-settings-hsn-and-tax-structure.md`](logic/45-gst-registration-settings-hsn-and-tax-structure.md) | **DONE** — GST's absence from core, the app's attachment mechanism, GSTIN/PAN identity and status caching, GST Settings, five-component tax structure, HSN/SAC |
+| 46 | `46-gst-place-of-supply-and-component-determination.md` | place of supply, intra/inter-state split, reverse charge, ineligible ITC, overseas/SEZ |
+| 47 | `47-e-invoice-and-e-waybill.md` | external API state machines, logs, retry and cancellation windows |
+| 48 | `48-gst-returns-and-reconciliation.md` | GSTR-1/3B, purchase reconciliation, Bill of Entry, amendment semantics |
+| 49 | `49-tranche-f-closure-and-our-localisation-spec.md` | closure, G-register, jurisdiction-as-data schema, build order |
+
+Scenario: **S12** GST invoice → e-invoice → GSTR-1.
 | ~~**D**~~ | ~~**Projects, Support, Maintenance, CRM**~~ — project costing, timesheet → billing, Support (11), Maintenance (5), CRM lead/opportunity/prospect (28) | ~75 | **OUT OF SCOPE** — dropped by decision. Not investigated, not built. |
 | ~~**B**~~ | ~~**Quality Management + operational quality** — Quality Management records plus Stock-owned inspection templates/readings and gates on receipts, deliveries, Stock Entry and Job Card~~ | 16 total / 8 module parents, plus 4 Stock parents | **DONE** — doc 39 + S09; all 12 parents cited, 0 gaps |
 | ~~**E**~~ | ~~**Platform mechanics we must replace, not copy**~~ — permission model, naming series, `hooks.py` extensibility, `@allow_regional` overlay, background jobs + scheduler, patch/migration system, query-report framework, custom fields & Customize Form, virtual doctypes | — | **DONE** — `docs/logic/18`–`25`, with a build/buy/drop decision per capability in `25-our-platform-spec.md` |
