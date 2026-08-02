@@ -1006,7 +1006,8 @@ with its mandatory indicator. Saving with `discount_validity` empty is now block
 `is_docfield_mandatory` re-evaluates `"discount"` against the document and returns `true`
 (`frappe/public/js/frappe/form/save.js:276`, `frappe/public/js/frappe/form/save.js:291-298`).
 
-State C — the same document submitted by any non-desk caller. `payment_term.json:106-112` sets no `reqd`, so
+State C — the same document submitted by any non-desk caller.
+`accounts/doctype/payment_term/payment_term.json:106-112` sets no `reqd`, so
 `_get_missing_mandatory_fields` selects nothing for this field
 (`frappe/model/base_document.py:1017`) and a `Payment Term` with `discount = 10` and
 `discount_validity = null` saves without complaint. The requirement expressed by `mandatory_depends_on`
