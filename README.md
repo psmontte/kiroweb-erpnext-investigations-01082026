@@ -1,5 +1,8 @@
 # erp — our own ERP (backend / database)
 
+> **Picking this up?** Start with [`docs/HANDOFF.md`](docs/HANDOFF.md) — current state, the one
+> outstanding task, what is blocked on a decision, and the design choices that must not be silently reversed.
+
 **Investigation mode.** We are documenting the Frappe/ERPNext data model and business logic first;
 **application implementation has not started** and starts only once the investigation is declared
 complete. Tranches A, B, C, E and F are done; Tranche D (CRM, projects, support) is out of scope. Coverage map and remaining work:
