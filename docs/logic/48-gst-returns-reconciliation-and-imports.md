@@ -192,6 +192,7 @@ The vocabulary (`india_compliance/gst_india/doctype/purchase_reconciliation_tool
 | `MISMATCH` | same supplier and bill, amounts differ |
 | `RESIDUAL_MATCH` | everything agrees except the bill number |
 | `MANUAL_MATCH` | a human linked them |
+| `MISSING_IN_PI` / `MISSING_IN_2A_2B` | present on one side only — the ancestors of our `missing_*` findings |
 
 The `GSTIN_RULES` ladder descends in strictness
 (`india_compliance/gst_india/doctype/purchase_reconciliation_tool/__init__.py:79-190`):
@@ -209,7 +210,15 @@ The `GSTIN_RULES` ladder descends in strictness
 ladder one level looser, matching on PAN when the GSTIN itself differs — which catches a supplier invoicing
 from a different registration under the same legal entity.
 
-**This is exactly the right architecture**: the matching policy is data, the tiers are named, and the
+The tolerances themselves are **not** data. `Rule.ROUNDING_DIFFERENCE` resolves to a hard-coded `<= 1` rupee —
+the enum member carries the comment `# <= 1 hardcoded`
+(`india_compliance/gst_india/doctype/purchase_reconciliation_tool/__init__.py:44-50`,
+`india_compliance/gst_india/doctype/purchase_reconciliation_tool/__init__.py:857`) — a separate `> 0.01`
+threshold exists (`india_compliance/gst_india/doctype/purchase_reconciliation_tool/__init__.py:1291`), and
+fuzzy matching uses fixed 100% and 90% confidence levels. The tranche's hard-coded tolerances therefore number
+more than the three `2`s counted in §7.
+
+**The architecture is still exactly right**: the matching policy is data, the tiers are named, and the
 strictness ordering is explicit and auditable. It is the one place in the tranche where a complex business
 rule is expressed declaratively rather than as nested conditionals, and our design should adopt the shape
 directly.
@@ -317,7 +326,7 @@ return_period(id, company_id, tax_registration_id, return_type text,
 
 return_working_set(id, company_id, return_period_id, version integer,
     source_watermark bigint NOT NULL, content_hash char(64) NOT NULL,
-    format_revision_id bigint NOT NULL, output_precision smallint NOT NULL,
+    format_revision_id bigint NOT NULL,        -- output_precision lives on the format revision
     built_at timestamptz, generator_version varchar(64), command_receipt_id)
    UNIQUE (company_id, return_period_id, version)
    -- immutable once built; rebuilding appends a version. Replaces `is_latest_data` memoisation.
@@ -441,8 +450,12 @@ edit of a filed payload.
 2. **Reconciliation writes into its own input.** `upload_status` and synthesised `Missing in Books` rows are
    written into the books structure, then deleted on the next pass
    (`india_compliance/gst_india/doctype/gst_return_log/generate_gstr_1.py:263-362`).
-3. **Comparison precision is a hard-coded 2.**
-   (`india_compliance/gst_india/doctype/gst_return_log/generate_gstr_1.py:363-440`).
+3. **Comparison precision is a hard-coded 2**, and the match ladder adds a hard-coded ₹1 rounding tolerance,
+   a `0.01` threshold and fixed 90%/100% fuzzy confidence levels
+   (`india_compliance/gst_india/doctype/gst_return_log/generate_gstr_1.py:363-440`,
+   `india_compliance/gst_india/doctype/purchase_reconciliation_tool/__init__.py:44-50`,
+   `india_compliance/gst_india/doctype/purchase_reconciliation_tool/__init__.py:857`,
+   `india_compliance/gst_india/doctype/purchase_reconciliation_tool/__init__.py:1291`).
 4. **Declared output precision is a hard-coded 2.**
    (`india_compliance/gst_india/doctype/gstr_3b_report/gstr_3b_report.py:267-283`).
 5. **`Matched` ignores tax rate and document value.**
@@ -525,7 +538,7 @@ Cross-references: [doc 45](45-gst-registration-settings-hsn-and-tax-structure.md
 from, and the period guard this layer closes), [doc 47](47-e-invoice-and-e-waybill-external-state-machines.md)
 (submission attempts that fetch authority datasets),
 [doc 04](04-ar-ap-and-settlement.md) (subledger reconciliation patterns),
-[doc 06](06-lifecycle-status-and-returns.md) (link graph versus counters, and credit notes as the post-window
+[doc 06 §6.2](06-lifecycle-status-and-returns.md) (link graph versus counters, and credit notes as the post-window
 remedy), [doc 07](07-period-close-and-opening-balances.md) (period close this parallels),
 [doc 14](14-banking-and-collections.md) (the other matching engine in the system — compare its rule
 model with §3), [doc 15](15-intercompany-and-history-rewriting.md) (reposting and history),
