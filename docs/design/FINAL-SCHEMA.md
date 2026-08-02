@@ -772,8 +772,11 @@ command_business_commit(id, company_id, command_receipt_id, business_commit_toke
 domain_aggregate_owner(id, company_id, aggregate_type domain_aggregate_enum,
                        aggregate_id bigint, next_event_position bigint NOT NULL, row_version bigint)
    UNIQUE (company_id, aggregate_type, aggregate_id)
-   -- domain_aggregate_enum covers production aggregates AND asset aggregates
-   -- (asset, asset_finance_book, asset_location, maintenance_task, asset_service, asset_transformation)
+   -- domain_aggregate_enum covers production, asset AND localisation aggregates:
+   -- (asset, asset_finance_book, asset_location, maintenance_task, asset_service, asset_transformation,
+   --  tax_determination, statutory_artefact, return_period)
+   -- command_kind_enum and voucher_kind_enum likewise gain localisation members (determination,
+   -- e_invoice, e_waybill, return_filing, customs_assessment).
 domain_event(id, company_id, aggregate_owner_id, event_position bigint,
                  event_type domain_event_enum, command_receipt_id, child_ordinal integer,
                  business_commit_id, reverses_event_id bigint NULL,
@@ -2703,25 +2706,36 @@ customs_assessment_allocation(id, company_id, customs_assessment_id,
 
 ```text
 determination (inside the §8 posting funnel)
-1 claim idempotency ; 2 guard accounting period AND return_period state for the registration
-3 capture tax_registration_snapshot for both parties — BLOCKING, refuse if stale beyond policy
-4 resolve jurisdiction revision, place of supply + basis, source area + basis, supply type
-5 resolve classification and rate revisions per line
-6 compute components purely; assign the residual deterministically
-7 insert determination + lines + components ; insert tax_credit_block rows and their
-  stock_move value components / asset_cost_event rows
-8 insert voucher + gl_entry ; run deferred applicability, per-line, per-component and
-  forward/reverse cancellation checks
-9 outbox ; commit ; project registers
+1  claim idempotency
+2  resolve OUR tax_registration_id for the company and jurisdiction  ← the return_period guard keys on it
+3  guard accounting period AND return_period state for that registration
+4  capture tax_registration_snapshot for both parties — BLOCKING; refuse when
+   now - retrieved_at > tax_jurisdiction_revision.snapshot_max_age_hours
+5  resolve jurisdiction revision, place of supply + basis, source area + basis, supply type
+6  resolve classification and rate revisions per line (by scheme + code, effective on the posting date)
+7  compute components purely, per component_role; assign the residual deterministically
+8  insert determination + lines + components
+9  insert voucher + gl_entry, then tax_credit_block rows referencing it, with their
+   stock_value_event / asset_cost_event rows  (voucher_id is DEFERRABLE, so these may interleave)
+10 derive doc_tax / doc_tax_line_alloc from the components
+11 run deferred checks: applicability, per-line and per-role sums, per-component total against doc_tax,
+   forward/reverse cancellation, refund net-zero, treatment/rate agreement
+12 lock the domain_aggregate_owner for aggregate_type='tax_determination'; take next_event_position;
+   insert one domain_event and exactly one transactional_outbox row referencing it
+13 commit ; projectors advance projection_checkpoint and rebuild registers
 
 external artefact
-1 obligation from the dated jurisdiction rule → statutory_artefact(state=required)
+1 obligation from the dated jurisdiction rule → statutory_artefact(state=required), with
+  carries_signed_payload set from that artefact type's wire format
 2 claim statutory_submission_work FOR UPDATE SKIP LOCKED ; set lease
 3 insert statutory_submission_attempt BEFORE the call
-4 call ; then: issued → event with the authority timestamp ; duplicate → fetch, VERIFY signature,
-  compare full identifying content, attach only on exact match ; rejected → terminal ;
-  transport/timeout → retryable with backoff, never blind resubmit
-5 release the lease ; outbox ; commit
+4 call ; then: issued → statutory_artefact_event with the authority timestamp, set authority_identifier
+  and (for signed types) signature_verified ; duplicate → fetch, VERIFY signature, compare full
+  identifying content, attach only on exact match ; rejected → terminal ;
+  transport/timeout → outcome='timeout_unknown', retryable with backoff, never blind resubmit
+5 release the lease
+6 lock the domain_aggregate_owner for aggregate_type='statutory_artefact'; insert domain_event + outbox
+7 commit
 
 return period
 1 build return_working_set version N from determination facts up to a watermark
@@ -2730,7 +2744,8 @@ return period
 4 insert reconciliation_finding rows — pure, no writes to either input
 5 append reconciliation_decision rows ; linkage is projected
 6 insert return_filing ; record the acknowledgement and authority timestamp
-7 return_period.state = filed → the posting guard now refuses that period
+7 lock the domain_aggregate_owner for aggregate_type='return_period'; insert domain_event + outbox
+8 return_period.state = filed → the posting guard now refuses that period for that registration
 ```
 
 ---
@@ -2769,15 +2784,12 @@ fixture.
 
 - **Application implementation has not started.** This file is the target schema contract produced by
   investigation.
-- **Localisation, including India GST, is a required capability and is not yet specified here.** It will
-  add jurisdiction-scoped tax determination, HSN/SAC classification, place-of-supply resolution,
-  CGST/SGST/IGST/cess component splitting, reverse charge, TDS/TCS, document-numbering rules and statutory
-  reporting extracts. It must reuse the existing `doc_tax` / `doc_tax_line_alloc` / `gl_entry` boundary and
-  **must not** be layered as an ERPNext-style `@allow_regional` runtime override
-  (doc 21 §4, doc 28). Because more than one regime is in scope, the regional-overlay replacement is the
-  next design priority.
-- Tranches A, B, C and E are complete: accounting/trade, production/ownership/quality, assets, and
-  permissions/RLS, numbering, jobs, migrations, reporting and orchestration — the last specified in doc 25
-  and represented here by the company/RLS, idempotency and outbox contracts.
+- **Localisation is specified in §24–§28** (jurisdiction as data, registration snapshots, classification and
+  rate revisions, determination, statutory artefacts, return periods and imports). Two items from the original
+  scope remain genuinely open and are tracked in doc 49 §7.2: **statutory document-numbering rules** per
+  jurisdiction, and the **TDS/TCS interaction**, which continues to be specified by doc 28 §7 rather than
+  duplicated here.
+- Tranches A, B, C, E and F are complete: accounting/trade, production/ownership/quality, assets, platform
+  mechanics, and localisation.
 - Presentation-layer contracts (form layout, grid, customisation) are being specified separately; see
   `docs/agents/PROMPT-frontend-form-ui.md`.
