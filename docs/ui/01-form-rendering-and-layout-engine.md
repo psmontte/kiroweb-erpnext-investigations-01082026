@@ -1547,6 +1547,622 @@ in prose; the numbered inventory and the verdicts are §8's and §10's to write.
 
 ## 5. Field type → control mapping
 
+Requirement 6.6 names seventeen field types. Sixteen of them resolve to a control class; one, `Markdown`, is
+not a fieldtype at all, and §5.3 records that as an absence finding. The mapping is not a table anywhere in
+the source — it is a **string concatenation over the global namespace**, and the whole of §5.1 is spent on
+that one line, because every property of the mapping follows from it: there is no registration step, no
+validation of the fieldtype against a known set, and no error when the lookup misses.
+
+Depth here is bounded deliberately (design risk R4). For each mandated type this section states the control
+class, its file, its base class and its **divergences** from that base — not a full reading of the control.
+The divergences are where the analytical content is, because the inheritance chain does almost all the work:
+of the forty-six control modules `control.js` loads, thirty-nine descend from `ControlData`, and several of
+the mandated seventeen override a single method.
+
+### 5.1 The registry — how a `fieldtype` string becomes a control class
+
+There is one function, `frappe.ui.form.make_control`, and it is five lines long:
+
+```
+frappe.ui.form.make_control = function (opts) {                                      (control.js:48)
+  var control_class_name = "Control" + opts.df.fieldtype.replace(/ /g, "");          (control.js:49)
+  if (frappe.ui.form[control_class_name]) {                                          (control.js:50)
+    return new frappe.ui.form[control_class_name](opts);                             (control.js:51)
+  } else {
+    console.log("Invalid Control Name: " + opts.df.fieldtype);                        (control.js:53)
+  }
+};
+```
+
+Read in full at `frappe/public/js/frappe/form/controls/control.js:48-55`. Four properties follow.
+
+1. **The class name is derived, not looked up.** `"Control" + fieldtype.replace(/ /g, "")`
+   (`frappe/public/js/frappe/form/controls/control.js:49`) is the entire mapping. `Dynamic Link` becomes
+   `ControlDynamicLink`, `Table MultiSelect` becomes `ControlTableMultiSelect`, `Markdown Editor` becomes
+   `ControlMarkdownEditor`. There is no dictionary to consult and therefore no list of supported fieldtypes
+   anywhere in the client.
+2. **The namespace is populated by side effect of import.** Each control module assigns itself onto
+   `frappe.ui.form` at its top level — `frappe.ui.form.ControlLink = class ControlLink ...`
+   (`frappe/public/js/frappe/form/controls/link.js:10`) — and `control.js` imports forty-six such modules
+   (`frappe/public/js/frappe/form/controls/control.js:1-46`). A control is "registered" only in the sense
+   that its module was imported. Any code that assigns `frappe.ui.form.ControlXyz` after boot adds a
+   fieldtype, and nothing distinguishes an upstream control from an injected one.
+3. **An unknown fieldtype logs to the console and returns `undefined`.** The `else` arm calls `console.log`
+   (`frappe/public/js/frappe/form/controls/control.js:53`) and **falls off the end of the function without a
+   `return`**, so `make_control` evaluates to `undefined`. This is the origin of the null that §2.2 step 8e
+   records: `init_field` passes the value straight through — it guards the `fieldobj.layout` assignment on
+   truthiness (`frappe/public/js/frappe/form/layout.js:298-300`) and returns it regardless
+   (`frappe/public/js/frappe/form/layout.js:302`) — and `make_field` then returns early
+   (`frappe/public/js/frappe/form/layout.js:265`), before any of the four registration steps
+   `fields_list`/`fields_dict`/`section.add_field`/`current_tab.add_field`
+   (`frappe/public/js/frappe/form/layout.js:267-275`). The field is absent from every collection the rest of
+   the form consults, and the only trace is a `console.log` line no user sees. There is no `frappe.throw`, no
+   `msgprint` and no indicator on the form.
+4. **The fieldtype can be rewritten before the lookup.** `init_field` inspects `df.mask` and, when the
+   fieldname appears in the doctype's `masked_fields`, overwrites `df.fieldtype = "Data"` and
+   `df.read_only = 1` on the docfield object itself
+   (`frappe/public/js/frappe/form/layout.js:279-284`) before calling `make_control`
+   (`frappe/public/js/frappe/form/layout.js:287-295`). The control instantiated for a masked field is
+   therefore `ControlData` whatever the stored fieldtype said, and the mutation persists on the shared
+   docfield — the same mutate-the-metadata pattern §5.10 records three more instances of.
+
+**Absent.** There is no validation that a docfield's `fieldtype` is one of the canonical fieldtypes at render
+time. The canonical set exists on the server, as `data_fieldtypes`
+(`frappe/model/__init__.py:8-30`), `no_value_fields` (`frappe/model/__init__.py:53-65`) and the `options`
+enumeration of the `fieldtype` docfield (`frappe/core/doctype/docfield/docfield.json:118`); none of the three
+is consulted by `make_control`. No line number is given for the absent check.
+
+### 5.2 The inheritance chain
+
+The chain is `BaseControl` → `ControlInput` → `ControlData` → everything else, and the class declaration of
+every control was read in one pass to establish it:
+
+| Level | Class | Extends | Citation |
+|---|---|---|---|
+| 0 | `BaseControl`, exported as `frappe.ui.form.Control` | — | `frappe/public/js/frappe/form/controls/base_control.js:1` |
+| 1 | `ControlInput` | `frappe.ui.form.Control` | `frappe/public/js/frappe/form/controls/base_input.js:2` |
+| 2 | `ControlData` | `frappe.ui.form.ControlInput` | `frappe/public/js/frappe/form/controls/data.js:3` |
+| 3+ | thirty-nine controls | `ControlData` or a descendant of it | per-row citations in §5.3 |
+
+Only four of the forty-six loaded modules extend `frappe.ui.form.Control` directly, bypassing `ControlInput`
+entirely: `ControlHTML` (`frappe/public/js/frappe/form/controls/html.js:1`), `ControlImage`
+(`frappe/public/js/frappe/form/controls/image.js:1`), `ControlMultiCheck`
+(`frappe/public/js/frappe/form/controls/multicheck.js:1`) and — the one that matters here — `ControlTable`
+(`frappe/public/js/frappe/form/controls/table.js:3`).
+
+What each level contributes:
+
+- **`BaseControl`** owns the wrapper, the status decision and the model write path. Its constructor
+  `$.extend`s the options onto itself, calls `make()`, and calls `refresh()` only if `render_input` was
+  passed (`frappe/public/js/frappe/form/controls/base_control.js:2-8`). `make()` creates the wrapper and
+  stamps `data-fieldtype` and `data-fieldname` onto it
+  (`frappe/public/js/frappe/form/controls/base_control.js:9-13`) — the fieldtype survives into the DOM as an
+  attribute, which is the only place the rendered page records it. `make_wrapper` at this level is a bare
+  `div.frappe-control` (`frappe/public/js/frappe/form/controls/base_control.js:26-31`).
+- **`ControlInput`** owns the label/input/display three-part markup and the `"Read"`/`"Write"` split. §4.1
+  already established that `refresh_input` returns immediately on `disp_status === "None"`
+  (`frappe/public/js/frappe/form/controls/base_input.js:95`) and branches on
+  `can_write()`, defined as `disp_status == "Write"`
+  (`frappe/public/js/frappe/form/controls/base_input.js:144-146`). It overrides `make_wrapper` with the full
+  `form-group` / `clearfix` / `control-input-wrapper` markup
+  (`frappe/public/js/frappe/form/controls/base_input.js:16-40`) and names the four regions in
+  `set_input_areas`: `label_area`, `input_area` = `.control-input`, `$input_wrapper` =
+  `.control-input-wrapper`, and `disp_area` = `.control-value`
+  (`frappe/public/js/frappe/form/controls/base_input.js:47-58`). **It does not define `make_input`** — it
+  calls `me.make_input()` (`frappe/public/js/frappe/form/controls/base_input.js:80`) and relies on a
+  subclass to supply it. `ControlInput` is therefore abstract in practice, and a control extending it without
+  a `make_input` throws at first render.
+- **`ControlData`** owns input construction, and does it **generically**: it reads three static class fields
+  off `this.constructor` — `html_element`, `input_type`, `input_mode`
+  (`frappe/public/js/frappe/form/controls/data.js:10`) — and builds the element from them
+  (`frappe/public/js/frappe/form/controls/data.js:12-17`), its own defaults being `"input"`, `"text"` and
+  `trigger_change_on_input_event = true`
+  (`frappe/public/js/frappe/form/controls/data.js:4-6`). This is the mechanism by which most controls diverge
+  **without overriding a method at all** — `ControlSelect` becomes a `<select>` purely by declaring
+  `static html_element = "select"` (`frappe/public/js/frappe/form/controls/select.js:2`).
+
+One consequence of the chain shape is worth stating before the matrix, because three mandated rows depend on
+it. Formatting for a read-only field does not enter through the per-type control: `set_disp_area` formats
+centrally via `frappe.format` (`frappe/public/js/frappe/form/controls/base_input.js:166`) with two
+fieldtype-keyed special cases hard-coded at that level — a zero is preserved rather than falsified for
+`Currency`, `Int` and `Float` (`frappe/public/js/frappe/form/controls/base_input.js:148-157`), and HTML is
+escaped for `Data`, `Long Text`, `Small Text`, `Text`, `Password` and `MultiSelect` and for nothing else
+(`frappe/public/js/frappe/form/controls/base_input.js:158-164`). The **writable** path formats through the
+per-type `format_for_input`; the **read-only** path does not.
+
+### 5.3 Coverage matrix — the seventeen mandated types
+
+One row per type named in Requirement 6.6. "Extends" is the immediate base; "Divergences" lists only what the
+class changes relative to it.
+
+| # | Fieldtype | Control class | File | Extends | Divergences from its base | Citation |
+|---|---|---|---|---|---|---|
+| 1 | `Link` | `ControlLink` | `controls/link.js` | `ControlData` | replaces `make_input` with a `div.link-field` wrapping the input plus clear/open buttons; adds an Awesomplete dropdown, `search_link` querying, target-doctype resolution via `get_options`, link-title substitution and server-side link validation; `parse` strips HTML; `trigger_change_on_input_event = false` | `frappe/public/js/frappe/form/controls/link.js:10-11`, `frappe/public/js/frappe/form/controls/link.js:12-24`, `frappe/public/js/frappe/form/controls/link.js:93-95`, `frappe/public/js/frappe/form/controls/link.js:157-158` |
+| 2 | `Dynamic Link` | `ControlDynamicLink` | `controls/dynamic_link.js` | `ControlLink` | **overrides exactly one method**, `get_options`, and adds nothing else — the whole file is thirty lines | `frappe/public/js/frappe/form/controls/dynamic_link.js:1-30`, `frappe/public/js/frappe/form/controls/dynamic_link.js:2-29` |
+| 3 | `Table` | `ControlTable` | `controls/table.js` | `frappe.ui.form.Control` (**skips `ControlInput`**) | constructs a `Grid` in `make()` and delegates rendering, value reading and validation to it; registers itself in `frm.grids`; binds a paste handler on the wrapper; `set_input` is an empty method body | `frappe/public/js/frappe/form/controls/table.js:3`, `frappe/public/js/frappe/form/controls/table.js:8-14`, `frappe/public/js/frappe/form/controls/table.js:134-147` |
+| 4 | `Table MultiSelect` | `ControlTableMultiSelect` | `controls/table_multiselect.js` | `ControlLink` | resolves its target doctype **indirectly**, through the first `Link` field of the child doctype named in `options`; renders selected values as removable pills instead of a single input value; filters the Awesomplete list against already-selected rows; fires `before_<fieldname>_remove` script triggers | `frappe/public/js/frappe/form/controls/table_multiselect.js:1-3`, `frappe/public/js/frappe/form/controls/table_multiselect.js:210-222`, `frappe/public/js/frappe/form/controls/table_multiselect.js:223-233`, `frappe/public/js/frappe/form/controls/table_multiselect.js:55-59` |
+| 5 | `Select` | `ControlSelect` | `controls/select.js` | `ControlData` | declares `static html_element = "select"`, which is the entire mechanism by which it becomes a dropdown; splits `options` on newline; adds a chevron icon and a placeholder overlay; `set_formatted_input` **writes the model back** from the input when the two disagree | `frappe/public/js/frappe/form/controls/select.js:1-3`, `frappe/public/js/frappe/form/controls/select.js:61-67`, `frappe/public/js/frappe/form/controls/select.js:41-60` |
+| 6 | `Currency` | `ControlCurrency` | `controls/currency.js` | `ControlFloat` | **overrides exactly one method**, `get_precision`, which prefers `df.precision`, then `sysdefaults.currency_precision`, then the number format's own precision — and caches the result by assigning to `this.df.precision` | `frappe/public/js/frappe/form/controls/currency.js:1`, `frappe/public/js/frappe/form/controls/currency.js:2-14` |
+| 7 | `Float` | `ControlFloat` | `controls/float.js` | `ControlInt` | `input_mode = "decimal"`; `parse` returns `flt(value, this.get_precision())` or `null` for a non-number; adds `format_for_input` via `format_number`, `get_number_format` (which returns `undefined` for `Rating` and for a `Float` with no `options`) and `get_precision` | `frappe/public/js/frappe/form/controls/float.js:1-2`, `frappe/public/js/frappe/form/controls/float.js:3-6`, `frappe/public/js/frappe/form/controls/float.js:12-18`, `frappe/public/js/frappe/form/controls/float.js:20-34` |
+| 8 | `Percent` | `ControlPercent` | `controls/percent.js` | `ControlFloat` | **overrides exactly one method**, `format_for_input`, narrowing the displayed precision to `Math.min(get_precision(), decimals present in the value)`; the whole file is twelve lines | `frappe/public/js/frappe/form/controls/percent.js:1`, `frappe/public/js/frappe/form/controls/percent.js:2-12` |
+| 9 | `Duration` | `ControlDuration` | `controls/duration.js` | `ControlData` | builds a four-part days/hours/minutes/seconds picker below the text input; reads `hide_days` and `hide_seconds` from the docfield through `frappe.utils.get_duration_options`; `parse` accepts either a bare integer of seconds or a duration string matched against a generated regex; `get_value` coerces to `cint`; `format_for_input` renders via `get_formatted_duration` | `frappe/public/js/frappe/form/controls/duration.js:1`, `frappe/public/js/frappe/form/controls/duration.js:2-5`, `frappe/public/js/frappe/form/controls/duration.js:68-70`, `frappe/public/js/frappe/form/controls/duration.js:155-168`, `frappe/public/js/frappe/form/controls/duration.js:191-193` |
+| 10 | `Geolocation` | `ControlGeolocation` | `controls/geolocation.js` | `ControlData` | `horizontal = false`; **hides the inherited text input** and replaces it with a Leaflet map; fetches Leaflet at runtime through `frappe.require`; monkey-patches `L.Circle` and `L.CircleMarker` to round-trip a radius through GeoJSON; reads **no** docfield property | `frappe/public/js/frappe/form/controls/geolocation.js:3-9`, `frappe/public/js/frappe/form/controls/geolocation.js:49-54`, `frappe/public/js/frappe/form/controls/geolocation.js:140-162`, `frappe/public/js/frappe/form/controls/geolocation.js:163-184` |
+| 11 | `Barcode` | `ControlBarcode` | `controls/barcode.js` | `ControlData` | appends an SVG area to the wrapper in `make_wrapper`; `parse` converts typed data into **SVG markup**, which is what reaches the model; `set_formatted_input` recovers the underlying data from a `data-barcode-value` attribute and assigns the SVG directly onto `this.doc`; reads JsBarcode options out of `df.options` as JSON | `frappe/public/js/frappe/form/controls/barcode.js:3`, `frappe/public/js/frappe/form/controls/barcode.js:4-12`, `frappe/public/js/frappe/form/controls/barcode.js:14-23`, `frappe/public/js/frappe/form/controls/barcode.js:25-42`, `frappe/public/js/frappe/form/controls/barcode.js:59-70` |
+| 12 | `Signature` | `ControlSignature` | `controls/signature.js` | `ControlData` | overrides `make()` to fetch jSignature by hardcoded asset path and build a pad inside a `ResizeObserver` callback; overrides `refresh_input` and `get_value` entirely; stores a base64 image obtained from `jSignature("getData")`; reads **no** docfield property | `frappe/public/js/frappe/form/controls/signature.js:1`, `frappe/public/js/frappe/form/controls/signature.js:2-17`, `frappe/public/js/frappe/form/controls/signature.js:120-122`, `frappe/public/js/frappe/form/controls/signature.js:129-133` |
+| 13 | `Rating` | `ControlRating` | `controls/rating.js` | `ControlFloat` | calls `super.make_input()` and then **overwrites the whole input area** with inline star SVGs; `options` is the star count, defaulting to 5; the stored value is a **fraction of the maximum**, not a star count; re-checks `can_write()` at interaction time rather than relying on `$input`; overrides `get_value` to return `this.value` unconditionally | `frappe/public/js/frappe/form/controls/rating.js:1`, `frappe/public/js/frappe/form/controls/rating.js:2-19`, `frappe/public/js/frappe/form/controls/rating.js:45-47`, `frappe/public/js/frappe/form/controls/rating.js:86`, `frappe/public/js/frappe/form/controls/rating.js:95-100` |
+| 14 | `JSON` | `ControlJSON` | `controls/json.js` | `ControlCode` | **overrides exactly one method**, `set_language`, pinning the Ace mode to `ace/mode/json` and the keyboard handler to `ace/keyboard/vscode`, thereby ignoring `df.options`; the whole file is six lines, and the class *expression* is misnamed `ControlCode` | `frappe/public/js/frappe/form/controls/json.js:1`, `frappe/public/js/frappe/form/controls/json.js:2-5` |
+| 15 | `Code` | `ControlCode` | `controls/code.js` | `ControlText` | replaces the textarea with an Ace editor built asynchronously after `load_lib()` resolves; maps `df.options` through a fourteen-entry language table and warns on an unrecognised value; adds an expand toggle switching the editor between 300px and 600px | `frappe/public/js/frappe/form/controls/code.js:1`, `frappe/public/js/frappe/form/controls/code.js:2-5`, `frappe/public/js/frappe/form/controls/code.js:198-225`, `frappe/public/js/frappe/form/controls/code.js:259-276` |
+| 16 | `Markdown Editor` | `ControlMarkdownEditor` | `controls/markdown_editor.js` | `ControlCode` | wraps the Ace target in a `markdown-container`, adds a Preview/Edit toggle rendering through `frappe.markdown`, enables wrap mode, adds image drag-and-drop via `frappe.ui.FileUploader`; `set_language` **assigns `df.options = "Markdown"`** when unset; `set_disp_area` renders as text rather than through `frappe.format` | `frappe/public/js/frappe/form/controls/markdown_editor.js:1-4`, `frappe/public/js/frappe/form/controls/markdown_editor.js:5-39`, `frappe/public/js/frappe/form/controls/markdown_editor.js:41-46`, `frappe/public/js/frappe/form/controls/markdown_editor.js:60-62`, `frappe/public/js/frappe/form/controls/markdown_editor.js:64-103` |
+| 17 | `Markdown` | **none** | — | — | **Absent.** `Markdown` is not a fieldtype. The canonical name is `Markdown Editor` (row 16), so `make_control` would derive `ControlMarkdown`, which does not exist, and take the `console.log` arm. Searched: the `fieldtype` enumeration in `frappe/core/doctype/docfield/docfield.json`, the `data_fieldtypes` tuple, and `grep -rn "ControlMarkdown\b" frappe/public/js/` excluding `ControlMarkdownEditor` — **zero** hits. No line number is given for the absent class | nearest related code: `frappe/model/__init__.py:19` (`"Markdown Editor"` in `data_fieldtypes`), `frappe/core/doctype/docfield/docfield.json:118` (the enumeration, which contains `Markdown Editor` and no `Markdown`), `frappe/public/js/frappe/form/controls/control.js:50-53` (the arm an unknown name reaches) |
+| 18 | `Attach` | `ControlAttach` | `controls/attach.js` | `ControlData` | overrides `make_input` **without calling `super`**, so `this.$input` is a `<button class="btn-attach">` rather than an input element, alongside a hidden `.attached-file` display row; opens a `frappe.ui.FileUploader` on click; expects `df.options` to be an **object**, merged with `Object.assign` | `frappe/public/js/frappe/form/controls/attach.js:1`, `frappe/public/js/frappe/form/controls/attach.js:2-30`, `frappe/public/js/frappe/form/controls/attach.js:56-59`, `frappe/public/js/frappe/form/controls/attach.js:74-95` |
+
+Eighteen rows close seventeen mandated types, because `Markdown` is recorded as an absence in its own row
+rather than silently folded into `Markdown Editor`. Requirement 6.9 governs the form of row 17: the absent
+unit is named, the nearest related code is cited, and no line number is given for the absent class.
+
+### 5.4 `Table` delegates to the grid
+
+`ControlTable` is the only mandated control that renders none of its own content. `make()` calls
+`super.make()` and then immediately constructs a `Grid`, passing itself as `control` and its own wrapper as
+`parent` (`frappe/public/js/frappe/form/controls/table.js:8-14`); the `Grid` class is imported from outside
+the controls directory (`frappe/public/js/frappe/form/controls/table.js:1`). Three of the four methods a
+control is expected to implement are one-line forwards:
+
+| Control method | Forwards to | Citation |
+|---|---|---|
+| `refresh_input()` | `this.grid.refresh()` | `frappe/public/js/frappe/form/controls/table.js:134-136` |
+| `get_value()` | `this.grid.get_data()` | `frappe/public/js/frappe/form/controls/table.js:137-141` |
+| `validate()` | `this.get_value()`, i.e. the grid again | `frappe/public/js/frappe/form/controls/table.js:145-147` |
+| `set_input()` | nothing — the method body is empty | `frappe/public/js/frappe/form/controls/table.js:142-144` |
+
+Everything downstream of `refresh_input` is therefore the grid engine's, and is documented in
+`docs/ui/02-child-table-grid-engine.md` rather than here — visible-column selection, `idx` maintenance,
+pagination, the expanded row form and the bulk-edit path. Two facts belong on this side of the boundary
+because they are properties of the *control*, not the grid.
+
+First, because `ControlTable` extends `frappe.ui.form.Control` and not `ControlInput`
+(`frappe/public/js/frappe/form/controls/table.js:3`), the `"Read"`/`"Write"` split of §4.1 never runs for a
+`Table` field. `BaseControl.refresh` sets `disp_status`, toggles `hide-control`, and then calls
+`refresh_input` (`frappe/public/js/frappe/form/controls/base_control.js:138-143`) — but `toggleClass` returns
+the jQuery object, which is truthy, so the `&&` chain does not short-circuit on a `"None"` status. A hidden
+child table still runs a full `grid.refresh()`. The early return that protects every other control
+(`frappe/public/js/frappe/form/controls/base_input.js:95`) is inherited from a class `ControlTable` does not
+extend. Read-only handling for the grid is arranged separately, through the `grid.display_status` tests in
+`BaseControl.get_status` that demote a child control to `"Read"` when its parent grid is read-only
+(`frappe/public/js/frappe/form/controls/base_control.js:71-75`,
+`frappe/public/js/frappe/form/controls/base_control.js:98-107`).
+
+Second, the paste-from-spreadsheet handler is bound on the **control's wrapper**, not inside the grid
+(`frappe/public/js/frappe/form/controls/table.js:19`), and it holds its own fieldtype→coercion table for
+`Date`, `Int`, `Check`, `Float` and `Currency`
+(`frappe/public/js/frappe/form/controls/table.js:29-34`). That table is a fifth place where fieldtype-keyed
+behaviour is hard-coded, independent of the controls in §5.3, and it covers five fieldtypes out of the
+forty-four the enumeration lists (`frappe/core/doctype/docfield/docfield.json:118`): a pasted `Percent` or
+`Duration` column is written through uncoerced.
+
+### 5.5 `Link` and `Dynamic Link` — resolving the target doctype
+
+For `Link` the target is the docfield's `options` string, returned unmodified:
+
+```
+get_options() { return this.df.options; }                                        (link.js:93-95)
+```
+
+It is also written into the DOM as `data-target` (`frappe/public/js/frappe/form/controls/link.js:65`) and is
+the sole input to three separate decisions, each consulting a different boot-time list:
+
+| Predicate | Consults | Citation |
+|---|---|---|
+| `is_translatable()` | `frappe.boot.translated_doctypes` | `frappe/public/js/frappe/form/controls/link.js:122-124` |
+| `is_title_link()` | `frappe.boot.link_title_doctypes` | `frappe/public/js/frappe/form/controls/link.js:125-127` |
+| target for search and validation | `get_options()` directly | `frappe/public/js/frappe/form/controls/link.js:420`, `frappe/public/js/frappe/form/controls/link.js:581` |
+
+`get_translated(value)` returns `__(value)` when `is_translatable()` is true and the raw value otherwise
+(`frappe/public/js/frappe/form/controls/link.js:119-121`), and it is applied to the displayed text at five
+sites — the input value on selection, both Awesomplete item shapes, the dropdown label, and the stored label
+(`frappe/public/js/frappe/form/controls/link.js:233`,
+`frappe/public/js/frappe/form/controls/link.js:237`,
+`frappe/public/js/frappe/form/controls/link.js:251`,
+`frappe/public/js/frappe/form/controls/link.js:143`,
+`frappe/public/js/frappe/form/controls/link.js:151`).
+
+This confirms and sharpens §4.2's finding about `translatable`. The gate on a `Link`'s translation is
+`frappe.boot.translated_doctypes`, which is built from DocTypes carrying the **doctype-level**
+`translated_doctype` property plus `Property Setter` overrides of the same property
+(`frappe/translate.py:970-975`, exposed at `frappe/boot.py:120`) — the exact parallel of
+`link_title_doctypes` (`frappe/boot.py:553-560`). The **docfield** `translatable` flag plays no part in it.
+So a `Link` field is translated because of what its *target doctype* is, and the flag §4.2 examined controls
+only whether a translation-manager button appears
+(`frappe/public/js/frappe/form/controls/base_control.js:149-159`). The two mechanisms share a vocabulary and
+nothing else, and neither is settable per field on the form.
+
+`ControlDynamicLink` changes exactly one thing: `options` no longer names a doctype, it names **another
+field** whose current value is the doctype. `get_options` resolves that value through a four-way branch, in
+the order the code tests them (`frappe/public/js/frappe/form/controls/dynamic_link.js:2-29`):
+
+```
+1. df.get_options is a function          → options ← df.get_options(this)          (dynamic_link.js:4-5)
+2. docname == null and cur_dialog exists → options ← cur_dialog.get_value(df.options)
+                                                                                    (dynamic_link.js:6-8)
+3. no cur_frm:
+   3a. cur_list  → options ← cur_list.page.fields_dict[df.options].get_input_value() (dynamic_link.js:10-12)
+   3b. cur_page  → options ← the DOM input[data-fieldname="<df.options>"] value,
+                   falling back to frappe.model.get_value(df.parent, docname, df.options)
+                                                                                    (dynamic_link.js:13-19)
+4. otherwise    → options ← frappe.model.get_value(df.parent, docname, df.options)  (dynamic_link.js:20-22)
+then: if frappe.model.is_single(options) → frappe.throw                             (dynamic_link.js:24-26)
+```
+
+Three consequences follow, and all three are properties of the *inheritance*, not of this file.
+
+1. **The translation and title-link decisions become dynamic.** `is_translatable()` and `is_title_link()`
+   call `this.get_options()` (`frappe/public/js/frappe/form/controls/link.js:123`,
+   `frappe/public/js/frappe/form/controls/link.js:126`), which is now the overridden method. Whether a
+   `Dynamic Link` translates its display text therefore depends on the current value of a *different* field,
+   and changes as the user edits that field.
+2. **Branches 2, 3a and 3b read the doctype out of the DOM or out of a global, not out of the model.**
+   `cur_dialog`, `cur_list`, `cur_frm` and `cur_page` are ambient globals, and branch 3b falls back to a
+   jQuery selector over `cur_page.page` (`frappe/public/js/frappe/form/controls/dynamic_link.js:14-15`). The
+   resolved doctype for the same docfield is thus a function of which page object happens to be current.
+3. **The one validation is a `Single` check, and it throws rather than degrades.** `frappe.throw` on a
+   `Single` target (`frappe/public/js/frappe/form/controls/dynamic_link.js:25`) is the only guard; a value
+   that is not a DocType name at all is passed through to the search call unchecked.
+
+### 5.6 `Currency`, `Float` and `Percent` — which control, and where formatting enters
+
+These three share one base and differ by a single method each, which makes the division of labour unusually
+clean:
+
+| Fieldtype | Control | Overrides, relative to `ControlFloat` | Citation |
+|---|---|---|---|
+| `Float` | `ControlFloat` extends `ControlInt` | — (it *is* the base) | `frappe/public/js/frappe/form/controls/float.js:1` |
+| `Currency` | `ControlCurrency` | `get_precision` only | `frappe/public/js/frappe/form/controls/currency.js:2-14` |
+| `Percent` | `ControlPercent` | `format_for_input` only | `frappe/public/js/frappe/form/controls/percent.js:2-12` |
+
+Formatting enters at exactly two points, and they are not the same point:
+
+- **Writable rendering** goes through the per-type `format_for_input`. `ControlFloat` calls
+  `format_number(value, this.get_number_format(), this.get_precision())`
+  (`frappe/public/js/frappe/form/controls/float.js:12-18`); `ControlPercent` calls the same helper with
+  `Math.min(this.get_precision(), <decimals present in the value>)`
+  (`frappe/public/js/frappe/form/controls/percent.js:6-11`); `ControlCurrency` does not override it and so
+  uses `ControlFloat`'s, differing only through `get_precision`.
+- **Read-only rendering** does not reach `format_for_input` at all. It goes through
+  `BaseInput.set_disp_area` → `frappe.format`
+  (`frappe/public/js/frappe/form/controls/base_input.js:166`), with the zero-preserving special case for
+  `Currency`, `Int` and `Float` noted in §5.2
+  (`frappe/public/js/frappe/form/controls/base_input.js:148-157`). A `Percent` field is absent from that
+  list, so its zero takes the `this.value || value` branch
+  (`frappe/public/js/frappe/form/controls/base_input.js:156`).
+
+Parsing is the third entry point and is shared: `ControlFloat.parse` applies `flt(value, get_precision())`
+(`frappe/public/js/frappe/form/controls/float.js:5`), so precision is applied on the way **into** the model,
+not only on the way out. The chain by which `get_precision` reaches a number — `df.precision`, then
+`sysdefaults`, then the currency's own format — is stated at
+`frappe/public/js/frappe/form/controls/float.js:31-34` and
+`frappe/public/js/frappe/form/controls/currency.js:2-14`, and §6 resolves it in full together with
+`formatters.js`; this section deliberately stops at naming the two methods.
+
+One control-level fact does belong here, because it is a divergence rather than a step of the resolution
+chain: `ControlCurrency.get_precision` **caches its answer by writing to `this.df.precision`**
+(`frappe/public/js/frappe/form/controls/currency.js:7`,
+`frappe/public/js/frappe/form/controls/currency.js:9`), mutating the docfield object rather than a field of
+the control. `this.df` for a form control is the docfield from the cached `Meta`, so the first `Currency`
+control to render fixes `precision` on metadata that every later control, every later document and the grid
+all share.
+
+`Rating` is the fourth member of this family — `ControlRating extends ControlFloat`
+(`frappe/public/js/frappe/form/controls/rating.js:1`) — and `ControlFloat.get_number_format` returns
+`undefined` for it by an explicit fieldtype test
+(`frappe/public/js/frappe/form/controls/float.js:22`), the same early return it takes for a `Float` whose
+`options` is blank (`frappe/public/js/frappe/form/controls/float.js:23`).
+
+### 5.7 `Code`, `JSON` and `Markdown Editor` — one editor, fetched not bundled
+
+All three are the same editor. The chain is `ControlText` → `ControlCode`
+(`frappe/public/js/frappe/form/controls/code.js:1`) → `ControlJSON`
+(`frappe/public/js/frappe/form/controls/json.js:1`) and `ControlCode` → `ControlMarkdownEditor`
+(`frappe/public/js/frappe/form/controls/markdown_editor.js:1-3`). `ControlTextEditor` joins the same base
+(`frappe/public/js/frappe/form/controls/text_editor.js:136`), so the Quill rich-text control is also a
+descendant of the Ace control.
+
+**Fetched, not bundled.** `load_lib` builds an asset path and calls `frappe.require`
+(`frappe/public/js/frappe/form/controls/code.js:259-276`), memoising the promise on `this.library_loaded`
+(`frappe/public/js/frappe/form/controls/code.js:260`, `frappe/public/js/frappe/form/controls/code.js:268`).
+The path is chosen from `frappe.boot.developer_mode`: the unminified `src-noconflict` directory in developer
+mode and `src-min-noconflict` otherwise
+(`frappe/public/js/frappe/form/controls/code.js:262-266`). Ace is then addressed through the `window.ace`
+global (`frappe/public/js/frappe/form/controls/code.js:270`,
+`frappe/public/js/frappe/form/controls/code.js:61`) rather than through an imported binding, and further
+modules are pulled in on demand at runtime through `ace.config.loadModule`
+(`frappe/public/js/frappe/form/controls/code.js:167`). Contrast `Barcode`, which uses a **static** ESM import
+of `jsbarcode` (`frappe/public/js/frappe/form/controls/barcode.js:1`) and so is bundled.
+
+The consequence is a construction race, and it is visible in the code rather than inferred. `make_input`
+returns after registering a `.then()` — it does not await it
+(`frappe/public/js/frappe/form/controls/code.js:2-5`) — while `BaseInput.refresh_input` calls `make_input()`
+and `update_input()` back to back with nothing between them
+(`frappe/public/js/frappe/form/controls/base_input.js:109-110`). So `set_input` runs on the first render
+before `this.editor` exists. `make_input`'s own `if (this.editor) return;` guard
+(`frappe/public/js/frappe/form/controls/code.js:3`) tests the property the async callback has not yet
+assigned, so a second `refresh` arriving before the library resolves passes the guard and schedules a second
+`make_ace_editor()`; `make_ace_editor` re-tests `this.markdown_container` in the Markdown subclass
+(`frappe/public/js/frappe/form/controls/markdown_editor.js:7`) but `ControlCode` has no equivalent guard at
+its own top (`frappe/public/js/frappe/form/controls/code.js:45`).
+
+Language selection is where the three diverge, and each does it differently:
+
+| Fieldtype | How the Ace mode is chosen | Citation |
+|---|---|---|
+| `Code` | `df.options` is looked up in a fourteen-entry map; an unrecognised value produces a `console.warn` and no mode change | `frappe/public/js/frappe/form/controls/code.js:198-225` |
+| `JSON` | hard-coded to `ace/mode/json`, ignoring `df.options` entirely; also sets a `vscode` keyboard handler | `frappe/public/js/frappe/form/controls/json.js:2-5` |
+| `Markdown Editor` | **assigns** `df.options = "Markdown"` when unset, then delegates upward to `ControlCode.set_language` | `frappe/public/js/frappe/form/controls/markdown_editor.js:41-46` |
+
+`Markdown Editor` alone adds rendering of its own: a Preview/Edit toggle that runs the buffer through
+`frappe.markdown` (`frappe/public/js/frappe/form/controls/markdown_editor.js:48-52`,
+`frappe/public/js/frappe/form/controls/markdown_editor.js:16-33`) and an image-drop handler that opens a
+`FileUploader` and inserts a Markdown image reference at the cursor
+(`frappe/public/js/frappe/form/controls/markdown_editor.js:64-103`). It also overrides `set_disp_area` to
+insert the raw value as **text** (`frappe/public/js/frappe/form/controls/markdown_editor.js:60-62`), bypassing
+the central `frappe.format` path of §5.2 — so a read-only `Markdown Editor` shows source, not rendered
+Markdown.
+
+### 5.8 The four unconventional controls — metadata and external dependencies
+
+`Geolocation`, `Barcode`, `Signature` and `Rating` are the least conventional of the seventeen. Two questions
+separate them cleanly: is the control configured by metadata, and what does it depend on that is not in the
+control file?
+
+| Fieldtype | Metadata-driven? | External dependency | How the dependency arrives | Citation |
+|---|---|---|---|---|
+| `Geolocation` | **No.** `grep -c "df.options" geolocation.js` returns **zero**; configuration comes from the `frappe.utils.map_defaults` global — centre, zoom, four tile URLs and the marker image path | Leaflet, plus Leaflet.draw and a locate control, used through the global `L` | `frappe.require("leaflet.bundle.js")` and the matching CSS, awaited by `Promise.all` — **fetched at runtime** | `frappe/public/js/frappe/form/controls/geolocation.js:49-54`, `frappe/public/js/frappe/form/controls/geolocation.js:163-184`, `frappe/public/js/frappe/form/controls/geolocation.js:166-167` |
+| `Barcode` | **Yes.** `df.options` is parsed as a JSON options blob and merged over three hard-coded defaults, with a special case expanding `format: "EAN"` to `EAN8` or `EAN13` by value length | `jsbarcode` | `import JsBarcode from "jsbarcode"` — a **static ESM import**, therefore bundled | `frappe/public/js/frappe/form/controls/barcode.js:1`, `frappe/public/js/frappe/form/controls/barcode.js:59-70`, `frappe/public/js/frappe/form/controls/barcode.js:49` |
+| `Signature` | **No.** `grep -c "df.options" signature.js` returns **zero**; nothing about the pad is configurable per field | jSignature | `frappe.require("/assets/frappe/js/lib/jSignature.min.js")` — a **hardcoded asset path**, fetched at runtime, and *not* awaited before `make()` returns | `frappe/public/js/frappe/form/controls/signature.js:12-17` |
+| `Rating` | **Yes**, minimally. `df.options` is the number of stars, defaulting to 5, read at three sites | **none** — the stars are inline SVG paths in the control file | no fetch and no import | `frappe/public/js/frappe/form/controls/rating.js:5`, `frappe/public/js/frappe/form/controls/rating.js:53`, `frappe/public/js/frappe/form/controls/rating.js:99`, `frappe/public/js/frappe/form/controls/rating.js:7-10` |
+
+Two of the four store something other than the value the user thinks they are entering, and this is the most
+consequential fact in the group:
+
+- **`Barcode` stores SVG markup.** `parse` returns `this.get_barcode_html(value)` for typed data and the
+  value unchanged if it already begins with `<svg`
+  (`frappe/public/js/frappe/form/controls/barcode.js:14-23`), and `get_barcode_html` returns
+  `this.barcode_area.html()` after rendering
+  (`frappe/public/js/frappe/form/controls/barcode.js:52`). The barcode data survives only as a
+  `data-barcode-value` attribute inside that markup
+  (`frappe/public/js/frappe/form/controls/barcode.js:50`), which `set_formatted_input` reads back to
+  repopulate the visible input
+  (`frappe/public/js/frappe/form/controls/barcode.js:31-32`,
+  `frappe/public/js/frappe/form/controls/barcode.js:40`). A rendering failure is caught and turned into a
+  field description, and `get_barcode_html` then returns `undefined`
+  (`frappe/public/js/frappe/form/controls/barcode.js:53-55`).
+- **`Rating` stores a fraction of the maximum.** On click the star index is divided by `out_of_ratings`
+  before being written (`frappe/public/js/frappe/form/controls/rating.js:86`) and multiplied back on display
+  (`frappe/public/js/frappe/form/controls/rating.js:99-101`). Changing `options` from 5 to 10 therefore
+  reinterprets every stored value rather than rescaling it, and the value is not recoverable without the
+  current `options`.
+- **`Signature` stores a base64 image** obtained from `jSignature("getData")`
+  (`frappe/public/js/frappe/form/controls/signature.js:131-132`).
+
+### 5.9 Worked example — `Sales Invoice.customer`
+
+One field, traced from its stored definition to its DOM. The definition is
+
+```json
+{
+ "bold": 1,
+ "fieldname": "customer",
+ "fieldtype": "Link",
+ "in_standard_filter": 1,
+ "label": "Customer",
+ "options": "Customer",
+ "print_hide": 1,
+ "reqd": 1,
+ "search_index": 1
+}
+```
+
+at `accounts/doctype/sales_invoice/sales_invoice.json:264-278`. Assume a user with `write` at permlevel 0 on
+a draft.
+
+**Step 1 — the layout reaches the field.** A-01-2 step 4f dispatches to `make_field(df)` because `Link` is
+not one of the five break fieldtypes (`frappe/public/js/frappe/form/layout.js:222-224`), and `make_field`
+calls `init_field` (`frappe/public/js/frappe/form/layout.js:262`). `df.mask` is unset, so the masked-field
+rewrite does not fire (`frappe/public/js/frappe/form/layout.js:279`).
+
+**Step 2 — the registry resolves the class.** `"Control" + "Link".replace(/ /g, "")` = `"ControlLink"`
+(`frappe/public/js/frappe/form/controls/control.js:49`); `frappe.ui.form.ControlLink` exists, having been
+assigned when `link.js` was imported
+(`frappe/public/js/frappe/form/controls/link.js:10`,
+`frappe/public/js/frappe/form/controls/control.js:13`); the truthiness test passes
+(`frappe/public/js/frappe/form/controls/control.js:50`) and the instance is constructed
+(`frappe/public/js/frappe/form/controls/control.js:51`). `init_field` then sets `fieldobj.layout`
+(`frappe/public/js/frappe/form/layout.js:299`).
+
+**Step 3 — the constructor walks the chain.** `BaseControl`'s constructor copies the options onto the
+instance and calls `make()` (`frappe/public/js/frappe/form/controls/base_control.js:3-4`). `make()` resolves
+to `ControlInput.make`, which calls `super.make()`, then `set_input_areas()` and `set_max_width()`
+(`frappe/public/js/frappe/form/controls/base_input.js:4-15`). `super.make()` is `BaseControl.make`, which
+calls `make_wrapper()` — resolving to `ControlInput`'s, not `BaseControl`'s
+(`frappe/public/js/frappe/form/controls/base_input.js:16-40`) — and then stamps `data-fieldtype="Link"` and
+`data-fieldname="customer"` on the wrapper
+(`frappe/public/js/frappe/form/controls/base_control.js:11-13`) and appends the fieldname tooltip
+(`frappe/public/js/frappe/form/controls/base_control.js:17-18`). `set_input_areas` names
+`.control-input` as `input_area` and `.control-value` as `disp_area`
+(`frappe/public/js/frappe/form/controls/base_input.js:52`,
+`frappe/public/js/frappe/form/controls/base_input.js:56`). `ControlInput.horizontal` is `true`
+(`frappe/public/js/frappe/form/controls/base_input.js:3`), so `.form-group` also gets `horizontal`
+(`frappe/public/js/frappe/form/controls/base_input.js:36-38`).
+
+**Step 4 — `make_input` is `ControlLink`'s, not `ControlData`'s.** `ControlLink.make_input` does **not** call
+`super.make_input()`; it prepends its own `div.link-field` containing the text input and the clear/open
+buttons (`frappe/public/js/frappe/form/controls/link.js:12-24`), then finds `$input` inside it
+(`frappe/public/js/frappe/form/controls/link.js:26`) and sets `data-target="Customer"` from `df.options`
+(`frappe/public/js/frappe/form/controls/link.js:65`). `ControlData`'s generic `html_element`/`input_type`
+construction (`frappe/public/js/frappe/form/controls/data.js:10-17`) is therefore bypassed for this
+fieldtype, and the paste-length warning bound there
+(`frappe/public/js/frappe/form/controls/data.js:19-62`) does not apply to a `Link`.
+
+**Step 5 — the two boot lists are consulted, and both miss.** `Customer` carries `title_field:
+"customer_name"` (`selling/doctype/customer/customer.json:809`) but **not** `show_title_field_in_link`, so it
+is absent from `link_title_doctypes` (`frappe/boot.py:553-560`) and `is_title_link()` is false
+(`frappe/public/js/frappe/form/controls/link.js:126`). `set_link_title` therefore takes its early branch and
+calls `translate_and_set_input_value(value, value)`
+(`frappe/public/js/frappe/form/controls/link.js:131-133`) — the customer *code* is displayed, not the
+customer name. `Customer` also does not carry `translated_doctype`, so `is_translatable()` is false
+(`frappe/public/js/frappe/form/controls/link.js:123`) and `get_translated` returns the value unchanged
+(`frappe/public/js/frappe/form/controls/link.js:120`).
+
+**Step 6 — the flags of §4 apply.** `disp_status` is `"Write"` (no `hidden`, no `read_only`, draft docstatus),
+so `can_write()` is true (`frappe/public/js/frappe/form/controls/base_input.js:144-146`), `disp_area` is
+hidden and `input_area` shown (`frappe/public/js/frappe/form/controls/base_input.js:106-107`). `bold: 1`
+adds the `bold` class — and would have anyway, since `reqd: 1` is OR-ed into the same expression
+(`frappe/public/js/frappe/form/controls/base_input.js:294`), which is §4.5 finding 2 in live use.
+`print_hide: 1` has no effect on the form.
+
+**Resulting DOM.** Assembling the markup from `base_input.js:21-33`, `base_control.js:11-18` and
+`link.js:14-24`:
+
+```html
+<div class="frappe-control" data-fieldtype="Link" data-fieldname="customer">
+  <div class="form-group horizontal">
+    <div class="clearfix">
+      <label class="control-label" style="padding-right: 5px;">Customer</label>
+      <span class="help"></span>
+    </div>
+    <div class="control-input-wrapper">
+      <div class="control-input">
+        <div class="link-field ui-front" style="position: relative;">
+          <input type="text" class="input-with-feedback form-control bold"
+                 data-target="Customer">
+          <span class="link-btn">
+            <a class="btn-clear" ...>…</a>
+            <a class="btn-open" ...>…</a>
+          </span>
+        </div>
+      </div>
+      <div class="control-value like-disabled-input hide"></div>
+      <div class="help-box small text-extra-muted hide"></div>
+    </div>
+  </div>
+  <span class="tooltip-content">customer</span>
+</div>
+```
+
+The `.control-value` div carries `hide` because the field is writable; on a submitted invoice the classes
+swap and the same div receives the output of `frappe.format`
+(`frappe/public/js/frappe/form/controls/base_input.js:116-120`,
+`frappe/public/js/frappe/form/controls/base_input.js:166-169`). The Awesomplete dropdown is not in this tree:
+it is attached to the input by the library at `frappe/public/js/frappe/form/controls/link.js:224`, which is
+why the wrapper carries `ui-front` and `position: relative`
+(`frappe/public/js/frappe/form/controls/link.js:14`).
+
+### 5.10 Findings recorded for §8
+
+Nine behaviours observed while reading this path are defects rather than descriptions. They are stated here
+in prose; the numbered inventory and the verdicts are §8's and §10's to write.
+
+1. **An unknown fieldtype fails silently and invisibly.** `make_control`'s `else` arm calls `console.log` and
+   returns `undefined` (`frappe/public/js/frappe/form/controls/control.js:52-54`), `init_field` propagates
+   it (`frappe/public/js/frappe/form/layout.js:298-302`) and `make_field` returns before registering the
+   field in any of `fields_list`, `fields_dict`, `section` or `current_tab`
+   (`frappe/public/js/frappe/form/layout.js:265-275`). The form renders with a field missing, no user-visible
+   error, and no entry in the structures that `refresh_field`, `set_value` or `toggle_display` would use to
+   report one. Because the class name is derived by string concatenation
+   (`frappe/public/js/frappe/form/controls/control.js:49`) and the canonical fieldtype list lives only on the
+   server (`frappe/model/__init__.py:8-30`, `frappe/core/doctype/docfield/docfield.json:118`), a one-character
+   corruption of a stored `fieldtype` is indistinguishable at render time from a deliberately unsupported
+   one.
+2. **`Markdown` is not a fieldtype.** The canonical name is `Markdown Editor`
+   (`frappe/model/__init__.py:19`, `frappe/core/doctype/docfield/docfield.json:118`) and no
+   `ControlMarkdown` exists — `grep -rn "ControlMarkdown\b" frappe/public/js/` excluding
+   `ControlMarkdownEditor` returns **zero** hits, the only declaration being
+   `frappe/public/js/frappe/form/controls/markdown_editor.js:1`. Requirement 6.6 names `Markdown`, so the
+   requirement itself carries the wrong name; §5.3 row 17 records it as an absence with no line number. This
+   is the third such correction in the investigation, after `FormPage` (§1.5) and `grid_form.js`.
+3. **Four controls write to the shared docfield object.** `this.df` for a form control is the docfield from
+   the cached `Meta`, so any assignment to it outlives the control. Observed:
+   `ControlCurrency.get_precision` caches into `df.precision`
+   (`frappe/public/js/frappe/form/controls/currency.js:7`,
+   `frappe/public/js/frappe/form/controls/currency.js:9`);
+   `ControlMarkdownEditor.set_language` assigns `df.options = "Markdown"`
+   (`frappe/public/js/frappe/form/controls/markdown_editor.js:43`);
+   `Layout.init_field` rewrites `df.fieldtype` and `df.read_only` for a masked field
+   (`frappe/public/js/frappe/form/layout.js:282-283`); and `BaseControl.toggle` writes `df.hidden`
+   (`frappe/public/js/frappe/form/controls/base_control.js:33-36`). §2.2 steps 5b and 6b record two more
+   instances in the layout pass (`frappe/public/js/frappe/form/layout.js:345-348`,
+   `frappe/public/js/frappe/form/layout.js:370-373`). The docfield is treated as scratch space by six
+   separate call sites.
+4. **`Select` silently rewrites the model when the stored value is not among the options.**
+   `set_formatted_input` compares the value it was given with what the `<select>` element actually holds and,
+   on a mismatch, calls `set_model_value(input_value)` with the comment "model value must be same as whatever
+   the input is" (`frappe/public/js/frappe/form/controls/select.js:55-59`). Rendering a form is therefore a
+   write: a stored value dropped from `options` by a later customisation is replaced by whatever the browser
+   selected, with no prompt and no indication that the document changed.
+5. **`Barcode` stores rendered SVG markup in the field, and a render function writes it.** `parse` returns
+   markup rather than data (`frappe/public/js/frappe/form/controls/barcode.js:20`), and
+   `set_formatted_input` — a display method — assigns straight to `this.doc[this.df.fieldname]`
+   (`frappe/public/js/frappe/form/controls/barcode.js:37`), bypassing `set_model_value`
+   (`frappe/public/js/frappe/form/controls/base_control.js:272-289`), the undo manager
+   (`frappe/public/js/frappe/form/controls/base_control.js:220-227`) and every `change`/`onchange` trigger
+   (`frappe/public/js/frappe/form/controls/base_control.js:238-243`). The barcode data survives only as an
+   attribute inside the markup (`frappe/public/js/frappe/form/controls/barcode.js:50`), so the field cannot
+   be queried, filtered or compared as data. This is the stored-value/displayed-text conflation Requirement
+   13.4 rejects, in its most literal form.
+6. **`Rating` orphans its own input element.** `make_input` calls `super.make_input()`, which builds and
+   attaches an `<input>` and sets `this.$input`
+   (`frappe/public/js/frappe/form/controls/rating.js:3`; `frappe/public/js/frappe/form/controls/data.js:12-17`),
+   and then replaces the entire `input_area` contents with the star template
+   (`frappe/public/js/frappe/form/controls/rating.js:19`), detaching it. Upstream knows: the comment
+   "Rating doesn't have $input, so check write status at interaction time"
+   (`frappe/public/js/frappe/form/controls/rating.js:46`) explains why `update_rating` re-tests `can_write()`
+   itself (`frappe/public/js/frappe/form/controls/rating.js:47`). But `BaseInput.refresh_input` still calls
+   `$input.prop("disabled", …)` on both branches
+   (`frappe/public/js/frappe/form/controls/base_input.js:108`,
+   `frappe/public/js/frappe/form/controls/base_input.js:122`), operating on a detached node. The stored value
+   is additionally a fraction of `options` rather than a star count
+   (`frappe/public/js/frappe/form/controls/rating.js:86`,
+   `frappe/public/js/frappe/form/controls/rating.js:99-100`), so editing `options` reinterprets history.
+7. **`ControlTable` renders its grid even when the field is hidden.** `BaseControl.refresh` chains
+   `toggleClass("hide-control", …) && this.refresh_input && this.refresh_input()`
+   (`frappe/public/js/frappe/form/controls/base_control.js:140-143`); `toggleClass` returns the jQuery
+   object, so the chain never short-circuits, and `ControlTable.refresh_input` is an unconditional
+   `this.grid.refresh()` (`frappe/public/js/frappe/form/controls/table.js:134-136`). Every other control is
+   protected by `BaseInput.refresh_input`'s `disp_status != "None"` guard
+   (`frappe/public/js/frappe/form/controls/base_input.js:95`), which `ControlTable` does not inherit because
+   it extends `frappe.ui.form.Control` directly
+   (`frappe/public/js/frappe/form/controls/table.js:3`). The cost of a hidden child table is therefore the
+   full cost of a visible one; §7 quantifies it.
+8. **The Ace-backed controls construct their editor asynchronously inside a synchronous render path.**
+   `ControlCode.make_input` registers a `.then()` and returns
+   (`frappe/public/js/frappe/form/controls/code.js:2-5`) while `BaseInput.refresh_input` calls `make_input()`
+   and `update_input()` consecutively
+   (`frappe/public/js/frappe/form/controls/base_input.js:109-110`), so the first `set_input` runs with
+   `this.editor` undefined. The `if (this.editor) return;` guard
+   (`frappe/public/js/frappe/form/controls/code.js:3`) tests a property assigned only after the library
+   resolves (`frappe/public/js/frappe/form/controls/code.js:61`), so a second refresh arriving inside that
+   window schedules a second `make_ace_editor()`; only the Markdown subclass carries an idempotence guard
+   (`frappe/public/js/frappe/form/controls/markdown_editor.js:7`). The asset path additionally differs
+   between developer and production mode
+   (`frappe/public/js/frappe/form/controls/code.js:262-266`), so the timing differs between environments.
+   `Signature` has the same shape and does not even memoise: `frappe.require` is called from `make()` and its
+   `.then()` is neither awaited nor guarded
+   (`frappe/public/js/frappe/form/controls/signature.js:12-17`).
+9. **`Attach` expects `df.options` to be a JavaScript object, but the stored column is text.**
+   `set_upload_options` merges it with `Object.assign(options, this.df.options)`
+   (`frappe/public/js/frappe/form/controls/attach.js:92-93`), whereas `DocField.options` is stored as
+   `Small Text` (`frappe/core/doctype/docfield/docfield.json:243-244`). Given a string,
+   `Object.assign` spreads its character indices as keys, producing an options object with numeric
+   properties and no error. The overload is unguarded and undocumented: three mandated fieldtypes read
+   `options` as three incompatible shapes — a doctype name for `Link`
+   (`frappe/public/js/frappe/form/controls/link.js:94`), a newline-delimited list for `Select`
+   (`frappe/public/js/frappe/form/controls/select.js:65-67`), a JSON string for `Barcode`, which at least
+   tests `frappe.utils.is_json` first
+   (`frappe/public/js/frappe/form/controls/barcode.js:66-67`) — and `Attach` a live object. `Table
+   MultiSelect` adds a fifth reading, a child-doctype name resolved one level further to that child's first
+   `Link` field (`frappe/public/js/frappe/form/controls/table_multiselect.js:210-222`), where `find` takes
+   the first match in stored order, so a child table with two `Link` fields silently binds to whichever
+   comes first.
+
 ## 6. Precision resolution, and where display diverges from storage
 
 ## 7. Dirty state and re-render cost
