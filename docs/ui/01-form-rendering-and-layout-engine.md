@@ -1383,6 +1383,167 @@ Two conclusions carry into §10. Only `allow_on_submit` may be relied on for int
 "field X cannot be changed" or "field X is not visible" must be restated against `permlevel` or against a
 server-side check, exactly as §3.6 concluded for `read_only_depends_on`.
 
+### 4.4 Worked example — `Timesheet.per_billed`
+
+`Timesheet` is submittable (`projects/doctype/timesheet/timesheet.json:315`) and its `per_billed` field
+carries four of the seven flags at once, which makes it a single trace through the whole pipeline. The stored
+definition is
+
+```json
+{
+ "allow_on_submit": 1,
+ "fieldname": "per_billed",
+ "fieldtype": "Percent",
+ "in_list_view": 1,
+ "label": "% Amount Billed",
+ "no_copy": 1,
+ "print_hide": 1,
+ "read_only": 1
+}
+```
+
+at `projects/doctype/timesheet/timesheet.json:231-240`. It carries no `hidden`, no `bold`, no `reqd` and no
+`translatable`. Assume a user holding `write` at permlevel 0.
+
+**State A — draft (`docstatus` 0).**
+
+| # | Arm | Outcome | Citation |
+|---|---|---|---|
+| 1 | permission | `p.write` is true, `disabled` and `is_virtual` unset ⇒ `"Write"` | `frappe/public/js/frappe/model/perm.js:251-252` |
+| 2 | `hidden` | `cint(undefined)` is `0` ⇒ unchanged | `frappe/public/js/frappe/model/perm.js:260` |
+| 3 | `hidden_due_to_dependency` | no `depends_on` on this field ⇒ unchanged | `frappe/public/js/frappe/model/perm.js:264` |
+| 4 | docstatus | `0 > 0` is false ⇒ unchanged | `frappe/public/js/frappe/model/perm.js:272` |
+| 5 | `allow_on_submit` | guard requires `"Read"`; status is `"Write"` ⇒ **no effect** | `frappe/public/js/frappe/model/perm.js:278` |
+| 7 | `read_only` | `"Write"` and `cint(1)` ⇒ **`"Read"`** | `frappe/public/js/frappe/model/perm.js:297-298` |
+| 8 | `set_only_once` | guard requires `"Write"` ⇒ unchanged | `frappe/public/js/frappe/model/perm.js:302` |
+
+Render decision: `disp_status = "Read"`, so no `hide-control` class is applied
+(`frappe/public/js/frappe/form/controls/base_control.js:141`), `can_write()` is false
+(`frappe/public/js/frappe/form/controls/base_input.js:144-146`), the input area is hidden and the value is
+written into `disp_area` as static text (`frappe/public/js/frappe/form/controls/base_input.js:116-120`).
+`set_bold` runs but toggles the class off, because neither `bold` nor `reqd` is set
+(`frappe/public/js/frappe/form/controls/base_input.js:139`,
+`frappe/public/js/frappe/form/controls/base_input.js:294`). `show_translatable_button` returns at its first
+guard, `!this.df.translatable` (`frappe/public/js/frappe/form/controls/base_control.js:155`) — and would have
+returned anyway, since `Percent` is not in `supports_translation`'s list and the flag would have been coerced
+to `0` at DocType save (`frappe/model/docfield.py:9-10`,
+`frappe/core/doctype/doctype/doctype.py:307-308`). Note that arm 5 is the *whole* point of the flag on this
+field and it is inert here: on a draft, `allow_on_submit` contributes nothing.
+
+**State B — submitted (`docstatus` 1).** The arms diverge at 4:
+
+| # | Arm | Outcome | Citation |
+|---|---|---|---|
+| 4 | docstatus | `"Write"` and `1 > 0` ⇒ `"Read"` | `frappe/public/js/frappe/model/perm.js:272` |
+| 5 | `allow_on_submit` | `"Read"`, `cint(1)`, `docstatus === 1`, `p.write` ⇒ **`"Write"`** | `frappe/public/js/frappe/model/perm.js:278-279` |
+| 7 | `read_only` | `"Write"` and `cint(1)` ⇒ **`"Read"`** | `frappe/public/js/frappe/model/perm.js:297-298` |
+
+The final status is `"Read"` again, and the rendered form is **indistinguishable from State A**. The widening
+performed by `allow_on_submit` at arm 5 is silently undone by `read_only` at arm 7, because arm 7's guard is
+exactly the value arm 5 has just produced. The two flags are, on this field, in direct contradiction, and the
+resolution is decided by nothing more than their relative position in one function. Had `read_only` been
+absent, the field would have become editable after submission.
+
+**State C — cancelled (`docstatus` 2).** Arm 4 fires (`2 > 0`) but arm 5's `docstatus === 1` test fails
+(`frappe/public/js/frappe/model/perm.js:278`), so the field is `"Read"` with no widening step at all.
+
+**What the other three flags did.** `in_list_view: 1` had **no effect on any of the three states**:
+`per_billed` belongs to the parent doctype, and no form-side code reads the flag (§4.2). `print_hide: 1` had
+no effect either, and takes effect only when the document is printed, through `is_print_hide`
+(`frappe/model/base_document.py:1544-1548`) as called from the print view's visibility test
+(`frappe/www/printview.py:525`). Note the `print_hide_if_no_value` interaction available on the same method:
+had that property been set instead, a `per_billed` of `0` would also have been omitted
+(`frappe/model/base_document.py:1541-1542`).
+
+**What the server does with the same field.** The value is computed in `calculate_percentage_billed` and
+assigned directly to `self.per_billed` (`projects/doctype/timesheet/timesheet.py:116-121`), and
+`set_status` then reads it back through `precision()` to derive `Billed` or `Partially Billed`
+(`projects/doctype/timesheet/timesheet.py:130-134`). Because the field carries `allow_on_submit: 1`, an
+`update_after_submit` save that changes it passes `_validate_update_after_submit`
+(`frappe/model/base_document.py:1354`) instead of throwing. The `read_only: 1` flag, by contrast, is consulted
+by **nothing** on this path — a REST `PUT` or a Server Script may set `per_billed` to any value on a draft
+Timesheet, and the only reason it cannot do so arbitrarily after submission is `allow_on_submit`'s
+absence-triggered check on *other* fields, not `read_only` on this one.
+
+For the contrasting case, `Sales Order.per_billed` carries `in_list_view`, `print_hide` and `read_only` but
+**not** `allow_on_submit` (`selling/doctype/sales_order/sales_order.json:1275-1290`), and ERPNext
+nevertheless updates it on submitted Sales Orders — through `db_set`
+(`controllers/status_updater.py:677-683`), configured by the `target_parent_field` entry in
+`Sales Invoice.status_updater` (`accounts/doctype/sales_invoice/sales_invoice.py:260-275`). That is the
+bypass of §4.2 in live use: the framework's own write path does not honour the flag it enforces against
+callers. The field immediately below it, `billing_status`, carries `hidden: 1`
+(`selling/doctype/sales_order/sales_order.json:1291-1296`) and is written by the same mechanism — a hidden
+field being maintained server-side is the ordinary case, not an exception.
+
+### 4.5 Findings recorded for §8
+
+Eight behaviours observed while reading this path are defects rather than descriptions. They are stated here
+in prose; the numbered inventory and the verdicts are §8's and §10's to write.
+
+1. **`read_only` is a docfield flag with no enforcement anywhere outside the browser.**
+   `grep -rn "read_only" frappe/model/base_document.py` returns **zero** hits, and the three hits in
+   `frappe/model/document.py` are the doctype-level property (`frappe/model/document.py:1947`) and the
+   request-scoped `frappe.flags.read_only` (`frappe/model/document.py:2207`,
+   `frappe/model/document.py:2240`) — different things with the same name. The gap is wider than §3.6's
+   finding for `read_only_depends_on`, because `read_only` is the *static* form of the same claim and is used
+   pervasively: it is the flag on which most ERPNext computed fields rely to signal "do not write this",
+   including both `per_billed` fields traced in §4.4. No line number is cited for the absent check.
+2. **`bold` is not independently observable.** Both render sites OR it with `df.reqd` —
+   `!!(this.df.bold || this.df.reqd)` at `frappe/public/js/frappe/form/controls/base_input.js:294` and
+   `frappe/public/js/frappe/form/controls/base_input.js:297`, and `df.reqd || df.bold` at
+   `frappe/public/js/frappe/form/grid_row.js:760` — so on any mandatory field the flag is a no-op, and no
+   rendered state distinguishes `bold: 1, reqd: 1` from `bold: 0, reqd: 1`. A property that cannot be
+   observed cannot be tested.
+3. **One column, `in_list_view`, carries two unrelated meanings, and upstream says so in an error string.**
+   `check_in_list_view` selects its own label at runtime —
+   `property_label = "In Grid View" if is_table else "In List View"`
+   (`frappe/core/doctype/doctype/doctype.py:1455-1457`) — and the two meanings have disjoint consumers: the
+   child-table grid reads it (`frappe/public/js/frappe/form/grid.js:1531`) and the parent form does not
+   (§4.2). A single stored flag therefore cannot be set for the grid without also setting it for the list, or
+   vice versa.
+4. **`allow_on_submit` is enforced on one write path and bypassed on another, and upstream depends on the
+   bypass.** `_validate_update_after_submit` runs only under `_action == "update_after_submit"`
+   (`frappe/model/document.py:844-848`) and is skippable by flag
+   (`frappe/model/document.py:1478-1479`), while `db_set` reaches `frappe.db.set_value` without it
+   (`frappe/model/document.py:1951`, `frappe/model/document.py:1994-1996`). ERPNext's status updater writes
+   a field lacking the flag onto a submitted document by that route
+   (`controllers/status_updater.py:677-683`;
+   `selling/doctype/sales_order/sales_order.json:1275-1290` shows the field has no `allow_on_submit`). The
+   constraint is therefore advisory with respect to server code and binding only on `Document.save()`.
+5. **`translatable` substitutes translated text for stored text in the export path.** `export_query`
+   replaces a column's value with `_(value)` when the flag is set
+   (`frappe/desk/reportview.py:499-503`), so an exported file holds display text where the database holds a
+   code. This is the stored-value/displayed-text conflation Requirement 13.4 rejects, present upstream, and
+   it is invisible on the form because the flag does not translate anything there (§4.2).
+6. **The `hidden`/`read_only` subset of the pipeline has three independent implementations, two of which omit
+   the permission and `allow_on_submit` arms.** The full eight-arm version is
+   `frappe/public/js/frappe/model/perm.js:246-307`; a three-flag version runs whenever `perm` is not supplied
+   and no `doc` is available to derive it (`frappe/public/js/frappe/model/perm.js:239-243`); and a third
+   lives in `BaseControl.get_status` for dialogs and Web Forms
+   (`frappe/public/js/frappe/form/controls/base_control.js:53-92`, flag tests at
+   `frappe/public/js/frappe/form/controls/base_control.js:61-71`). A field rendered in a dialog therefore
+   ignores `permlevel` and `allow_on_submit` entirely — the same duplication-with-divergence pattern §3.8
+   item 5 records for the expression evaluator, in a second subsystem.
+7. **`Layout.is_visible` tests for the *presence* of the `hidden` key, not its value.** The predicate is
+   `field.disp_status === "Write" && field.df && "hidden" in field.df && !field.df.hidden`
+   (`frappe/public/js/frappe/form/layout.js:759-762`). A docfield that never had `hidden` written — the
+   normal case for a JSON definition that omits the property, as `Timesheet.per_billed` omits it
+   (`projects/doctype/timesheet/timesheet.json:231-240`) — fails the `in` test and is treated as not visible.
+   The predicate governs Enter-key focus traversal (`frappe/public/js/frappe/form/layout.js:706`,
+   `frappe/public/js/frappe/form/layout.js:738`), so such a field is skipped when moving between fields even
+   though it is on screen and writable. This is a fourth, and the narrowest, definition of "visible" in the
+   layout engine, alongside `disp_status == "None"`
+   (`frappe/public/js/frappe/form/controls/base_control.js:141`), `frappe.perm.is_visible`
+   (`frappe/public/js/frappe/model/perm.js:310-319`) and the print view's `is_visible`
+   (`frappe/www/printview.py:517-525`).
+8. **A commented-out exclusion is left in the `allow_on_submit` arm.** The line
+   `// let allow_on_submit = df.fieldtype==="Table" ? 0 : cint(df.allow_on_submit);`
+   (`frappe/public/js/frappe/model/perm.js:276`) records an abandoned decision to deny the flag to `Table`
+   fields, immediately above the live line that grants it
+   (`frappe/public/js/frappe/model/perm.js:277`). It is dead text with no accompanying rationale, and the
+   child-row exemption on the server (`frappe/model/document.py:1482-1485`) is written on the opposite
+   assumption.
+
 ## 5. Field type → control mapping
 
 ## 6. Precision resolution, and where display diverges from storage
