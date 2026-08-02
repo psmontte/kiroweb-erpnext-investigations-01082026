@@ -3570,13 +3570,18 @@ translation_run(id, company_id, period_id NOT NULL,
    UNIQUE (company_id, period_id, presentation_currency_id) WHERE supersedes_translation_run_id IS NULL
    -- IMMUTABLE. A restatement is a new superseding run.
 translated_balance(id, company_id, translation_run_id, account_id,
-    functional_amount numeric(19,4) NOT NULL,
+    functional_amount numeric(19,4) NOT NULL,       -- as POSTED, never an unrounded intermediate
     rate_class rate_class_enum /*closing|average|historical|transaction_date*/ NOT NULL,
     exchange_rate_id NOT NULL, presentation_amount numeric(19,4) NOT NULL)
    UNIQUE (company_id, translation_run_id, account_id)
    -- `rate_class` is PRESCRIBED per account by the method — closing for balance-sheet items, average
    -- or transaction-date for income, historical for equity — and stored per line. That is what makes
    -- the residual below a CONSEQUENCE.
+   -- ROUNDING RULE: presentation_amount is a function of functional_amount AS STORED. A translation
+   -- never reaches behind a posted amount to an unrounded intermediate, because a consolidated
+   -- statement must be derivable from figures that exist in a ledger. S13 §7.4 is where this moves a
+   -- cent: a posted FX gain of GBP 333.33 translates to EUR 387.59, not the 387.60 an unrounded
+   -- 333.3333 would give.
 translation_adjustment(id, company_id, translation_run_id,
     cta_account_id NOT NULL, amount numeric(19,4) NOT NULL, is_debit bool NOT NULL)
    UNIQUE (company_id, translation_run_id)
@@ -3876,7 +3881,7 @@ equity. S13 §7.5 works this through to the cent for a 60%-owned member.
 
 **S13** is the end-to-end acceptance fixture for §32–§35: an INR seller crossing to a GBP buyer, 40 of 100
 units sold onward, a closing revaluation, three translation runs, and an EUR consolidation whose trial balance
-ties exactly (Dr = Cr = 24,829.28) with group profit 2,566.03 of which 1,459.62 is attributable to the parent.
+ties exactly (Dr = Cr = 24,829.27) with group profit 2,566.02 of which 1,459.61 is attributable to the parent.
 
 ---
 

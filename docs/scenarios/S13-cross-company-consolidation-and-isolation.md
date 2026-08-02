@@ -468,9 +468,9 @@ storing the presentation currency, the method, and every rate revision used (**T
 | Share capital | 2,000.00 Cr | historical 0.80 | 2,500.00 Cr |
 | Retained earnings, opening | 600.00 Cr | historical 0.80 | 750.00 Cr |
 | Revenue — external | 4,000.00 Cr | average 0.86 | 4,651.16 Cr |
-| FX gain | 333.33 Cr | average 0.86 | 387.60 Cr |
-| | | | Dr 14,790.70 / Cr 14,955.43 |
-| **`translation_adjustment` (CTA)** | | consequence | **164.73 Dr** |
+| FX gain | 333.33 Cr | average 0.86 | 387.59 Cr |
+| | | | Dr 14,790.70 / Cr 14,955.42 |
+| **`translation_adjustment` (CTA)** | | consequence | **164.72 Dr** |
 
 Note the bolded line. BetaCo's payable translates to EUR **6,666.67**, exactly equal to AlphaCo's receivable.
 That is not a coincidence and it is not a rounding accident: it happens because §7.4's revaluation restated
@@ -482,6 +482,16 @@ lands in the FCTR plug where it is indistinguishable from a real translation dif
 
 Both CTAs are **consequences** of prescribed rates, posted to each company's declared `cta_account_id` — not
 residuals chosen to make the columns add up.
+
+**One deliberate rounding rule, because it moves a cent and therefore has to be stated.** Translation converts
+the **posted** functional amount, not an unrounded intermediate. BetaCo's FX gain is a posted ledger amount of
+GBP 333.33 — the revaluation rounded it to the cent when it was journalled — so it translates as
+333.33 ÷ 0.86 = **387.59**, not 387.60. Translating the unrounded 333.3333 would give 387.60 and would mean the
+consolidated statements were derived from a number that exists nowhere in any ledger. The rule is:
+`translated_balance.presentation_amount` is a function of `functional_amount` as stored, and
+`functional_amount` is what was posted. This is why §7.5's aggregate is 48,773.60 rather than 48,773.61, and it
+is the sort of one-cent question that has to be answered by a declared rule rather than by whichever code path
+happens to run first.
 
 ### 7.5 The consolidation run
 
@@ -505,14 +515,14 @@ run**.
 | Investments in subsidiaries | 11,500.00 | | | 11,500.00 Dr |
 | Cost of sales | | 5,681.82 | 2,790.70 | 8,472.52 Dr |
 | Admin expense | 200.00 | | | 200.00 Dr |
-| CTA | | 1,414.14 | 164.73 | 1,578.87 Dr |
+| CTA | | 1,414.14 | 164.72 | 1,578.86 Dr |
 | Intra-group payable | | | 6,666.67 | 6,666.67 Cr |
 | Share capital | 14,000.00 | 10,000.00 | 2,500.00 | 26,500.00 Cr |
 | Retained earnings, opening | 500.00 | 2,500.00 | 750.00 | 3,750.00 Cr |
 | Revenue | | 6,818.18 | 4,651.16 | 11,469.34 Cr |
-| FX gain | | | 387.60 | 387.60 Cr |
-| | | | **Dr** | **48,773.61** |
-| | | | **Cr** | **48,773.61** |
+| FX gain | | | 387.59 | 387.59 Cr |
+| | | | **Dr** | **48,773.60** |
+| | | | **Cr** | **48,773.60** |
 
 **Eliminations.** Each cites the fact it derives from, so completeness is a constraint rather than a review
 (**T29**). Each leg carries its own segment attribution, because the two halves of an intra-group trade belong
@@ -545,12 +555,12 @@ goodwill: AlphaCo 10,000 against 10,000 (100%), BetaCo 1,500 against 60% × 2,50
 E7's inputs, each from a declared policy on the run rather than a report's implicit behaviour:
 
 ```text
-BetaCo translated profit         = 4,651.16 + 387.60 − 2,790.70 = 2,248.06
+BetaCo translated profit         = 4,651.16 + 387.59 − 2,790.70 = 2,248.05
 + eliminations attributed to UK on a P&L leg (E3)               =   517.97
-= BetaCo attributed profit                                     = 2,766.03
-MI share of profit        40% × 2,766.03                        = 1,106.41
+= BetaCo attributed profit                                     = 2,766.02
+MI share of profit        40% × 2,766.02                        = 1,106.41
 MI share of opening RE    40% ×   750.00                        =   300.00
-MI share of BetaCo CTA    40% ×   164.73                        =    65.89   (reduces MI)
+MI share of BetaCo CTA    40% ×   164.72                        =    65.89   (reduces MI)
 ```
 
 E2, E4 and E5 are attributed to **AlphaCo**, which is wholly owned, so they carry no minority interest. That
@@ -568,15 +578,15 @@ has no place for, and the reason a 60%-owned subsidiary cannot be consolidated c
 | Cost of sales | 8,472.52 Dr | −5,681.82 (E2) −517.97 (E3) | **2,272.73 Dr** |
 | Admin expense | 200.00 Dr | | **200.00 Dr** |
 | MI share of profit | | +1,106.41 (E7) | **1,106.41 Dr** |
-| CTA | 1,578.87 Dr | +283.57 (E5) −65.89 (E7) | **1,796.55 Dr** |
+| CTA | 1,578.86 Dr | +283.57 (E5) −65.89 (E7) | **1,796.54 Dr** |
 | Intra-group payable | 6,666.67 Cr | −6,666.67 (E1) | **0** |
 | Share capital | 26,500.00 Cr | −12,500.00 (E6) | **14,000.00 Cr** |
 | Retained earnings, opening | 3,750.00 Cr | −300.00 (E7) | **3,450.00 Cr** |
 | Revenue | 11,469.34 Cr | −6,818.18 (E2) | **4,651.16 Cr** |
-| FX gain | 387.60 Cr | | **387.60 Cr** |
+| FX gain | 387.59 Cr | | **387.59 Cr** |
 | Minority interest (equity) | | +1,000.00 (E6) +1,340.52 (E7) | **2,340.52 Cr** |
-| | | **Dr** | **24,829.28** |
-| | | **Cr** | **24,829.28** |
+| | | **Dr** | **24,829.27** |
+| | | **Cr** | **24,829.27** |
 
 Read the four lines that matter:
 
@@ -587,16 +597,16 @@ Read the four lines that matter:
   300,000 at closing. The INR 60,000 of unrealised margin is not in the balance sheet.
 - **Share capital 14,000.00** — HoldCo's only.
 
-Group profit before minority interest = 4,651.16 + 387.60 − 2,272.73 − 200.00 = **2,566.03**. Cross-checked
+Group profit before minority interest = 4,651.16 + 387.59 − 2,272.73 − 200.00 = **2,566.02**. Cross-checked
 independently: BetaCo's external gross margin at group cost (4,651.16 − 2,272.73 = 2,378.43), plus BetaCo's FX
-gain (387.60), less HoldCo's admin (200.00) = 2,566.03. Attributable to the parent: 2,566.03 − 1,106.41 =
-**1,459.62**.
+gain (387.59), less HoldCo's admin (200.00) = 2,566.02. Attributable to the parent: 2,566.02 − 1,106.41 =
+**1,459.61**.
 
 ### 7.7 Three-way reconciliation, as deferred constraints
 
 **T30** is three constraints on the transaction that writes the run, not three footnotes.
 
-**Direction 1 — the consolidated trial balance balances.** Dr 24,829.28 = Cr 24,829.28.
+**Direction 1 — the consolidated trial balance balances.** Dr 24,829.27 = Cr 24,829.27.
 
 **Direction 2 — each group account equals contributions − eliminations − minority interest.**
 
