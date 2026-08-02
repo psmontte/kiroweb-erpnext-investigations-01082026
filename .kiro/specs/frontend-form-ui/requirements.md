@@ -174,15 +174,16 @@ engine documented exactly, so that our layout model is designed against known be
 6. THE `docs/ui/01-form-rendering-and-layout-engine.md` document SHALL map each field type to the control
    implemented in `frappe/public/js/frappe/form/controls/`, covering `Link`, `Dynamic Link`, `Table`,
    `Table MultiSelect`, `Select`, `Currency`, `Float`, `Percent`, `Duration`, `Geolocation`, `Barcode`,
-   `Signature`, `Rating`, `JSON`, `Code`, `Markdown`, and `Attach`.
+   `Signature`, `Rating`, `JSON`, `Code`, `Markdown Editor`, and `Attach`.
 7. THE `docs/ui/01-form-rendering-and-layout-engine.md` document SHALL state the precision resolution order
    from field precision, through `System Settings.float_precision`, to currency `smallest_fraction`, and
    SHALL identify each point at which a displayed value diverges from the stored value.
 8. THE `docs/ui/01-form-rendering-and-layout-engine.md` document SHALL state the dirty-state model and the
    re-render cost of `refresh_field`, `set_value`, and `toggle_display`.
-9. IF a class or file named in this specification is absent from Pinned_Sources, THEN THE UI_Doc SHALL record
-   the absence as a finding under the convention stated in Requirement 5 criterion 5, SHALL name the absent
-   class or file, and SHALL omit any line number for the absent class or file.
+9. IF a class, file or fieldtype named in this specification is absent from Pinned_Sources, THEN THE UI_Doc
+   SHALL record the absence as a finding under the convention stated in Requirement 5 criterion 5, SHALL name
+   the absent class, file or fieldtype, and SHALL omit any line number for the absent class, file or
+   fieldtype.
 
 ### Requirement 7
 
