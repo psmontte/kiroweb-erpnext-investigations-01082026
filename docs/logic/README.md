@@ -125,6 +125,7 @@ python3 tools/verify_refs.py --docs docs/logic \
 | Read | File | Covers |
 |---|---|---|
 | 45 | [45-gst-registration-settings-hsn-and-tax-structure.md](45-gst-registration-settings-hsn-and-tax-structure.md) | why GST cannot be read from ERPNext; how the app attaches (`doc_events` + **custom fields toggled by a settings checkbox**); GSTIN's seven category-specific formats and mod-36 check digit; GSTIN status as a cached external fact whose validation can arrive **after** the write; GST Settings gating scheduler rows; five components → fifteen account roles; the `gst_rate == tax_rate × 2` intra-state rule; HSN/SAC and its unversioned bulk push into item masters |
+| 46 | [46-gst-place-of-supply-and-component-determination.md](46-gst-place-of-supply-and-component-determination.md) | the arithmetic core: place of supply stored as a **display string whose first two characters are statutory**; a missing place of supply silently meaning intra-state; source state recovered by slicing a GSTIN with `"96"` as a magic literal; intra/inter account filtering; the reverse-charge forward/booked cancellation and its **hard-coded 2-decimal tolerance** beside a refund rule that uses document precision; ineligible ITC redirecting tax into inventory and **asset** valuation in place; item-wise distribution; and GSTR-1-filed backdating control held in a Single |
 
 
 Assets are documented in docs **41–44** plus **[S11](../scenarios/S11-asset-lifecycle.md)**: all 14
