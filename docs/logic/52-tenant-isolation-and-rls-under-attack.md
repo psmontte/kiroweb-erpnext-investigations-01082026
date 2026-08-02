@@ -375,9 +375,9 @@ documents and transfer pricing.
 
 Cross-references: [doc 50](50-authentication-session-and-tenant-context.md) (why there is no context to bind
 to), [doc 51](51-permission-model-end-to-end.md) (the fail-open polarity this exploits),
-[doc 19](19-permissions-and-sharing.md) (`permission_query_conditions` and sharing),
+[doc 19](19-permissions-and-access-control.md) (`permission_query_conditions` and sharing),
 [doc 22](22-background-jobs-scheduling-and-locking.md) (job execution semantics — §3 is its security
-consequence), [doc 24](24-reports-dashboards-and-print.md) (report framework and post-hoc filtering),
+consequence), [doc 24](24-reporting-framework.md) (report framework and post-hoc filtering),
 [doc 15](15-intercompany-and-history-rewriting.md) (reposting, which runs as background work),
 [doc 25](25-our-platform-spec.md) (four-layer rule), and
 [`../design/FINAL-SCHEMA.md`](../design/FINAL-SCHEMA.md). Next: doc 53 — multi-company, inter-company

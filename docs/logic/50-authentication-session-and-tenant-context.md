@@ -421,11 +421,11 @@ and doc 52 turns T1 into an adversarial test matrix.
 
 ---
 
-Cross-references: [doc 19](19-permissions-and-sharing.md) (roles, user permissions, sharing, field-level
+Cross-references: [doc 19](19-permissions-and-access-control.md) (roles, user permissions, sharing, field-level
 permissions — the machinery this document places in context), [doc 20](20-naming-identity-and-audit-trail.md)
 (audit trail and log family), [doc 22](22-background-jobs-scheduling-and-locking.md) (jobs run **without a
 session** — a direct problem for T1, taken up in doc 52),
-[doc 24](24-reports-dashboards-and-print.md) (post-hoc permission filtering in reports),
+[doc 24](24-reporting-framework.md) (post-hoc permission filtering in reports),
 [doc 25](25-our-platform-spec.md) (the four-layer rule and platform build/buy/drop decisions),
 [doc 45](45-gst-registration-settings-hsn-and-tax-structure.md) and
 [doc 49](49-tranche-f-closure-and-our-localisation-spec.md) (GST credential storage, deferred to this tranche),

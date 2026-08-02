@@ -6,7 +6,7 @@
 > prefixed `frappe/` and relative to `/projects/sandbox/frappe/frappe`.
 
 [Doc 50](50-authentication-session-and-tenant-context.md) established that there is no tenant context: company
-is a data dimension, and the mechanism that narrows it is `User Permission`. [Doc 19](19-permissions-and-sharing.md)
+is a data dimension, and the mechanism that narrows it is `User Permission`. [Doc 19](19-permissions-and-access-control.md)
 catalogued the permission machinery. This document does the thing neither did — traces the **decision path** for
 a single access check and asks, at each branch, *what happens when the rule is absent*.
 
@@ -352,10 +352,10 @@ into an adversarial test matrix.
 
 ---
 
-Cross-references: [doc 19](19-permissions-and-sharing.md) (the machinery catalogue this traces),
+Cross-references: [doc 19](19-permissions-and-access-control.md) (the machinery catalogue this traces),
 [doc 50](50-authentication-session-and-tenant-context.md) (principals, sessions and the tenant-context
 function these grants sit on top of), [doc 22](22-background-jobs-scheduling-and-locking.md) (jobs with no
-session and therefore no principal), [doc 24](24-reports-dashboards-and-print.md) (post-hoc filtering in
+session and therefore no principal), [doc 24](24-reporting-framework.md) (post-hoc filtering in
 reports — the same failure polarity at the query layer),
 [doc 18](18-metadata-and-runtime-ddl.md) (`DocField.ignore_user_permissions` as metadata),
 [doc 25](25-our-platform-spec.md) (four-layer rule), and
