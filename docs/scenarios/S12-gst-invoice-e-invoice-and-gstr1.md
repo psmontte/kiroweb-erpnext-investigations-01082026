@@ -26,8 +26,8 @@ an e-way bill, then files GSTR-1 for the period.
 | **Invoice A** | Customer in Maharashtra, GSTIN `27AAFCB5678B1Z3` — **intra-state** |
 | Invoice A items | 10 × `WIDGET-1` @ 5,000.00, HSN `84819010`, GST 18% |
 | **Invoice B** | Customer in Karnataka, GSTIN `29AAGCC9012C1Z1` — **inter-state** |
-| Invoice B items | 4 × `WIDGET-1` @ 5,000.00, HSN `84819010`, GST 18% |
-| E-way bill | Invoice B only (goods crossing a state boundary, value above threshold) |
+| Invoice B items | **12** × `WIDGET-1` @ 5,000.00, HSN `84819010`, GST 18% |
+| E-way bill | Invoice B only — inter-state **and** above the app's default `e_waybill_threshold` of 50,000 (`india_compliance/gst_india/setup/__init__.py:219`) |
 | Return | GSTR-1 for the month, B2B section |
 
 Assumptions that make every number deterministic: single currency (INR), no discounts, no cess, no reverse
@@ -120,24 +120,24 @@ Same item, same rate, different state:
 place_of_supply = "29-Karnataka"     source_state = "27"
 is_inter_state  = "29" != "27" → True
 account filter  → CGST and SGST excluded ; IGST applicable
-taxable value   = 4 × 5,000.00 = 20,000.00
-IGST @ 18%      = 3,600.00
-invoice total   = 23,600.00
+taxable value   = 12 × 5,000.00 = 60,000.00
+IGST @ 18%      = 10,800.00
+invoice total   = 70,800.00
 ```
 
 | Account | Debit | Credit |
 |---|---:|---:|
-| Debtors | **23,600.00** | |
-| Sales | | 20,000.00 |
-| Output IGST | | **3,600.00** |
-| **Total** | **23,600.00** | **23,600.00** |
+| Debtors | **70,800.00** | |
+| Sales | | 60,000.00 |
+| Output IGST | | **10,800.00** |
+| **Total** | **70,800.00** | **70,800.00** |
 
 The same 18% resolves to `9 + 9` in one invoice and `18` in the other, from one template — the duality doc 45
 §5.1 identified, working correctly.
 
 **What would have happened with a missing place of supply:** `is_inter_state_supply` returns `False`
 (`india_compliance/gst_india/overrides/transaction.py:577-592`), so Invoice B would have been taxed
-`CGST 1,800.00 + SGST 1,800.00` — the right total, wrong components, wrong state's revenue, and wrong GSTR-1
+`CGST 5,400.00 + SGST 5,400.00` — the right total, wrong components, wrong state's revenue, and wrong GSTR-1
 section. No error raised.
 
 ---
@@ -287,8 +287,7 @@ in transit as the consequence.
 ### 7.1 Building the working set
 
 `GSTReturnLog` composes generation, filing and persistence
-(`india_compliance/gst_india/doctype/gst_return_log/gst_return_log.py:28-40`). Invoices A (cancelled) and B
-are classified into the prescribed subcategories
+(`india_compliance/gst_india/doctype/gst_return_log/gst_return_log.py:28-40`). Invoice B is classified into the prescribed subcategories
 (`india_compliance/gst_india/utils/gstr_1/__init__.py:29-162`); B lands in **B2B Regular**, and A's credit
 note — if one was raised — lands in the credit/debit note section.
 
@@ -300,7 +299,7 @@ can be served from a memoised blob whose inputs have since changed.
 
 The portal's version of our filed data is downloaded and compared
 (`india_compliance/gst_india/doctype/gst_return_log/generate_gstr_1.py:263-351`). Suppose the portal shows
-Invoice B with a taxable value of 20,000.00 but **IGST of 3,599.00** — a one-rupee difference from a rounding
+Invoice B with a taxable value of 60,000.00 but **IGST of 10,799.00** — a one-rupee difference from a rounding
 mismatch upstream in their system.
 
 `get_reconciled_row` computes the difference field by field
@@ -308,8 +307,8 @@ mismatch upstream in their system.
 
 ```text
 match_status = "Matched"
-taxable_value : flt(20,000.00 − 20,000.00, 2) = 0.00   → no difference
-igst          : flt( 3,600.00 −  3,599.00, 2) = 1.00   → DIFFERENT
+taxable_value : flt(60,000.00 − 60,000.00, 2) = 0.00   → no difference
+igst          : flt(10,800.00 − 10,799.00, 2) = 1.00   → DIFFERENT
 → match_status = "Mismatch", differences = "Igst"
 row keeps: books = {…}, gov = {…}, igst = 1.00
 ```
@@ -367,11 +366,11 @@ rather than as a period record.
 **Accounting proof** (Invoice B, the surviving invoice):
 
 ```text
-Dr Debtors 23,600.00 / Cr Sales 20,000.00 + Cr Output IGST 3,600.00
+Dr Debtors 70,800.00 / Cr Sales 60,000.00 + Cr Output IGST 10,800.00
 ```
 
 Balanced. The GST components tie exactly to the declared taxable value at 18%, and the return reports
-20,000.00 / 3,600.00 for that invoice — with the portal disagreeing by 1.00, held as a finding.
+60,000.00 / 10,800.00 for that invoice — with the portal disagreeing by 1.00, held as a finding.
 
 ### 8.1 Evidence versus projection
 
@@ -427,8 +426,8 @@ tax_determination(source=SI-B, jurisdiction_revision=IN-r7, engine_version='1.4.
     source_area_id→'27',        source_basis='company_registration',
     money_precision=2)
 tax_determination_line(source_line=SI-B-1, classification_revision=HSN-84819010-r3,
-    tax_rate_revision=IN-84819010-inter-r2, taxable_amount=20,000.00)
-tax_determination_component(component=igst, role=output, rate=18.000000, amount=3,600.00)
+    tax_rate_revision=IN-84819010-inter-r2, taxable_amount=60,000.00)
+tax_determination_component(component=igst, role=output, rate=18.000000, amount=10,800.00)
 ```
 
 Now the questions upstream cannot answer are queries: which rate schedule (`tax_rate_revision`), which rule
@@ -476,7 +475,10 @@ statutory_artefact_event(type=cancelled, authority_timestamp=…, timestamp_sour
 statutory_artefact.state = cancelled          -- authority_identifier UNTOUCHED
 ```
 
-Regeneration inserts `generation_no = 2`. Nothing is erased, so
+That row is legal because the state/identifier coupling is **two one-directional checks**, not a biconditional:
+an identifier is mandatory in `issued|cancelled|expired` and forbidden in `required|pending|not_applicable`
+(`FINAL-SCHEMA` §26). Regeneration then inserts `generation_no = 2`, and a partial unique index permits **at
+most one live generation**, so two issued IRNs against one invoice are impossible. Nothing is erased, so
 `UNIQUE (company_id, artefact_type, authority_identifier)` is a real constraint and history survives. Where
 the authority's timestamp is unavailable, `timestamp_source = 'local_fallback'` marks it as ours.
 
@@ -492,7 +494,7 @@ call leaves the item retryable (`FINAL-SCHEMA` §26).
 return_period(registration=27AACCA1234A1Z5, return_type='gstr1',
     period_start=2026-08-01, period_end=2026-08-31, state=working)
 return_working_set(version=1, source_watermark=…, content_hash=…,
-    return_format_revision_id=gstr1-r12, output_precision=2)
+    return_format_revision_id=gstr1-r12)          -- output_precision is on the format revision
 authority_dataset(dataset_type='gstr1_filed', payload_hash=…, attempt=…)
 reconciliation_run(working_set=1, dataset=…, match_policy_revision=IN-gstr1-r3,
     comparison_precision=2)
@@ -563,8 +565,9 @@ enforces, rather than a per-document lookup against a Single.
 9. **The retry queue is a status string plus a Single flag cleared before the work it guards.**
 10. **The return working set is a memoised blob**, and reconciliation writes `upload_status` and synthetic
     rows into the data it is comparing.
-11. **Three separate hard-coded 2-decimal precisions** govern a statutory balance rule, a reconciliation
-    comparison and the values declared to the government.
+11. **Hard-coded tolerances throughout**: three 2-decimal precisions govern a statutory balance rule, a
+    reconciliation comparison and the values declared to the government — plus a ₹1 rounding tolerance, a
+    `0.01` threshold and fixed 90%/100% fuzzy confidence levels inside the match ladder.
 12. **Match decisions leave no history** — no actor, no rule version, no evidence — despite the matching
     *policy* itself being the best-designed thing in the tranche.
 
