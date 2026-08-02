@@ -2860,8 +2860,13 @@ principal_credential(id, principal_id,
     rotated_from_credential_id bigint NULL,   -- the rotation chain
     revoked_at timestamptz NULL, revoked_by bigint NULL, revoked_reason text NULL,
     last_used_at timestamptz NULL)
-   UNIQUE (principal_id, credential_kind, subject_ref) WHERE revoked_at IS NULL
+   UNIQUE (principal_id, credential_kind, subject_ref) NULLS NOT DISTINCT
+      WHERE revoked_at IS NULL
    CHECK (num_nonnulls(secret_ref, subject_ref) = 1)
+   -- NULLS NOT DISTINCT matters here and is not boilerplate: `subject_ref` is NULL for every
+   -- secret-backed kind, and under default NULL-distinct semantics a principal could hold any number
+   -- of unrevoked passwords simultaneously — each invisible to the others. With it, one live
+   -- credential per kind, which is what "rotation chain" presupposes.
    CHECK (expires_at IS NULL OR expires_at > issued_at)
    CHECK (rotated_from_credential_id <> id)
    CHECK (assurance_level BETWEEN 1 AND 3)
@@ -3693,7 +3698,12 @@ reporting_segment(id, company_id, code varchar(32), name text,
     is_unallocated bool NOT NULL DEFAULT false,
     effective_from date NOT NULL, effective_to date NULL)
    UNIQUE (company_id, code)
-   UNIQUE (company_id) WHERE is_unallocated        -- exactly one, and it must exist
+   UNIQUE (company_id) WHERE is_unallocated
+   -- The partial unique enforces AT MOST one unallocated segment. It cannot enforce that one EXISTS
+   -- — no unique index can — so existence is a seed row created by the same migration that creates
+   -- the company, plus an L2 trigger on segment_mapping that refuses the first mapping for a company
+   -- with no unallocated segment. Both halves are needed: without existence, T30 direction 3 fails
+   -- silently the first time a dimension value is unmapped.
 segment_mapping(id, company_id, reporting_segment_id, dimension_id NOT NULL,
     dimension_value_id NOT NULL, include_descendants bool NOT NULL,
     effective_from date NOT NULL, effective_to date NULL)
