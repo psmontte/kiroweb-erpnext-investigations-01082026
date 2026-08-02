@@ -2394,20 +2394,30 @@ tax_treatment(id, company_id, tax_jurisdiction_id, code treatment_enum
     /*taxable|zero_rated|nil_rated|exempted|non_gst*/, allows_nonzero_rate bool,
     reporting_category text)
    UNIQUE (company_id, tax_jurisdiction_id, code)
-tax_rate_revision(id, company_id, tax_jurisdiction_id, classification_code_revision_id,
-    supply_type supply_type_enum, headline_rate numeric(9,6), tax_treatment_id,
+tax_rate_revision(id, company_id, tax_jurisdiction_id,
+    classification_scheme_id bigint NOT NULL, classification_code varchar(16) NOT NULL,
+    supply_type supply_type_enum, component_role component_role_enum NOT NULL,
+    headline_rate numeric(9,6), tax_treatment_id,
     revision_no integer, effective_from date, effective_to date NULL, state revision_state_enum)
-   UNIQUE (company_id, classification_code_revision_id, supply_type, revision_no)
-   EXCLUDE USING gist (company_id WITH =, classification_code_revision_id WITH =,
-      supply_type WITH =, daterange(effective_from, effective_to, '[)') WITH &&)
+   UNIQUE (company_id, classification_scheme_id, classification_code, supply_type,
+           component_role, revision_no)
+   EXCLUDE USING gist (company_id WITH =, classification_scheme_id WITH =, classification_code WITH =,
+      supply_type WITH =, component_role WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&)
       WHERE (state = 'approved')
    CHECK (headline_rate >= 0)
+   -- the exclusion is keyed on the classification CODE, not a code revision: codes are themselves
+   -- versioned, so keying on the revision row would let two approved rate revisions for one HSN code be
+   -- effective simultaneously
+   -- deferred: headline_rate = 0 unless tax_treatment.allows_nonzero_rate  (doc 45 §8)
 tax_rate_component(id, company_id, tax_rate_revision_id, tax_component_id,
     rate numeric(9,6) NOT NULL)
    UNIQUE (company_id, tax_rate_revision_id, tax_component_id)
-   -- deferred: Σ rate = headline_rate EXACTLY per supply type. This generalises the
-   -- `gst_rate == tax_rate × 2` intra-state rule (doc 45 §5.1) from a validation message to a
-   -- constraint, and supports three-way or quantity-based splits without new code.
+   -- deferred: Σ rate = headline_rate EXACTLY, over components of the revision's OWN component_role.
+   -- This generalises the intra-state doubling relationship (doc 45 §5.1) — which upstream never actually
+   -- sums, checking each row independently against abs(tax_rate) — into a real constraint, and supports
+   -- three-way or quantity-based splits without new code.
+   -- L2 trigger: every tax_component here has component_role = tax_rate_revision.component_role
 ```
 
 ---
@@ -2424,9 +2434,14 @@ tax_determination(id, company_id, source_doc_type text, source_doc_id bigint,
                                           company_registration|explicit_override|statutory_default*/,
     source_area_id bigint NOT NULL, source_basis pos_basis_enum,
     supplier_registration_snapshot_id, customer_registration_snapshot_id,
+    tax_registration_id bigint NOT NULL,        -- OUR registration; the return this document belongs to
     money_precision smallint NOT NULL,
+    is_self_supply bool NOT NULL DEFAULT false,
     command_receipt_id, reverses_determination_id bigint NULL)
    UNIQUE (company_id, source_doc_type, source_doc_id) WHERE reverses_determination_id IS NULL
+   CHECK (money_precision BETWEEN 2 AND 4)     -- G12's exactness cannot be widened to 0 or 1
+   CHECK (NOT is_self_supply)                  -- a supply to oneself is REFUSED, not zero-taxed
+   -- tax_registration_id is resolved BEFORE the return_period guard in §27.1, which keys on it
    -- place of supply is an AREA FK, never a "NN-State Name" label whose first two characters are
    -- statutory (doc 46 §2.1). Absence of a place of supply is a refusal, not intra-state.
 
@@ -2440,12 +2455,15 @@ tax_determination_component(id, company_id, tax_determination_line_id, tax_compo
     component_role component_role_enum, rate numeric(9,6), amount numeric(19,4),
     account_id, is_residual bool NOT NULL DEFAULT false)
    UNIQUE (company_id, tax_determination_line_id, tax_component_id, component_role)
-   -- deferred triggers:
+   -- deferred triggers, all scoped BY component_role because a role may carry a negative sign_policy:
    --   the component is in the applicable set for (jurisdiction, supply_type, direction, role)
-   --   Σ amount per line = round(taxable_amount × Σ rate) with exactly ONE residual component
-   --   Σ amount per component across lines = the document's component total, EXACTLY
-   --   forward and reverse amounts cancel EXACTLY at determination.money_precision
-   --      (never at a hard-coded 2 — doc 46 §4.1)
+   --   per line and per role: Σ amount = round(taxable_amount × Σ rate) with exactly ONE residual
+   --   per component and role: Σ amount across lines = doc_tax.amount for that account, EXACTLY
+   --   forward (role='output'/'input') and reverse (role='reverse_charge') amounts cancel EXACTLY at
+   --      determination.money_precision — never at a hard-coded 2 (doc 46 §4.1)
+   --   when any refund component is present: Σ ALL component amounts = 0 at money_precision
+   --      (doc 46 §4.3's refund net-zero rule, which upstream skips entirely on reverse-charge documents)
+   --   tax_determination_line.tax_treatment_id must equal its tax_rate_revision's tax_treatment_id
 
 tax_credit_block(id, company_id, tax_determination_line_id, tax_component_id,
     reason_code credit_block_reason_enum /*place_of_supply|blocked_category|personal_use|
