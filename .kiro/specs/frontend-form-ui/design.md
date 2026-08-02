@@ -391,18 +391,27 @@ summary:   2 citations verified … 1 problems
 ```
 
 Consequence: Requirement 17.1 is satisfiable **vacuously** for the majority of this investigation's citations.
-A `0 problems` report is therefore necessary but **not sufficient** evidence of citation correctness.
+Requirement 17.4 now states that conclusion normatively — a `0 problems` report is **necessary and
+insufficient** evidence of Citation correctness — so what follows is a requirement-mandated obligation, not a
+design mitigation the implementation may weigh against cost. Requirement 17.3 additionally requires the
+`.py`-only scope to be recorded in the Notes_Register, citing the mandatory `.py` extension of the citation
+pattern at `tools/verify_refs.py:35` and the Python-only symbol index built with `ast.parse` at
+`tools/verify_refs.py:62`.
 
 Design response — three parts, none of which touches `tools/**` (a Restricted_Path):
 
 1. **Run the tool anyway, with `--strict-names`.** It fully verifies every `.py` citation (customise-form
    doctypes, erpnext `listview_settings` consumers, controllers) and must report `0 problems`.
-2. **Add a read-back check for non-`.py` citations** (V4 below). Every `.js`/`.json`/`.vue` citation is
-   re-read from the pinned tree and the cited line is confirmed to exist and to contain the construct the
-   claim names. This uses read-only shell commands only and creates no files.
-3. **Request the tool extension in the Notes_Register** under `## Requests for the backend agent`: extend
-   `CITATION` to non-Python extensions and gate `--strict-names` on a Python-only symbol index. The frontend
-   agent does not edit `tools/**` (Requirement 16.2).
+2. **Perform the read-back check for non-`.py` citations** (V4 below) — **mandated by Requirements 17.5 and
+   17.6.** Every `.js`/`.json`/`.vue` citation is re-read from the pinned tree at its cited line and confirmed
+   to contain the construct the claim names (17.5); a Citation the re-read does not confirm is corrected or
+   removed **before the acceptance gate passes** (17.6). This uses read-only shell commands only and creates
+   no files.
+3. **Record the scope, and request the tool extension, in the Notes_Register.** The `.py`-only scope note
+   required by Requirement 17.3, with both citations (`tools/verify_refs.py:35`, `:62`); and, under
+   `## Requests for the backend agent`, extend `CITATION` to non-Python extensions and gate `--strict-names`
+   on a Python-only symbol index. The frontend agent does not edit `tools/**` (Requirement 16.2), so the
+   read-back check in part 2 is the standing substitute rather than something the request unblocks.
 
 ### 8.5 The acceptance loop
 
@@ -419,7 +428,19 @@ V6  UI-invariant identifier set == {UI1..UIn}, no gaps, no duplicates      → t
 Loop rule (Requirement 17.2): on any failure, correct the affected Citations or links and **re-run from V1**.
 The loop terminates only when V1–V6 all pass. Partial acceptance is not recognised.
 
-V3 target set for Requirement 17.5 — reference these exact filenames, which exist on this branch:
+Each check is mandated by a requirement; none is optional, and V4 in particular is normative rather than a
+mitigation of the §8.4 finding:
+
+| Check | Mandated by |
+|---|---|
+| V1, re-run until the report states `0 problems` | 17.1, 17.2 |
+| V2 | 17.7 |
+| V3 | 17.8, 17.9 |
+| V4, including correction or removal of any unconfirmed Citation | 17.4, 17.5, 17.6 |
+| V5 | 16.1, 18.3 |
+| V6 | 4.2 |
+
+V3 target set for Requirement 17.9 — reference these exact filenames, which exist on this branch:
 
 | Reference | Status |
 |---|---|
@@ -767,14 +788,14 @@ Everything not Owned is treated as Restricted, including paths not enumerated ab
 
 Rule (Requirement 16.2): a needed change to a Restricted_Path becomes an entry under
 `## Requests for the backend agent` — stating the path, the change, and the reason — and the path is left
-byte-identical. Known entries at design time, arising from §2.1, §8.4 and §10.7:
+byte-identical. Known entries at design time, arising from §2.1, §8.4, §10.1 and §10.7:
 
-| Request | Restricted path | Reason |
-|---|---|---|
-| Fetch both pinned trees at the stated commits | (workspace) | G0/G1 currently fail (§2.1) |
-| Extend `verify_refs.py` citation regex beyond `.py`; gate `--strict-names` on a Python symbol index | `tools/verify_refs.py` | `.js` citations are unverified (§8.4) |
-| Note that doc 25's build/buy/drop format is §3, not §6 | `docs/logic/25-…` | stale reference (§10.7) |
-| Confirm the presentation-metadata binding (`ui_field` / `ui_layout`, doc 25 §3.1) against `layout_revision` / `layout_node` | `docs/design/FINAL-SCHEMA.md` | E-4 binding must name real tables (§10.5) |
+| Request | Restricted path | Reason | Status |
+|---|---|---|---|
+| Fetch both pinned trees at the stated commits | (workspace) | G0/G1 as recorded in §2.1 | **Blocking docs 01–04 whenever G0/G1 fail**; G0/G1 are re-asserted at the start of every writing session and before the final acceptance run (§13 R2) |
+| Extend `verify_refs.py` citation regex beyond `.py`; gate `--strict-names` on a Python symbol index | `tools/verify_refs.py` | `.js` citations are unverified (§8.4) | **Open, non-blocking** — the V4 read-back is required by Requirements 17.4–17.6 and stands whether or not the tool is extended |
+| Note that doc 25's build/buy/drop format is §3, not §6 | `docs/logic/25-…` | stale reference (§10.7) | **Withdrawn** — Requirement 15.1 now cites section 3; nothing in `docs/logic/**` needs to change |
+| Confirm `layout_revision` / `layout_node` against doc 25 §3.1's `ui_field` / `ui_layout` **BUILD** decision (`docs/logic/25-our-platform-spec.md:79`) | `docs/design/FINAL-SCHEMA.md` | FINAL-SCHEMA defines neither table (§10.1) | **Confirmation requested, not blocking** — both tables are specified in `FORM-LAYOUT.md` under Requirement 15.4 and the divergence is registered under Requirement 15.8, so the §10.5 binding table and task 10.2 (`docs/design/UI-SPEC.md`) are **unblocked**; a differing backend answer triggers the reconciliation in §13 R11 |
 
 The invariant-prefix question generates **no request**, because the `UI` prefix resolves it without touching
 any Restricted_Path (§9.2). It generates a **note** instead. Required entries under `## Open questions`:
@@ -782,9 +803,12 @@ any Restricted_Path (§9.2). It generates a **note** instead. Required entries u
 | Note | Content | Requirement |
 |---|---|---|
 | Invariant-prefix deviation | The originating prompt instructs prefix `U` from `U1`; this investigation uses `UI` from `UI1`. Evidence: `docs/logic/30-upstream-trade-and-parties.md:942-956` (`U1`–`U8`) and `docs/design/FINAL-SCHEMA.md:734` (`U1`, `item_uom`). Rationale: collision avoidance; `U` is a reserved prefix per Requirement 4.3. | **4.5** |
+| Presentation-metadata table divergence | `docs/design/FORM-LAYOUT.md` specifies `layout_revision` and `layout_node` (§10.1, §10.2) as the concrete form of doc 25 §3.1's `ui_field` / `ui_layout` **BUILD** decision (`docs/logic/25-our-platform-spec.md:79`), **pending confirmation by the backend agent**. Named divergence: `docs/design/FINAL-SCHEMA.md` defines neither table. | **15.8** |
+| Citation_Verifier scope | The verifier checks only Citations whose path ends in `.py`: the citation pattern requires the `.py` extension (`tools/verify_refs.py:35`) and the symbol index is built with Python `ast` (`tools/verify_refs.py:62`). Consequence: `0 problems` is necessary and insufficient (Requirement 17.4); V4 read-back covers the rest (§8.4, §8.5). | **17.3** |
 
-Requirement 4.5 is discharged only when that entry exists with **both** citations and the rationale; its
-absence is a review failure, checked with P6 in §15.2.
+Requirements 4.5, 15.8 and 17.3 are each discharged only when the corresponding entry exists with its stated
+citations and rationale; an absence is a review failure — 4.5 checked with P6, and 15.8 and 17.3 checked in
+the same review pass (§15.2).
 
 `docs/COVERAGE.md` is never regenerated and never edited (Requirement 16.3).
 
@@ -818,10 +842,12 @@ cannot be established.
 | Verifier reports a problem | Correct the Citation; re-run the whole loop V1–V6 | 17.2 |
 | Verifier reports `NAME NOTE` | Advisory. Review the doc line: either the cited line is wrong (fix) or the line legitimately names a symbol defined elsewhere in the same file (leave, and say so) | 17.1 |
 | Shorthand `:NNN` reported `AMBIGUOUS` | Replace with the full `path:line` form | 8.3 |
-| Relative link does not resolve | Fix the link, or create the missing Owned file; never link a Restricted path that does not exist | 17.4 |
-| `git diff --check` reports whitespace | Correct the whitespace and re-run | 17.3 |
+| A non-`.py` Citation is not confirmed by the V4 read-back at its cited line | Correct the Citation, or remove it, **before the acceptance gate passes**; a claim left without a confirmed Citation becomes an absence finding | 17.5, 17.6 |
+| Relative link does not resolve | Fix the link, or create the missing Owned file; never link a Restricted path that does not exist | 17.8 |
+| `git diff --check` reports whitespace | Correct the whitespace and re-run | 17.7 |
 | A change is needed in a Restricted_Path | File a request; leave the path unchanged | 16.2 |
-| Two documents state the same normative fact | Delete the copy in the non-owning document per §6.1 | 15.6 |
+| Two documents state the same normative fact | Delete the copy in the non-owning document per §6.1 | 15.10 |
+| A bound layout field names a table absent from its declared defining document | Correct the binding row, or the binding kind, until `LT-BIND-BUS` / `LT-BIND-META` pass (§10.2, §10.5); never add the name to FINAL-SCHEMA | 15.5, 15.6, 15.7 |
 | A `UI` number collides or a gap appears within the UI set | Reconcile in the single renumbering commit (§9.1); re-run V6 | 4.2 |
 | An invariant is written with a reserved prefix (`M`, `A`, `F`, `T`, `R`, `V`, bare `U`) | Renumber it into the document's `UI` block before the commit; V6 fails until it is | 4.1, 4.3, 4.4 |
 | The Notes_Register lacks the prefix-deviation entry | Add the entry with both citations and the rationale (§11.2) before the acceptance run | 4.5 |
@@ -843,6 +869,7 @@ cannot be established.
 | **R8** | **Scope creep into application design.** The target contract sections invite component and code design. | Requirement 1.1, 1.3 | Deliverable is `.md` only; contract expressed as DDL sketches, EBNF and rule tables; property P1 asserts no non-document file changes. |
 | **R9** | **Ownership breach under concurrency.** The backend agent is active on `docs/business-logic`. | Requirement 16.1, 18.5 | Explicit staging (C-3), V5 path-containment check before every commit, and no branch operations against `docs/business-logic`. |
 | **R10** | **Vacuous coverage.** A document can satisfy the section template while saying nothing about a mandated topic. | Requirements 6–9 | Coverage matrix per document, checked by P8: every mandated topic maps to a section and at least one Citation. |
+| **R11** | **No presentation-metadata binding target existed.** The binding rule originally required every layout field to name a FINAL-SCHEMA table and column, but presentation-metadata fields have no FINAL-SCHEMA home, so the rule was unsatisfiable and `docs/design/UI-SPEC.md` was blocked on it. | `docs/design/FINAL-SCHEMA.md` contains no `ui_field`, `ui_layout`, `layout_revision` or `layout_node`; doc 25 §3.1 commits to **BUILD**ing `ui_field` / `ui_layout` (`docs/logic/25-our-platform-spec.md:79`, listed again at `:259`) | **Mitigated, not open.** `FORM-LAYOUT.md` specifies `layout_revision` and `layout_node` itself (§10.1, §10.2, Requirement 15.4) and the binding table splits business-data rows, which resolve in FINAL-SCHEMA, from presentation-metadata rows, which resolve in FORM-LAYOUT (§10.5, Requirements 15.5, 15.6). FINAL-SCHEMA is untouched (Requirement 15.7). **Residual:** the backend agent may later specify `ui_field` / `ui_layout` with different table or column names, requiring the §10.5 binding table and the §10.1/§10.2 DDL to be reconciled in a single commit. The divergence is registered in the Notes_Register (Requirement 15.8, §11.2), so that reconciliation is triggered by a known open item rather than discovered later. |
 
 ---
 
@@ -878,10 +905,11 @@ Owned_Path, and no path in the change set is a Restricted_Path.
 
 *For any* Citation appearing in a UI_Doc, in the Target_UI_Contract, or in the Notes_Register, the cited path
 resolves under the correct pinned root — `frappe/`-prefixed paths under `/projects/sandbox/frappe/frappe`, and
-unprefixed paths under `/projects/sandbox/erpnext/erpnext` — and every cited line number is within that file's
-line count at the pinned commit.
+unprefixed paths under `/projects/sandbox/erpnext/erpnext` — every cited line number is within that file's
+line count at the pinned commit, and, where the cited path ends in an extension other than `.py`, the cited
+line contains the construct named by the Behavioural_Claim carrying that Citation.
 
-**Validates: Requirements 5.2, 5.3, 5.4, 17.1, 17.2**
+**Validates: Requirements 5.2, 5.3, 5.4, 17.1, 17.2, 17.4, 17.5, 17.6**
 
 ### Property 4: Every claim and every defect entry carries a citation
 
@@ -914,7 +942,7 @@ identifier uses a reserved prefix — `M`, `A`, `F`, `T`, `R`, `V`, or a bare `U
 target exists in the repository; and every reference to an upstream logic document names a file that exists on
 the branch.
 
-**Validates: Requirements 17.4, 17.5, 3.8**
+**Validates: Requirements 17.8, 17.9, 3.8**
 
 ### Property 8: Mandated topic coverage is total
 
@@ -924,14 +952,17 @@ contains a statement addressing that topic, carrying at least one Citation.
 
 **Validates: Requirements 6.1–6.8, 7.1–7.7, 8.1–8.6, 9.1–9.6**
 
-### Property 9: Every storage binding is valid and canonical
+### Property 9: Every storage binding resolves in its defining document and stays canonical
 
-*For all* layout fields bound to storage by the Target_UI_Contract, the named table and column exist in
-`docs/design/FINAL-SCHEMA.md`; the declared type for a money, quantity/rate or percent field is respectively
-`numeric(19,4)`, `numeric(21,9)` or `numeric(9,6)`; every enumerated field declares a stable lower-case code
-with its label resolved at read time; and no bound field is declared as holding formatted or translated text.
+*For all* layout fields bound to storage by the Target_UI_Contract, the field declares exactly one binding
+kind, and: where the kind is **business data**, the named table and column exist in
+`docs/design/FINAL-SCHEMA.md`; where the kind is **presentation metadata**, the named table and column exist
+among the `layout_revision` and `layout_node` definitions in `docs/design/FORM-LAYOUT.md`; the declared type
+for a money, quantity/rate or percent field is respectively `numeric(19,4)`, `numeric(21,9)` or
+`numeric(9,6)`; every enumerated field declares a stable lower-case code with its label resolved at read time;
+and no bound field is declared as holding formatted or translated text.
 
-**Validates: Requirements 13.2, 13.3, 13.4, 15.3, 15.4**
+**Validates: Requirements 13.2, 13.3, 13.4, 15.3, 15.5, 15.6**
 
 ### Property 10: Publish-time validation is total and decisive
 
@@ -1004,7 +1035,7 @@ underlying doctype definition is identical across jurisdictions.
 *For all* layout queries specified by the Target_UI_Contract that read a business table, the query is
 row-level-security scoped by `company_id`.
 
-**Validates: Requirements 15.5**
+**Validates: Requirements 15.9**
 
 ### Property 19: Branch history is append-only
 
@@ -1038,14 +1069,19 @@ Classification of the acceptance criteria, and the consolidation applied:
 | 12.1, 12.2, 12.3 | PROPERTY | consolidated into P15 |
 | 12.4, 12.5, 12.6 | EXAMPLE | a stated numeric budget, and keyboard/labelling checks best covered by targeted accessibility tests, not randomised input |
 | 13.1, 13.5 | PROPERTY | P16 |
-| 13.2, 13.3, 13.4, 15.3, 15.4 | PROPERTY | consolidated into P9 |
+| 13.2, 13.3, 13.4, 15.3, 15.5, 15.6 | PROPERTY | consolidated into P9; the two binding criteria are one property with a binding-kind branch, not two properties, because a field declares exactly one kind |
 | 14.1 | EXAMPLE | a fixed field list, checked once |
 | 14.2, 14.3, 14.5 | PROPERTY | consolidated into P17 |
-| 14.4, 15.1, 15.2, 15.6 | EXAMPLE | matrix-row presence and layer assignment; judgement, verified by review |
-| 15.5 | PROPERTY | P18 |
+| 14.4, 15.1, 15.2, 15.10 | EXAMPLE | matrix-row presence and layer assignment; judgement, verified by review |
+| 15.4 | EXAMPLE | one check that `FORM-LAYOUT.md` specifies both tables (§10.1, §10.2); not universal over any input |
+| 15.7 | PROPERTY | an instance of P2 — `docs/design/FINAL-SCHEMA.md` is a Restricted_Path, so path containment already forbids the edit |
+| 15.8 | EXAMPLE | one Notes_Register entry, checked once for the two table names, the pending-confirmation statement and the named divergence (§11.2) |
+| 15.9 | PROPERTY | P18 |
 | 17.1, 17.2 | SMOKE + PROPERTY | the command is a single gate (SMOKE); its universal content is P3 |
-| 17.3 | SMOKE | `git diff --check` |
-| 17.4, 17.5 | PROPERTY | consolidated into P7 |
+| 17.3 | EXAMPLE | one Notes_Register entry, checked once for both `verify_refs.py` citations (§11.2) |
+| 17.4, 17.5, 17.6 | PROPERTY | consolidated into P3; the read-back is the non-`.py` branch of citation resolution, and 17.4 is the reason P3 cannot be discharged by V1 alone |
+| 17.7 | SMOKE | `git diff --check` |
+| 17.8, 17.9 | PROPERTY | consolidated into P7 |
 | 18.1, 18.4 | SMOKE | branch and push checks |
 | 18.5, 18.6 | PROPERTY | consolidated into P19 |
 
@@ -1075,13 +1111,13 @@ specification the implementation must satisfy later.
 |---|---|---|---|
 | P1 | artefact | `git diff --name-only` filtered by extension; content hash comparison | — |
 | P2 | artefact | V5: per-commit path containment against the Owned list | — |
-| P3 | artefact | V1 (`verify_refs.py --strict-names`) for `.py`; V4 read-back for `.js` and other extensions | tool extension makes V4 automatic |
+| P3 | artefact | V1 (`verify_refs.py --strict-names`) for `.py`; **V4 read-back for `.js` and every other non-`.py` extension, required by Requirements 17.4–17.6** — a gate condition, not a workaround for the §8.4 finding, and an unconfirmed Citation is corrected or removed before the gate passes | tool extension can automate V4; it cannot remove the obligation |
 | P4 | artefact | review pass per defect-inventory row + citation presence scan | — |
 | P5 | artefact | template conformance scan per UI_Doc (T1–T11) | — |
 | P6 | artefact | V6: extract `UI\d+`, assert set equality with `UI1..UIn`; assert no invariant identifier matches a reserved prefix, including `U` not followed by `I`; and confirm the Requirement 4.5 prefix-deviation entry exists in the Notes_Register with both citations (§11.2) | — |
 | P7 | artefact | V3: resolve every relative link | — |
 | P8 | artefact | coverage matrix per document; every mandated row closed with a Citation | — |
-| P9 | artefact (binding) | binding table cross-checked against `FINAL-SCHEMA.md` table and column names | schema tests at implementation |
+| P9 | artefact (binding) | binding table split by kind: business-data rows cross-checked against `FINAL-SCHEMA.md` table and column names, presentation-metadata rows against the `layout_revision` / `layout_node` definitions in `FORM-LAYOUT.md` (§10.5) | schema tests at implementation |
 | P10–P18 | contract | assert the contract *states* the property, with a `**Validates:**` annotation | property-based tests, ≥ 100 iterations each |
 | P19 | artefact | compare `git log --first-parent` between sessions; compare the `docs/business-logic` ref | — |
 
@@ -1096,8 +1132,8 @@ Recorded now so the implementation inherits it:
   duplicate `field_key`s, cyclic parent references, empty and whitespace-only label keys, expressions at the
   grammar boundary, child tables at and above the stated row budget, deletion of interior rows, and
   multi-jurisdiction company configurations.
-- Unit tests carry the example-classified criteria (2.1–2.7, 3.3, 3.5, 12.4–12.6, 14.1, 15.1, 15.2, 15.6) and
-  the smoke-classified gates (17.1–17.3, 18.1, 18.4). Property tests carry universal input coverage; the two
+- Unit tests carry the example-classified criteria (2.1–2.7, 3.3, 3.5, 12.4–12.6, 14.1, 15.1, 15.2, 15.4,
+  15.8, 15.10, 17.3) and the smoke-classified gates (17.1, 17.2, 17.7, 18.1, 18.4). Property tests carry universal input coverage; the two
   are complementary and neither substitutes for the other.
 
 ---
