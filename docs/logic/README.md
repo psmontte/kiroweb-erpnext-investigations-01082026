@@ -175,8 +175,8 @@ Last run against the anchor commits:
 
 | Directory | Citations | Confirmed by symbol name | Problems |
 |---|---|---|---|
-| `docs/logic` | 4455 | 1574 | 0 |
-| `docs/scenarios` | 726 | 164 | 0 |
+| `docs/logic` | 4771 | 1593 | 0 |
+| `docs/scenarios` | 767 | 164 | 0 |
 
 Name notes under `--strict-names` are advisory: the doc line may legitimately name a symbol defined
 elsewhere in the same file. Frappe-side citations are prefixed `frappe/`.

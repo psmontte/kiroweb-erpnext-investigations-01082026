@@ -53,7 +53,7 @@ Consolidated target design: **`docs/design/FINAL-SCHEMA.md`** (finalised tables,
 business rules, lifecycle state machine, fulfilment views, settlement model, invariant register).
 
 Citation verification across `docs/logic/`: superseded — see the current coverage matrix
-(**5,520 citations, 0 problems** across logic and scenarios, shorthand included).
+(**5,538 citations, 0 problems** across logic and scenarios, shorthand included).
 
 ~~**Still named but not chased**~~: putaway rules (doc 27 §3), warehouse capacity (doc 27 §3, doc 16
 §4), stock closing entry (doc 27, S05 §6), loyalty program internals (doc 31 §4), payment-gateway
@@ -80,7 +80,7 @@ invoice → payment → FX revaluation — plus everything needed to call the th
 
 **Coverage: `Accounts`, `Stock`, `Selling`, `Buying`, `Manufacturing` and `Subcontracting` are at
 zero uncited DocTypes** — submittable and configuration alike (`docs/COVERAGE.md`, generated).
-Citations: **5,520 verified, 0 problems**, including the shorthand form.
+Citations: **5,538 verified, 0 problems**, including the shorthand form.
 
 Three findings from this closure changed how confident we are in earlier decisions:
 

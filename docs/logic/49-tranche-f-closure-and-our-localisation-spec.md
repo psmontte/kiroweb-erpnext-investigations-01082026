@@ -292,8 +292,13 @@ This tranche is the most cross-cutting of all, and the seams must be built delib
 - **Statutory formats will change.** `return_format_revision` exists so a format change is a row, but the
   actual GSTR-1/3B field maps (`gstr_1_json_map.py`, 2,702 lines) are a volume of detail we have specified
   the *container* for, not transcribed.
+- **Statutory document-numbering rules** per jurisdiction are named in the original scope and are **not**
+  specified in `FINAL-SCHEMA` §24–§28 or in the build sequence above. They interact with doc 20's naming
+  design and must be closed before implementation.
+- **TDS/TCS interaction** remains specified by doc 28 §7 and is deliberately not duplicated here; the seam
+  between withholding and GST components has not been walked end to end.
 - **API credential handling and session management** (`GST Credential`, `api_classes/`) were read only far
-  enough to establish the submission contract.
+  enough to establish the submission contract. Credential storage is in scope for **Tranche G**.
 - **Audit trail** (`india_compliance/audit_trail/`) and **income tax / VAT India** modules were out of scope.
 
 ---
@@ -308,14 +313,17 @@ This tranche is the most cross-cutting of all, and the seams must be built delib
 | D | CRM, projects, support | **out of scope** by decision |
 | E | platform mechanics | complete — docs 18–25 |
 | **F** | **localisation, India GST** | **complete — docs 45–49, S12** |
+| **G** | security, tenancy, multi-company/currency/location, consolidation | **next — planned docs 50–57, S13** |
 
 ERPNext coverage remains **203 parents / 178 cited / 0 uncited submittable / 0 uncited configuration / 25
 exclusions**, plus 26 India Compliance DocTypes read at controller depth. Invariant registers: `L/S/D/P`,
 `F/T/R/V/U`, `M1–M69`, `A1–A26`, `G1–G29`. Scenarios **S01–S12**.
 
-**Application implementation has not started.** With this tranche the named functional gaps are closed; what
-remains before building is a decision, plus the two answers noted in §7.2 and the scale question that decides
-whether balances are materialised or computed (doc 01 §1.9).
+**Application implementation has not started.** With this tranche the named *functional* gaps are closed. What
+remains before building is **Tranche G** — every tranche so far asserted `company_id` + RLS + `FORCE RLS` and
+an authenticated tenant-context function without ever testing that boundary, and none of them specified
+consolidation or the transaction/functional/presentation currency layering end to end — plus the open items in
+§7.2 and the scale question that decides whether balances are materialised or computed (doc 01 §1.9).
 
 ---
 
