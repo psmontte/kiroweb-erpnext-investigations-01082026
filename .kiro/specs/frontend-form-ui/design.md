@@ -39,24 +39,32 @@ does not proceed past it.
 | **G3 — upstream docs present** | `docs/logic/18-metadata-and-runtime-ddl.md`, `docs/logic/19-permissions-and-access-control.md`, `docs/logic/24-reporting-framework.md`, `docs/logic/25-our-platform-spec.md`, `docs/design/FINAL-SCHEMA.md` all exist | Stop; cross-references cannot resolve (Requirement 17.8, 17.9). |
 | **G4 — acceptance** | §8 pipeline reports 0 problems, `git diff --check` empty, all relative links resolve | Iterate until satisfied (Requirement 17.2). |
 
-### 2.1 G0/G1 state at design time — a live blocker
+### 2.1 G0/G1 state — both trees present at the pinned commits
 
-**Both pinned source trees are absent from the workspace.** Observed:
+**G0 and G1 pass.** Both pinned source trees are present at the exact pinned commits. Observed:
 
 ```
 $ ls -d /projects/sandbox/frappe/frappe /projects/sandbox/erpnext/erpnext
-ls: cannot access '/projects/sandbox/frappe/frappe': No such file or directory
-ls: cannot access '/projects/sandbox/erpnext/erpnext': No such file or directory
-$ ls /projects/sandbox/
-.kiro  kiroweb-erpnext-investigations-01082026
+/projects/sandbox/erpnext/erpnext
+/projects/sandbox/frappe/frappe
+$ git -C /projects/sandbox/frappe rev-parse HEAD
+5da68e856ca7f036b20d2583167b9d00c4a8db56
+$ git -C /projects/sandbox/erpnext rev-parse HEAD
+ceefd4add77715d2762c19db337fb83e28a477de
 ```
 
-`docs/ui/` does not exist either and must be created. `docs/agents/NOTES-frontend.md` does not exist and must
-be created (Requirement 2.7); `docs/agents/` already exists and holds only `PROMPT-frontend-form-ui.md`.
+Both are **shallow depth-1** checkouts, so `git log` history is unavailable; every file is nevertheless present
+at the pinned commit, which is all a Citation needs (§8.1). The source-analysis documents (01–04) are
+therefore unblocked.
 
-Consequence for the plan: G0 is currently **failing**, so the source-analysis documents (01–04) cannot be
-started. This is a sequencing fact, not a defect in this specification. It is recorded in §13 R1 with its
-mitigation, and it is the first entry the implementation must place in the Notes_Register.
+`docs/ui/` exists, and `docs/agents/NOTES-frontend.md` exists with its two fixed headings (Requirement 2.7);
+both were created by task 1. `docs/agents/` also holds `PROMPT-frontend-form-ui.md`.
+
+This specification was authored while both trees were absent from the workspace, which is why the gates above
+are stated as hard stops rather than advisory checks. What remains live is the operational constraint:
+**neither tree may be pulled, fetched or checked out for the remainder of the investigation**, because a
+different commit silently invalidates every line number already recorded against the pinned commits (§13 R2).
+Read-only commands only against both trees.
 
 ---
 
@@ -859,7 +867,7 @@ cannot be established.
 
 | # | Risk | Evidence | Mitigation |
 |---|---|---|---|
-| **R1** | **Pinned sources unavailable.** Both trees are absent from the workspace right now, so no Citation can be read and docs 01–04 cannot start. | §2.1 | G0/G1 gate stops the work rather than producing uncited claims; first Notes_Register request asks for both trees at the exact commits. Doc 05's target-contract sections that depend only on 01–04 conclusions remain blocked, by design — no speculative writing. |
+| **R1** | **Pinned sources unavailable.** Both trees were absent from the workspace when this design was authored, so no Citation could be read and docs 01–04 could not start. | §2.1; `git -C /projects/sandbox/frappe rev-parse HEAD` = `5da68e856ca7f036b20d2583167b9d00c4a8db56`, `git -C /projects/sandbox/erpnext rev-parse HEAD` = `ceefd4add77715d2762c19db337fb83e28a477de` | **Mitigated, not open.** Both trees are now present at the pinned commits as shallow depth-1 checkouts and G0/G1 pass (§2.1), so docs 01–04 are unblocked. **Residual:** the sandbox is unreliable and has already lost both trees once during this investigation — they were fetched, disappeared, and had to be re-fetched. If they vanish again mid-investigation, no new Citation can be read, and the G0/G1 gate must stop the work rather than allow uncited claims. G0/G1 are therefore re-asserted at the start of every writing session and before the final acceptance run; citations already written remain valid, because they were recorded against the pinned commits; any re-fetch must target the exact pinned commits, never a branch tip. |
 | **R2** | **Citation drift.** A line number recorded in one pass, then the file re-read at a different commit (or after a pull), silently points at different code. | G1; `verify_refs.py` docstring warns to re-run after pulling | Record line numbers in the same pass as the claim (§7.2); assert G1 before every writing session and before the final acceptance run; never pull the pinned trees mid-investigation. |
 | **R3** | **The verifier does not see `.js` citations,** which are the majority here, so `0 problems` is weak evidence. | §8.4, confirmed empirically | Read-back check V4 on every non-`.py` citation; prefer full `path:line` over shorthand in JavaScript-heavy sections, because shorthand resolution is also Python-only; request the tool extension. |
 | **R4** | **Volume of upstream JavaScript.** `frappe/public/js/frappe/form/**`, `.../form/controls/**`, `.../list/**` plus seven alternate views is a large reading surface, and Requirements 6.6 and 9.4 enumerate long mandatory lists. | Requirements 6.6 (17 field types), 9.4 (7 views) | Coverage matrices as the unit of progress: one row per mandated item, each row closed by a cited statement (property P8). Depth is bounded — the control map states the control and its divergences, not a full reading of every control. |
