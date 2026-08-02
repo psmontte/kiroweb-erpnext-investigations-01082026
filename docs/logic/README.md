@@ -130,13 +130,16 @@ python3 tools/verify_refs.py --docs docs/logic \
 | 48 | [48-gst-returns-reconciliation-and-imports.md](48-gst-returns-reconciliation-and-imports.md) | the periodic obligations, where **the government holds a competing copy of our data**: GSTR-1's statutory taxonomy and its memoised working set gated by `is_latest_data`; reconciliation that keeps the signed difference (good) but writes `upload_status` back into its own input (bad); three separate hard-coded 2-decimal precisions; the **declarative purchase-matching rule ladder** — exact/fuzzy/rounding tiers as data, the best design in the tranche — undermined by match decisions being mutable link edits with no history; and Bill of Entry posting customs duty into inventory and asset value |
 | 49 | [49-tranche-f-closure-and-our-localisation-spec.md](49-tranche-f-closure-and-our-localisation-spec.md) | **Tranche F deliverable**: what the tranche measured (a third repository, not an ERPNext module), G1–G29 mapped to enforcement layers, the five decision themes — adopt wholesale / reject mechanism / reject display-text-as-data / reject defaults and tolerances that decide money / reject mutable facts — the **signature finding**, the concrete schema in `FINAL-SCHEMA` §24–§28, the 11-step build sequence, and the seams where localisation touches stock, assets, periods and the link graph |
 
-### Tranche G — security, tenancy and multi-entity (**in progress**)
+### Tranche G — security, tenancy and multi-entity (**complete**)
 
 The boundary every previous tranche asserted and none tested. **Frappe has no row-level security, no tenant
 context and no session scope** — a search of the pinned tree returns zero occurrences of `ROW LEVEL SECURITY`,
 and the only `current_setting(` is in a query-builder test. Company is a *data dimension* filtered by
-`User Permission`, and `ignore_permissions=True` appears **892 times** across Frappe and ERPNext. Invariant
-prefix **T**.
+`User Permission`, and `ignore_permissions=True` appears **892 times** across Frappe and ERPNext. Worse than
+absent, the mechanism that exists **fails open**: an empty result from the scoping lookup means *unrestricted*
+(`frappe/permissions.py:351-380`). Invariant prefix **T**, register **T1–T30**, **84 defects** catalogued,
+target tables in [`FINAL-SCHEMA` §29–§37](../design/FINAL-SCHEMA.md), walked end to end by
+[S13](../scenarios/S13-cross-company-consolidation-and-isolation.md).
 
 | Read | File | Covers |
 |---|---|---|
@@ -158,6 +161,14 @@ and the balance sheet is still wrong: capitalised repair and revaluation leave e
 in Fixed Assets and Accumulated Depreciation, because disposal derives both from mutable scalars by
 subtraction, silently reclassifying cost as depreciation. **[Doc 44](44-tranche-c-closure-and-our-asset-spec.md)**
 closes the tranche and names localisation — India GST first — as what remains.
+
+Tranche G is documented in docs **50–57** plus **[S13](../scenarios/S13-cross-company-consolidation-and-isolation.md)**.
+It adds no new ERPNext parents — docs 50–52 read Frappe framework modules, docs 53–56 read controllers and
+reports under parents already counted — but it is the tranche the other twenty-three schema sections stand on,
+which is why [doc 57](57-tranche-g-closure-and-our-security-spec.md) §8 makes the boundary **step 0** of the
+build sequence rather than a later hardening pass. S13 is the only scenario here with an adversarial second
+half, and the only one that **cannot be run upstream at all**: cross-currency inter-company documents are
+refused outright.
 
 Consolidated target schema: **[../design/FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md)** — finalised
 accounting/trade plus concrete production, owner/custodian, planning, capacity, execution,
@@ -195,8 +206,9 @@ Last run against the anchor commits:
 
 | Directory | Citations | Confirmed by symbol name | Problems |
 |---|---|---|---|
-| `docs/logic` | 4771 | 1593 | 0 |
-| `docs/scenarios` | 767 | 164 | 0 |
+| `docs/logic` | 5132 | 1593 | 0 |
+| `docs/scenarios` | 824 | 164 | 0 |
+| `docs/design` | 87 | 0 | 0 |
 
 Name notes under `--strict-names` are advisory: the doc line may legitimately name a symbol defined
 elsewhere in the same file. Frappe-side citations are prefixed `frappe/`.

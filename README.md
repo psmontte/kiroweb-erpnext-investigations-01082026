@@ -113,7 +113,8 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       submittable and configuration alike; see [`docs/COVERAGE.md`](docs/COVERAGE.md) (generated)
       and the closure statement in
       [`docs/logic/32`](docs/logic/32-stock-configuration-and-remaining-masters.md) §5.
-      **5,538 citations verified, 0 problems.**
+      **5,956 citations verified across `docs/logic` and `docs/scenarios`, 0 problems** (6,043
+      including `docs/design`).
 - [x] **Tranche B complete** (`docs/logic/33`–`40`, scenarios `S07`–`S10`) — manufacturing,
       supplier/customer-owned subcontracting, quality, coverage closure and the consolidated production
       specification. Final measured coverage: **Manufacturing 18/18**, **Subcontracting 4/4** and
@@ -133,13 +134,27 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       settings-toggled custom fields are **rejected** in favour of jurisdiction-as-data. Invariant register
       **G1–G29**; see [`docs/logic/49`](docs/logic/49-tranche-f-closure-and-our-localisation-spec.md).
 - [x] ~~Tranche D~~ — CRM, projects, support: **out of scope** by decision
-- [ ] **Tranche G — security, tenancy and multi-entity** (**next**) — authentication and session identity,
-      the permission model end to end, **tenant isolation and RLS proved under attack** rather than asserted,
-      audit-trail integrity, plus **multi-company** (inter-company, common party, transfer pricing),
-      **multi-currency** (transaction / functional / presentation layering, translation vs revaluation),
-      **multi-location/branch/segment**, and **consolidation** (group reporting, elimination, minority
-      interest, differing fiscal calendars). Every prior tranche asserted `company_id` + RLS + `FORCE RLS`;
-      none tested it. Planned docs 50–57 and scenario S13; see
-      [`docs/INVESTIGATION-PLAN.md`](docs/INVESTIGATION-PLAN.md).
-- [ ] Build — **application implementation has not started**; the functional gaps are closed, so the
-      remaining gates are Tranche G and declaring the investigation complete
+- [x] **Tranche G complete** (`docs/logic/50`–`57`, scenario `S13`) — security, tenancy and multi-entity.
+      Every prior tranche asserted `company_id` + RLS + `FORCE RLS` and an authenticated tenant-context
+      function across twenty-three schema sections; **none tested it, and none said where the context comes
+      from**. Measured result: **there is no tenant isolation mechanism in the pinned tree** — the only
+      `current_setting` in either repository is in a query-builder test — and **892** call sites switch the
+      application-level check off (`ignore_permissions=True`). Worse than absent, the mechanism that exists
+      **fails open**: an empty result from the scoping lookup means *unrestricted*. Covered: authentication
+      and session identity, the permission model traced branch by branch, **tenant isolation under attack**
+      with an executable per-table test matrix and a generated `rls_conformance` build gate, multi-company
+      (group structure, inter-company crossings, transfer pricing), multi-currency (transaction / functional /
+      presentation layering, revaluation vs translation), multi-location/branch/segment, and consolidation
+      (eliminations, ownership weighting, minority interest, fiscal-calendar alignment). **84 defects**
+      catalogued. Invariant register **T1–T30**, target tables in
+      [`FINAL-SCHEMA` §29–§37](docs/design/FINAL-SCHEMA.md); see
+      [`docs/logic/57`](docs/logic/57-tranche-g-closure-and-our-security-spec.md) and
+      [`S13`](docs/scenarios/S13-cross-company-consolidation-and-isolation.md).
+- [ ] Build — **application implementation has not started**. The investigation is complete: all planned
+      tranches (A, B, C, E, F, G) are closed. What remains before building is three answers — **scale
+      targets** (decides materialised vs computed balances), **audit retention** for the auth/access event
+      streams, and **which jurisdictions besides India** — plus the two open localisation seams in
+      [`docs/logic/49`](docs/logic/49-tranche-f-closure-and-our-localisation-spec.md) §7.2. The build order
+      itself is fixed: [`docs/logic/57`](docs/logic/57-tranche-g-closure-and-our-security-spec.md) §8, whose
+      **step 0** is the boundary, because retrofitting scope columns and an execution-context contract onto
+      populated tables is a rewrite.

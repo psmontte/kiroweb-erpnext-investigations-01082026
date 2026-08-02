@@ -53,7 +53,8 @@ Consolidated target design: **`docs/design/FINAL-SCHEMA.md`** (finalised tables,
 business rules, lifecycle state machine, fulfilment views, settlement model, invariant register).
 
 Citation verification across `docs/logic/`: superseded — see the current coverage matrix
-(**5,538 citations, 0 problems** across logic and scenarios, shorthand included).
+(**5,956 citations, 0 problems** across logic and scenarios, shorthand included; 6,043 including
+`docs/design`).
 
 ~~**Still named but not chased**~~: putaway rules (doc 27 §3), warehouse capacity (doc 27 §3, doc 16
 §4), stock closing entry (doc 27, S05 §6), loyalty program internals (doc 31 §4), payment-gateway
@@ -118,9 +119,10 @@ zero configuration gaps. Application implementation has not started.
 
 Citation verification: superseded — see the closure block above.
 
-## 2. What is left
+## 2. Tranches
 
-Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
+Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only). **All planned tranches are
+now closed; D was dropped by decision.**
 
 | Tranche | Area | DocTypes | Why it matters |
 |---|---|--:|---|
@@ -134,28 +136,36 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 | ~~**D**~~ | ~~**Projects, Support, Maintenance, CRM**~~ — project costing, timesheet → billing, Support (11), Maintenance (5), CRM lead/opportunity/prospect (28) | ~75 | **OUT OF SCOPE** — dropped by decision. Not investigated, not built. |
 | ~~**B**~~ | ~~**Quality Management + operational quality** — Quality Management records plus Stock-owned inspection templates/readings and gates on receipts, deliveries, Stock Entry and Job Card~~ | 16 total / 8 module parents, plus 4 Stock parents | **DONE** — doc 39 + S09; all 12 parents cited, 0 gaps |
 | ~~**E**~~ | ~~**Platform mechanics we must replace, not copy**~~ — permission model, naming series, `hooks.py` extensibility, `@allow_regional` overlay, background jobs + scheduler, patch/migration system, query-report framework, custom fields & Customize Form, virtual doctypes | — | **DONE** — `docs/logic/18`–`25`, with a build/buy/drop decision per capability in `25-our-platform-spec.md` |
-| **G** | **Security, tenancy and multi-entity** — authentication and session identity, the permission model end to end (roles, user permissions, sharing, field-level, `permission_query_conditions`), **tenant isolation and RLS as an enforced boundary** rather than a query filter, credential and secret handling, audit trail integrity, API surface and rate limiting; **multi-company** (inter-company documents, common party, transfer pricing, eliminations), **multi-currency** (presentation vs functional vs transaction currency, translation and revaluation), **multi-location/warehouse/branch**, and **consolidation** (group reporting, minority interest, intra-group elimination, differing fiscal calendars) | cross-cutting | **NEXT** — the boundary every other tranche assumed. Docs 19, 22 and 25 established the mechanisms; this tranche makes isolation, consolidation and currency layering enforceable and proves them by adversarial test |
+| ~~**G**~~ | ~~**Security, tenancy and multi-entity**~~ — authentication and session identity, the permission model end to end (roles, user permissions, sharing, field-level, `permission_query_conditions`), **tenant isolation and RLS as an enforced boundary** rather than a query filter, credential and secret handling, audit trail integrity, API surface and rate limiting; **multi-company** (inter-company documents, common party, transfer pricing, eliminations), **multi-currency** (presentation vs functional vs transaction currency, translation and revaluation), **multi-location/warehouse/branch**, and **consolidation** (group reporting, minority interest, intra-group elimination, differing fiscal calendars) | cross-cutting | **DONE** — docs 50–57 + S13; **84 defects** catalogued, register **T1–T30**, schema `FINAL-SCHEMA` §29–§37. Measured: **no isolation mechanism exists** and **892** in-code bypasses; the scoping mechanism **fails open**. Isolation is now an executable per-table matrix plus an `rls_conformance` build gate |
 
-### Tranche G plan — security, tenancy and multi-entity
+### Tranche G deliverables — security, tenancy and multi-entity — **complete**
 
-Every tranche so far asserted the same tenancy boundary and never tested it: `company_id` on every business
+Every tranche before this one asserted the same tenancy boundary and never tested it: `company_id` on every business
 table, `ENABLE`/`FORCE ROW LEVEL SECURITY`, and policies bound to an authenticated tenant-context function
 rather than a caller-settable GUC (a defect the Tranche B review caught in `FINAL-SCHEMA`'s original policy
-shape). Consolidation and the currency layering were likewise assumed. This tranche proves both.
+shape). Consolidation and the currency layering were likewise assumed. This tranche closed both.
+
+**Measured result:** there is no tenant isolation mechanism in the pinned tree — no RLS, no tenant context, no
+scope on the session record; the only `current_setting` in either repository is in a query-builder test
+(`frappe/tests/test_query_builder.py:368`) — and **892** call sites switch the application-level check off.
+Worse than absent, the mechanism that exists **fails open**: an empty result from the scoping lookup means
+*unrestricted* (`frappe/permissions.py:351-380`). **84 defects** catalogued across the seven documents.
 
 | Order | Planned document | Scope |
 |---:|---|---|
-| 50 | `50-authentication-session-and-tenant-context.md` | login, session identity, API keys/tokens, `frappe.session`, how a request acquires a company scope, and the unforgeable tenant-context function our RLS policies must bind to |
-| 51 | `51-permission-model-end-to-end.md` | roles, role profiles, user permissions, sharing, field-level permissions, `permission_query_conditions`, `has_permission` hooks — extending doc 19 into an enforceable model with **deny-by-default** and no post-hoc filtering |
-| 52 | `52-tenant-isolation-and-rls-under-attack.md` | isolation as a boundary, not a filter: cross-company reads/writes, report and dashboard leakage, background jobs running without a session, `ignore_permissions`, `frappe.db.sql` bypass, and an **adversarial test matrix** every table must survive |
-| 53 | `53-multi-company-intercompany-and-transfer-pricing.md` | company hierarchy, inter-company documents, common party, internal transfers, transfer pricing and the elimination pairs they create — extending doc 15 |
-| 54 | `54-multi-currency-layering.md` | transaction / functional / presentation currency as three explicit layers, translation vs revaluation, rate sourcing and staleness, CTA, and what must be stored versus derived — extending docs 05 and 07 |
-| 55 | `55-multi-location-branch-and-segment.md` | warehouse/branch/location/segment dimensions, per-location statutory registration (the seam into Tranche F), and dimension-scoped reporting |
-| 56 | `56-consolidation-and-group-reporting.md` | group structures, intra-group elimination, minority interest, differing fiscal calendars, consolidation as an **append-only derived ledger** rather than a report |
-| 57 | `57-tranche-g-closure-and-our-security-spec.md` | closure, the `T` invariant register, the concrete tenancy/consolidation schema, threat model and build order |
+| 50 | [`50-authentication-session-and-tenant-context.md`](logic/50-authentication-session-and-tenant-context.md) | **DONE** — login, session identity, API keys/tokens, `frappe.session`, how a request acquires a company scope, and the unforgeable tenant-context function our RLS policies must bind to |
+| 51 | [`51-permission-model-end-to-end.md`](logic/51-permission-model-end-to-end.md) | **DONE** — roles, role profiles, user permissions, sharing, field-level permissions, `permission_query_conditions`, `has_permission` hooks — extending doc 19 into an enforceable model with **deny-by-default** and no post-hoc filtering |
+| 52 | [`52-tenant-isolation-and-rls-under-attack.md`](logic/52-tenant-isolation-and-rls-under-attack.md) | **DONE** — isolation as a boundary, not a filter: cross-company reads/writes, report and dashboard leakage, background jobs running without a session, `ignore_permissions`, `frappe.db.sql` bypass, and an **adversarial test matrix** every table must survive |
+| 53 | [`53-multi-company-intercompany-and-transfer-pricing.md`](logic/53-multi-company-intercompany-and-transfer-pricing.md) | **DONE** — company hierarchy, inter-company documents, common party, internal transfers, transfer pricing and the elimination pairs they create — extending doc 15 |
+| 54 | [`54-multi-currency-layering.md`](logic/54-multi-currency-layering.md) | **DONE** — transaction / functional / presentation currency as three explicit layers, translation vs revaluation, rate sourcing and staleness, CTA, and what must be stored versus derived — extending docs 05 and 07 |
+| 55 | [`55-multi-location-branch-and-segment.md`](logic/55-multi-location-branch-and-segment.md) | **DONE** — warehouse/branch/location/segment dimensions, per-location statutory registration (the seam into Tranche F), and dimension-scoped reporting |
+| 56 | [`56-consolidation-and-group-reporting.md`](logic/56-consolidation-and-group-reporting.md) | **DONE** — group structures, intra-group elimination, minority interest, differing fiscal calendars, consolidation as an **append-only derived ledger** rather than a report |
+| 57 | [`57-tranche-g-closure-and-our-security-spec.md`](logic/57-tranche-g-closure-and-our-security-spec.md) | **DONE** — closure, the `T` invariant register, the concrete tenancy/consolidation schema, threat model and build order |
 
-Scenario: **S13** a cross-company, cross-currency, multi-location transaction consolidated into group
-reporting, with an adversarial isolation walkthrough.
+Scenario: **[S13](scenarios/S13-cross-company-consolidation-and-isolation.md)** a cross-company,
+cross-currency, multi-location transaction consolidated into group reporting, with an adversarial isolation
+walkthrough. **DONE.** Invariant register **T1–T30**; target tables in
+[`FINAL-SCHEMA` §29–§37](design/FINAL-SCHEMA.md).
 
 ### Tranche F deliverables
 
@@ -207,12 +217,17 @@ quality-gated receipt/production; **S10** customer-owned subcontracting inward.
    invariant register **G1–G29**. Doc 49 consolidates the closure, enforcement mapping and build order.
    Additional jurisdictions (UAE VAT, South Africa, Italy) remain a rule-revision mapping exercise, not new
    code — see doc 49 §7.2.
-5b. **Tranche G** (security, tenancy, multi-entity) — **next**. Every tranche so far asserted
-   `company_id` + RLS + `FORCE RLS` and a tenant-context function; none of them proved it under attack, and
-   none specified consolidation or the three-currency model end to end. This tranche closes that.
+5b. ~~**Tranche G** (security, tenancy, multi-entity)~~ — **complete**, `docs/logic/50`–`57` and `S13`;
+   invariant register **T1–T30**, schema in `FINAL-SCHEMA` §29–§37. Every tranche before it asserted
+   `company_id` + RLS + `FORCE RLS` and a tenant-context function without proving any of it; doc 52 supplies
+   the executable per-table matrix and `FINAL-SCHEMA` §31 supplies the build gate that fails when a table is
+   missing a scope column, a forced policy, or a matrix case. Doc 57 consolidates the closure, the threat
+   model and the build order — whose **step 0** is the boundary itself.
 6. ~~**Tranche D**~~ — **dropped**: no CRM, no projects, no support.
-7. **Implementation** — has not started. The functional gaps are closed; the remaining gates are Tranche G
-   and the open questions in §4.
+7. **Implementation** — has not started. **The investigation is complete**: A, B, C, E, F and G are closed and
+   D is dropped. The remaining gates are the open questions in §4 — specifically scale targets (2, 4), audit
+   retention for the auth/access event streams, and which jurisdictions beyond India (3) — plus the two
+   localisation seams in doc 49 §7.2.
 
 Each tranche produces documents in the same shape as `docs/logic/`: pinned commit, `file.py:line`
 citations, invariants, and an "ours" decision per behaviour, verified by `tools/verify_refs.py`.
@@ -235,8 +250,10 @@ Answers change the order and the depth, not the method.
    reject it. Tranche F is scoped in [doc 44 §11](logic/44-tranche-c-closure-and-our-asset-spec.md).
    Still open: which **additional** jurisdictions v1 must handle alongside India.
 4. **Scale targets** — rough rows/day on the ledgers, number of companies, concurrent users. This decides
-   whether balances are materialised (doc 01 §1.9) or computed, and whether the valuation projection needs
-   partitioning.
+   whether balances are materialised (doc 01 §1.9) or computed, whether the valuation projection needs
+   partitioning, and — added by Tranche G — the retention and archival policy for `principal_auth_event` and
+   `access_decision`, which are the highest-volume tables in the design and the ones an audit most wants
+   intact (`FINAL-SCHEMA` §38).
 5. **Upstream tracking** — ERPNext ships continuously. Do you want a periodic "delta report" against a new
    commit (what changed in the areas we documented), or is the pinned snapshot sufficient for now?
 6. **Document format** — is Markdown-in-git the right final form, or do these need to become something
