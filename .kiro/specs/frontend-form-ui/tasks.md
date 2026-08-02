@@ -128,7 +128,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
       `frappe/public/js/frappe/form/controls/`
     - Produce a coverage matrix with one cited row per mandated type: `Link`, `Dynamic Link`, `Table`,
       `Table MultiSelect`, `Select`, `Currency`, `Float`, `Percent`, `Duration`, `Geolocation`, `Barcode`,
-      `Signature`, `Rating`, `JSON`, `Code`, `Markdown`, `Attach`
+      `Signature`, `Rating`, `JSON`, `Code`, `Markdown Editor`, `Attach`
     - Bound the depth per design risk R4: state the control and its divergences from the base control, not a
       full reading of every control
     - _Requirements: 5.1, 6.6_

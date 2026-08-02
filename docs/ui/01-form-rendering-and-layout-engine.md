@@ -1547,11 +1547,10 @@ in prose; the numbered inventory and the verdicts are §8's and §10's to write.
 
 ## 5. Field type → control mapping
 
-Requirement 6.6 names seventeen field types. Sixteen of them resolve to a control class; one, `Markdown`, is
-not a fieldtype at all, and §5.3 records that as an absence finding. The mapping is not a table anywhere in
-the source — it is a **string concatenation over the global namespace**, and the whole of §5.1 is spent on
-that one line, because every property of the mapping follows from it: there is no registration step, no
-validation of the fieldtype against a known set, and no error when the lookup misses.
+Requirement 6.6 names seventeen field types, and all seventeen resolve to a control class. The mapping is not
+a table anywhere in the source — it is a **string concatenation over the global namespace**, and the whole of
+§5.1 is spent on that one line, because every property of the mapping follows from it: there is no
+registration step, no validation of the fieldtype against a known set, and no error when the lookup misses.
 
 Depth here is bounded deliberately (design risk R4). For each mandated type this section states the control
 class, its file, its base class and its **divergences** from that base — not a full reading of the control.
@@ -1693,12 +1692,11 @@ class changes relative to it.
 | 14 | `JSON` | `ControlJSON` | `controls/json.js` | `ControlCode` | **overrides exactly one method**, `set_language`, pinning the Ace mode to `ace/mode/json` and the keyboard handler to `ace/keyboard/vscode`, thereby ignoring `df.options`; the whole file is six lines, and the class *expression* is misnamed `ControlCode` | `frappe/public/js/frappe/form/controls/json.js:1`, `frappe/public/js/frappe/form/controls/json.js:2-5` |
 | 15 | `Code` | `ControlCode` | `controls/code.js` | `ControlText` | replaces the textarea with an Ace editor built asynchronously after `load_lib()` resolves; maps `df.options` through a fourteen-entry language table and warns on an unrecognised value; adds an expand toggle switching the editor between 300px and 600px | `frappe/public/js/frappe/form/controls/code.js:1`, `frappe/public/js/frappe/form/controls/code.js:2-5`, `frappe/public/js/frappe/form/controls/code.js:198-227`, `frappe/public/js/frappe/form/controls/code.js:259-276` |
 | 16 | `Markdown Editor` | `ControlMarkdownEditor` | `controls/markdown_editor.js` | `ControlCode` | wraps the Ace target in a `markdown-container`, adds a Preview/Edit toggle rendering through `frappe.markdown`, enables wrap mode, adds image drag-and-drop via `frappe.ui.FileUploader`; `set_language` **assigns `df.options = "Markdown"`** when unset; `set_disp_area` renders as text rather than through `frappe.format` | `frappe/public/js/frappe/form/controls/markdown_editor.js:1-4`, `frappe/public/js/frappe/form/controls/markdown_editor.js:5-39`, `frappe/public/js/frappe/form/controls/markdown_editor.js:41-46`, `frappe/public/js/frappe/form/controls/markdown_editor.js:60-62`, `frappe/public/js/frappe/form/controls/markdown_editor.js:64-103` |
-| 17 | `Markdown` | **none** | — | — | **Absent.** `Markdown` is not a fieldtype. The canonical name is `Markdown Editor` (row 16), so `make_control` would derive `ControlMarkdown`, which does not exist, and take the `console.log` arm. Searched: the `fieldtype` enumeration in `frappe/core/doctype/docfield/docfield.json`, the `data_fieldtypes` tuple, and `grep -rn "ControlMarkdown\b" frappe/public/js/` excluding `ControlMarkdownEditor` — **zero** hits. No line number is given for the absent class | nearest related code: `frappe/model/__init__.py:19` (`"Markdown Editor"` in `data_fieldtypes`), `frappe/core/doctype/docfield/docfield.json:118` (the enumeration, which contains `Markdown Editor` and no `Markdown`), `frappe/public/js/frappe/form/controls/control.js:50-53` (the arm an unknown name reaches) |
-| 18 | `Attach` | `ControlAttach` | `controls/attach.js` | `ControlData` | overrides `make_input` **without calling `super`**, so `this.$input` is a `<button class="btn-attach">` rather than an input element, alongside a hidden `.attached-file` display row; opens a `frappe.ui.FileUploader` on click; expects `df.options` to be an **object**, merged with `Object.assign` | `frappe/public/js/frappe/form/controls/attach.js:1`, `frappe/public/js/frappe/form/controls/attach.js:2-30`, `frappe/public/js/frappe/form/controls/attach.js:56-59`, `frappe/public/js/frappe/form/controls/attach.js:74-95` |
+| 17 | `Attach` | `ControlAttach` | `controls/attach.js` | `ControlData` | overrides `make_input` **without calling `super`**, so `this.$input` is a `<button class="btn-attach">` rather than an input element, alongside a hidden `.attached-file` display row; opens a `frappe.ui.FileUploader` on click; expects `df.options` to be an **object**, merged with `Object.assign` | `frappe/public/js/frappe/form/controls/attach.js:1`, `frappe/public/js/frappe/form/controls/attach.js:2-30`, `frappe/public/js/frappe/form/controls/attach.js:56-59`, `frappe/public/js/frappe/form/controls/attach.js:74-95` |
 
-Eighteen rows close seventeen mandated types, because `Markdown` is recorded as an absence in its own row
-rather than silently folded into `Markdown Editor`. Requirement 6.9 governs the form of row 17: the absent
-unit is named, the nearest related code is cited, and no line number is given for the absent class.
+Seventeen rows close seventeen mandated types, every row cited. Every type Requirement 6.6 names resolves to a
+control class present in Pinned_Sources, so no row records an absence and Requirement 6.9 does not apply to
+this matrix; the naming hazard latent in the derivation is recorded as §5.10 finding 2 instead.
 
 ### 5.4 `Table` delegates to the grid
 
@@ -2074,13 +2072,17 @@ in prose; the numbered inventory and the verdicts are §8's and §10's to write.
    server (`frappe/model/__init__.py:8-30`, `frappe/core/doctype/docfield/docfield.json:118`), a one-character
    corruption of a stored `fieldtype` is indistinguishable at render time from a deliberately unsupported
    one.
-2. **`Markdown` is not a fieldtype.** The canonical name is `Markdown Editor`
-   (`frappe/model/__init__.py:19`, `frappe/core/doctype/docfield/docfield.json:118`) and no
-   `ControlMarkdown` exists — `grep -rn "ControlMarkdown\b" frappe/public/js/` excluding
-   `ControlMarkdownEditor` returns **zero** hits, the only declaration being
-   `frappe/public/js/frappe/form/controls/markdown_editor.js:1`. Requirement 6.6 names `Markdown`, so the
-   requirement itself carries the wrong name; §5.3 row 17 records it as an absence with no line number. This
-   is the third such correction in the investigation, after `FormPage` (§1.5) and `grid_form.js`.
+2. **A near-miss fieldtype name derives a control class that does not exist.** The canonical fieldtype is
+   `Markdown Editor` (`frappe/model/__init__.py:19`, and the `fieldtype` enumeration at
+   `frappe/core/doctype/docfield/docfield.json:118`, which lists `Markdown Editor` and no bare `Markdown`).
+   Because `make_control` derives the class name by string concatenation
+   (`frappe/public/js/frappe/form/controls/control.js:49`), any near-miss spelling of a real fieldtype
+   resolves to a class that was never declared: `Markdown` derives `ControlMarkdown`, and
+   `grep -rn "ControlMarkdown\b" frappe/public/js/` excluding `ControlMarkdownEditor` returns **zero** hits,
+   the only declaration being `frappe/public/js/frappe/form/controls/markdown_editor.js:1`. Such a fieldtype
+   takes the silent `console.log` arm (`frappe/public/js/frappe/form/controls/control.js:53`) — finding 1's
+   failure mode, reached by a plausible abbreviation of a canonical name rather than by corruption. Nothing
+   in the client narrows the gap, because the canonical set is server-side only (finding 1).
 3. **Four controls write to the shared docfield object.** `this.df` for a form control is the docfield from
    the cached `Meta`, so any assignment to it outlives the control. Observed:
    `ControlCurrency.get_precision` caches into `df.precision`
