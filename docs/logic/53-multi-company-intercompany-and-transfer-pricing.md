@@ -27,11 +27,21 @@ What the tree does **not** carry is anything a consolidation needs: no ownership
 date, no consolidation method, no functional currency distinct from the reporting currency, and no
 "eliminate against" relationship. It is an organisational label.
 
-The confirming search: **`consolidat` appears nowhere in an accounting sense.** Every match in the pinned tree
-is POS invoice consolidation — `consolidate_pos_invoices`, `is_consolidated`, `consolidated_invoice`
-(`accounts/doctype/pos_closing_entry/pos_closing_entry.py:110-230`) — which merges many POS invoices into one
-Sales Invoice within a single company. There is **no group consolidation, no elimination engine, no minority
-interest and no group report** in ERPNext.
+**Consolidated reporting does exist**, as two reports built over the same tree:
+
+| Report | Lines | What it does |
+|---|---:|---|
+| `Consolidated Financial Statement` | 821 | Balance Sheet, P&L and Cash Flow with **one column per company** in the subtree (`accounts/report/consolidated_financial_statement/consolidated_financial_statement.py:44-68`), companies resolved by nested set (`:519-529`) |
+| `Consolidated Trial Balance` | 460 | one consolidated trial balance, requiring all selected companies to share a root (`accounts/report/consolidated_trial_balance/consolidated_trial_balance.py:51-76`), with a **Foreign Currency Translation Reserve** (doc 54 §4) |
+
+What the tree still does not support, verified by searching both reports for the relevant terms: **no
+eliminations, no minority/non-controlling interest, and no ownership weighting** — so a partially-owned
+subsidiary is consolidated at 100%, and intra-group sales appear twice in group revenue. Doc 56 takes this up in
+detail.
+
+(Note also that POS has its own unrelated `consolidate_pos_invoices` / `is_consolidated`
+(`accounts/doctype/pos_closing_entry/pos_closing_entry.py:110-230`), which merges POS invoices within one
+company and is not group consolidation.)
 
 Company-level accounting configuration is per company and includes exactly one group-aware account:
 `unrealized_profit_loss_account` (`accounts/doctype/account/account.py:725-740`). That single field is the whole
@@ -388,9 +398,11 @@ group-scoped principal that holds a grant in both — and that grant is auditabl
 
 ## 9. Defects and risks
 
-1. **No consolidation exists.** `consolidat` matches only POS invoice merging
-   (`accounts/doctype/pos_closing_entry/pos_closing_entry.py:110-230`); there is no group report, elimination
-   engine or minority interest.
+1. **Consolidation exists but eliminates nothing.** Two reports aggregate a company subtree
+   (`accounts/report/consolidated_financial_statement/consolidated_financial_statement.py:44-68`,
+   `accounts/report/consolidated_trial_balance/consolidated_trial_balance.py:32-45`) with **no eliminations, no
+   minority interest and no ownership weighting** — so intra-group sales are double-counted and a 60%-owned
+   subsidiary is consolidated at 100% (doc 56).
 2. **The company tree carries no group semantics** — no ownership percentage, method, acquisition date or
    functional currency (`setup/doctype/company/company.py:1044-1069`).
 3. **Cross-currency crossings are refused outright**
@@ -455,7 +467,7 @@ that intra-group margin is not profit.
 | Common-party advance creation | **Adopt** | balance netting, kept distinct from elimination |
 | `enable_common_party_accounting` opt-in | **Adopt as policy** | per company-group policy |
 | Inter-company Journal Entry mirror | **Adopt** | a crossing kind, same paired fact |
-| No consolidation | **Reject** | doc 56 |
+| Consolidation by subtree aggregation | **Adopt the structure** | plus eliminations, ownership weighting and minority interest (doc 56) |
 
 Invariants introduced here are **T14–T18**. Doc 54 continues at **T19** with the currency layering that §3.1
 refuses to attempt.
