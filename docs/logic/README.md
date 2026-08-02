@@ -207,7 +207,7 @@ Last run against the anchor commits:
 
 | Directory | Citations | Confirmed by symbol name | Problems |
 |---|---|---|---|
-| `docs/logic` | 5138 | 1593 | 0 |
+| `docs/logic` | 5163 | 1593 | 0 |
 | `docs/scenarios` | 824 | 164 | 0 |
 | `docs/design` | 88 | 0 | 0 |
 

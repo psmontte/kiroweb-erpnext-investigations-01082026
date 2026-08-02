@@ -494,9 +494,10 @@ tranches consume its guarantees rather than integrating with its tables.
 - **Fiscal-calendar alignment records the method but does not prescribe one.** A subsidiary with a different
   year-end is a real accounting problem, and `fiscal_calendar_alignment` currently stores *how* it was handled
   rather than constraining the choice.
-- **Statutory document-numbering rules** and the **TDS/TCS ↔ GST seam** remain open from
-  [doc 49 §7.2](49-tranche-f-closure-and-our-localisation-spec.md#72-what-remains-open-in-localisation),
-  unchanged by this tranche.
+- ~~**Statutory document-numbering rules** and the **TDS/TCS ↔ GST seam**~~ — **CLOSED after this tranche by
+  [doc 58](58-statutory-numbering-and-the-withholding-gst-seam.md)**, register **G30–G41**. What remains from
+  that document is a genuine scope boundary rather than a deferral: **GST TDS/TCS (s.51/s.52)** is absent from
+  both upstream trees and is modelled but not walked (doc 58 §8).
 - **Jurisdictions beyond India** are still unread at controller depth. UAE VAT, South Africa VAT and Italy
   exist in ERPNext's `regional/` tree; each is a rule-revision mapping exercise, not new code.
 - **Frontend, form layout and grid behaviour** are assigned to a separate agent

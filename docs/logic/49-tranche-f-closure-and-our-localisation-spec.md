@@ -292,11 +292,14 @@ This tranche is the most cross-cutting of all, and the seams must be built delib
 - **Statutory formats will change.** `return_format_revision` exists so a format change is a row, but the
   actual GSTR-1/3B field maps (`gstr_1_json_map.py`, 2,702 lines) are a volume of detail we have specified
   the *container* for, not transcribed.
-- **Statutory document-numbering rules** per jurisdiction are named in the original scope and are **not**
-  specified in `FINAL-SCHEMA` §24–§28 or in the build sequence above. They interact with doc 20's naming
-  design and must be closed before implementation.
-- **TDS/TCS interaction** remains specified by doc 28 §7 and is deliberately not duplicated here; the seam
-  between withholding and GST components has not been walked end to end.
+- ~~**Statutory document-numbering rules** per jurisdiction~~ — **CLOSED by
+  [doc 58](58-statutory-numbering-and-the-withholding-gst-seam.md) Part A**, register G30–G35. Reading them
+  found the statutory number *is* the row's primary key, so amendment rewrites it, and an unlawful number is
+  silently excluded from GSTR-1 after the tax has been posted and paid.
+- ~~**TDS/TCS interaction**~~ — **CLOSED by
+  [doc 58](58-statutory-numbering-and-the-withholding-gst-seam.md) Part B**, register G36–G41. Note this
+  entry was wrong in a way worth recording: "TDS/TCS" names *two unrelated systems*, and GST TDS/TCS
+  (s.51/s.52) is absent from both trees. Doc 58 §8 scopes it explicitly instead of implying it was handled.
 - **API credential handling and session management** (`GST Credential`, `api_classes/`) were read only far
   enough to establish the submission contract. Credential storage is in scope for **Tranche G**.
 - **Audit trail** (`india_compliance/audit_trail/`) and **income tax / VAT India** modules were out of scope.

@@ -53,7 +53,7 @@ Consolidated target design: **`docs/design/FINAL-SCHEMA.md`** (finalised tables,
 business rules, lifecycle state machine, fulfilment views, settlement model, invariant register).
 
 Citation verification across `docs/logic/`: superseded — see the current coverage matrix
-(**5,962 citations, 0 problems** across logic and scenarios, shorthand included; 6,050 including
+(**5,987 citations, 0 problems** across logic and scenarios, shorthand included; 6,075 including
 `docs/design`).
 
 ~~**Still named but not chased**~~: putaway rules (doc 27 §3), warehouse capacity (doc 27 §3, doc 16

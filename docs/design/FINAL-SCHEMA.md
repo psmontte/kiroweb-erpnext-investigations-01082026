@@ -3976,9 +3976,14 @@ partially-owned, cross-currency member. **S13** is the end-to-end acceptance fix
   investigation.
 - **Localisation is specified in §24–§28** (jurisdiction as data, registration snapshots, classification and
   rate revisions, determination, statutory artefacts, return periods and imports). Two items from the original
-  scope remain genuinely open and are tracked in doc 49 §7.2: **statutory document-numbering rules** per
-  jurisdiction, and the **TDS/TCS interaction**, which continues to be specified by doc 28 §7 rather than
-  duplicated here.
+  scope were tracked in doc 49 §7.2 and are now **closed by
+  [doc 58](../logic/58-statutory-numbering-and-the-withholding-gst-seam.md)**, register **G30–G41**:
+  statutory numbering becomes `statutory_series` + `statutory_number_allocation` (the number is an attribute,
+  never the row's identity), and the withholding base becomes `withholding_regime` +
+  `withholding_section_revision` + `withholding_base` (the base is derived from the statutory section, never
+  chosen on a category). **These five tables are specified in doc 58 §5 and are not yet transcribed into this
+  file** — that is the one outstanding schema task. **GST TDS/TCS (s.51/s.52)** is absent upstream and is
+  modelled but not walked.
 - **Security, tenancy and group reporting are specified in §29–§37.** This is the section that supplies the
   boundary §2–§28 assumed, so §31's conformance gate is **step 0** of the build sequence
   ([doc 57 §8](../logic/57-tranche-g-closure-and-our-security-spec.md#8-build-sequence-and-boundary)):
