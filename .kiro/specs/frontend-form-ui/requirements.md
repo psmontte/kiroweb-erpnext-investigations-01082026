@@ -180,9 +180,9 @@ engine documented exactly, so that our layout model is designed against known be
    SHALL identify each point at which a displayed value diverges from the stored value.
 8. THE `docs/ui/01-form-rendering-and-layout-engine.md` document SHALL state the dirty-state model and the
    re-render cost of `refresh_field`, `set_value`, and `toggle_display`.
-9. IF a class named in this specification is absent from Pinned_Sources, THEN THE UI_Doc SHALL record the
-   absence as a finding under the convention stated in Requirement 5 criterion 5, SHALL name the absent
-   class, and SHALL omit any line number for the absent class.
+9. IF a class or file named in this specification is absent from Pinned_Sources, THEN THE UI_Doc SHALL record
+   the absence as a finding under the convention stated in Requirement 5 criterion 5, SHALL name the absent
+   class or file, and SHALL omit any line number for the absent class or file.
 
 ### Requirement 7
 
@@ -192,7 +192,7 @@ that the target grid contract addresses the known limits of the upstream grid.
 #### Acceptance Criteria
 
 1. THE `docs/ui/02-child-table-grid-engine.md` document SHALL state the behaviour of `grid.js`, `grid_row.js`,
-   `grid_form.js`, and `grid_pagination.js`, with Citations.
+   `grid_row_form.js`, and `grid_pagination.js`, with Citations.
 2. THE `docs/ui/02-child-table-grid-engine.md` document SHALL state the algorithm that selects visible
    columns from `in_list_view` and `columns` width units, including the total-width budget and the storage
    location of user column configuration.
