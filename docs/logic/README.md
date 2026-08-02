@@ -141,6 +141,7 @@ prefix **T**.
 | Read | File | Covers |
 |---|---|---|
 | 50 | [50-authentication-session-and-tenant-context.md](50-authentication-session-and-tenant-context.md) | why there is no tenant context to bind RLS to; the two login paths and the **downgrade-to-`Guest`** fallback; two-axis lockout (adopted); non-interactive auth where a **caller-supplied header chooses the authenticating DocType**, authenticators swallow exceptions, and the fail-closed guard only fires when an `Authorization` header was present; sessions that carry **no company**; and our `principal` / `principal_company_membership` / `auth_session` model with the `auth.current_company()` function RLS actually binds to |
+| 51 | [51-permission-model-end-to-end.md](51-permission-model-end-to-end.md) | the decision path traced branch by branch, asking at each one *what happens when the rule is absent* — and finding that **the permission system fails open**: no `User Permission` rows means unrestricted, an empty allowed-list skips the check, an **empty link value evades scope** unless a strictness setting is on, that setting is off by default and switched off again for new documents, `Administrator` bypasses everything first, and **sharing grants** what roles denied. Adopted wholesale: **controllers may only deny**, and permission failures explain themselves |
 
 
 
