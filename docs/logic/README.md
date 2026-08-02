@@ -208,7 +208,7 @@ Last run against the anchor commits:
 |---|---|---|---|
 | `docs/logic` | 5138 | 1593 | 0 |
 | `docs/scenarios` | 824 | 164 | 0 |
-| `docs/design` | 87 | 0 | 0 |
+| `docs/design` | 88 | 0 | 0 |
 
 Name notes under `--strict-names` are advisory: the doc line may legitimately name a symbol defined
 elsewhere in the same file. Frappe-side citations are prefixed `frappe/`.

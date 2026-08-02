@@ -120,7 +120,7 @@ ledger, freezing, balance-must-be) has not been read line by line.
    no out-of-range lines, and no ambiguous shorthand refs. This covers both full citations and the
    `` (`:NNN`) `` shorthand; the shorthand is the bulk of the corpus, so verifying it is what makes
    the "every claim is checkable" statement true. Current: **5138** citations in `docs/logic`,
-   **824** in `docs/scenarios` and **87** in `docs/design`, all resolving (**6049 total**; **5962**
+   **824** in `docs/scenarios` and **88** in `docs/design`, all resolving (**6050 total**; **5962**
    across logic and scenarios).
 5. This table is regenerated and checked.
 
@@ -131,7 +131,7 @@ ledger, freezing, balance-must-be) has not been read line by line.
 | 1 | `uncited_submittable` = 0 | Accounts **0** ✔, Stock **0** ✔, Selling **0** ✔, Buying **0** ✔, Manufacturing **0** ✔, Subcontracting **0** ✔, Quality Management **0** ✔ |
 | 2 | Config DocTypes cited or excluded | **✔ 0 uncited config** in every audited module; Stock operational-QI exclusions removed after doc 39 |
 | 3 | Scenario per cross-subsystem flow | **✔** S01–S13 complete, including the full asset lifecycle, the GST compliance cycle, and a cross-company/cross-currency crossing consolidated into group statements |
-| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 6049 citations** across `docs/logic`, `docs/scenarios` and `docs/design` |
+| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 6050 citations** across `docs/logic`, `docs/scenarios` and `docs/design` |
 | 5 | Table regenerated | **✔** |
 
 **Trade-core definition remains met.** `Accounts`, `Stock`, `Selling` and `Buying` have zero uncited

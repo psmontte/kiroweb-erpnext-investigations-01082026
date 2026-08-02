@@ -113,7 +113,7 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       submittable and configuration alike; see [`docs/COVERAGE.md`](docs/COVERAGE.md) (generated)
       and the closure statement in
       [`docs/logic/32`](docs/logic/32-stock-configuration-and-remaining-masters.md) §5.
-      **5,962 citations verified across `docs/logic` and `docs/scenarios`, 0 problems** (6,049
+      **5,962 citations verified across `docs/logic` and `docs/scenarios`, 0 problems** (6,050
       including `docs/design`).
 - [x] **Tranche B complete** (`docs/logic/33`–`40`, scenarios `S07`–`S10`) — manufacturing,
       supplier/customer-owned subcontracting, quality, coverage closure and the consolidated production

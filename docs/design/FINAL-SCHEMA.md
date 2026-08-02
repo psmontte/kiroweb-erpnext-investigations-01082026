@@ -2804,8 +2804,9 @@ identical; only the identifiers differ.
 `authenticated_tenant_context` are **not** company-scoped, because they are what *establishes* company scope
 and a policy keyed on `authenticated_company_id()` could not be evaluated before they are read. They are
 protected instead: `REVOKE ALL … FROM app_role`, written only by the authentication-gateway role, and reachable
-from the application only through `begin_tenant_transaction`. These six tables, plus the global reference data
-named in §24, are the entire allow-list that §31's conformance check accepts.
+from the application only through `begin_tenant_transaction`. They are one of three exemption classes; the
+complete, normative register — global reference data, protected identity/infrastructure, and the group-level
+tables that name two or more companies — is **§31.1**, and it is the only list §31's conformance gate accepts.
 
 ```sql
 principal(id, kind principal_kind_enum /*human|service|integration|anonymous*/,
@@ -3122,8 +3123,10 @@ business_table_catalogue(table_name text PRIMARY KEY,
     exemption_approved_by bigint NULL, exemption_approved_at timestamptz NULL,
     isolation_matrix_case_count integer NOT NULL DEFAULT 0)
    CHECK ((scope_exemption_reason IS NULL) = (exemption_approved_at IS NULL))
-   -- The allow-list is exactly: the six protected identity tables (§29), and the global reference
-   -- data named in §24. Anything else requires a reviewed, attributed row.  [NOT COMPANY-SCOPED]
+   -- The allow-list is exactly the register in §31.1 — global reference data, protected identity and
+   -- infrastructure, and group-scoped tables (which are checked against the GROUP policy shape, not
+   -- exempted from checking). Anything else requires a reviewed, attributed row.
+   -- [NOT COMPANY-SCOPED]
 
 CREATE VIEW rls_conformance AS
 SELECT c.relname AS table_name,
@@ -3145,7 +3148,10 @@ SELECT c.relname AS table_name,
 
 **The gate.** CI fails when any row of `rls_conformance` has a `NULL` `scope_exemption_reason` and is missing
 any of `has_scope_column`, `rls_enabled`, `rls_forced`, `has_both_clause_policy`, `app_role_not_owner` — or has
-`isolation_matrix_case_count = 0`. A second check fails when a table exists in `pg_class` and **not** in
+`isolation_matrix_case_count = 0`. Group-scoped tables (§31.1) are **not** waved through: they are checked
+against the group policy shape instead, substituting `company_group_id` for `company_id` and
+`authenticated_group_ids()` for `authenticated_company_id()`, with the same `ENABLE`/`FORCE`/both-clause and
+matrix-coverage requirements. A second check fails when a table exists in `pg_class` and **not** in
 `business_table_catalogue`, so a new table cannot be introduced by omission. A third check asserts the
 application role holds no `BYPASSRLS`: `FORCE ROW LEVEL SECURITY` constrains the owner, but only the absence of
 `BYPASSRLS` constrains a superuser-adjacent role.
@@ -3167,6 +3173,64 @@ table absent from the matrix is not deployable.
 
 ---
 
+### 31.1 The complete exemption register
+
+`business_table_catalogue.scope_exemption_reason` is non-null for exactly the tables below and nothing else.
+This register is normative: §29's identity tables, §24's reference data and the group-level tables in §32–§35
+are **all** of it, and a table not listed here that lacks the standard policy fails the §31 gate.
+
+There are three exemption classes, and only the first is genuinely unscoped.
+
+| Class | Tables | Why exempt | How it is protected instead |
+|---|---|---|---|
+| **Global reference** | `tax_jurisdiction`, `tax_area`, `tax_area_postal_range` (§24); `currency`, `country` (§2); `rate_source`, `exchange_rate`, `currency_peg_revision` (§33) | country codes, state codes and published exchange rates are not tenant data; two companies must resolve the *same* rate for the same date or §33's reproducibility claim is false | read-only to `app_role`; written by migration or by out-of-band rate feeds; append-only and superseding where dated |
+| **Protected identity and infrastructure** | `principal`, `principal_credential`, `principal_auth_session`, `principal_company_membership`, `principal_auth_throttle`, `authenticated_tenant_context` (§29); `principal_auth_event` (§29); `isolation_denial`, `business_table_catalogue` (§31) | these *establish* company scope, so a policy keyed on `authenticated_company_id()` could not be evaluated before they are read — the circularity is real, not stylistic | `REVOKE ALL … FROM PUBLIC, app_role`; written only by the authentication-gateway role; reachable from the application solely through `begin_tenant_transaction`; append-only tables additionally `REVOKE UPDATE, DELETE` |
+| **Group-scoped** | `company_group`, `company_group_edge`, `intercompany_relationship`, `transfer_price_policy_revision`, `intercompany_transaction`, `unrealised_margin`, `unrealised_margin_realisation`, `common_party_netting_policy` (§32); `group_account`, `group_account_map`, `fiscal_calendar_alignment`, `consolidation_run`, `consolidation_member`, `consolidation_member_contribution`, `consolidation_line`, `consolidation_elimination`, `minority_interest` (§35) | each names **two or more** companies by definition, so a single `company_id` column would be a lie rather than a constraint | **not unscoped** — a different policy, on group membership (below) |
+
+**Group-scoped tables carry `company_group_id NOT NULL` and their own policy.** The §31 gate checks them
+against this shape rather than exempting them from checking:
+
+```sql
+ALTER TABLE <group_table> ENABLE ROW LEVEL SECURITY;
+ALTER TABLE <group_table> FORCE ROW LEVEL SECURITY;
+CREATE POLICY group_scope ON <group_table>
+  USING      (company_group_id = ANY (authenticated_group_ids()))
+  WITH CHECK (company_group_id = ANY (authenticated_group_ids()));
+
+CREATE FUNCTION authenticated_group_ids() RETURNS bigint[]
+LANGUAGE sql STABLE AS $$
+  SELECT coalesce(array_agg(DISTINCT g.company_group_id), '{}')
+    FROM delegation_grant g
+   WHERE g.to_principal_id = authenticated_principal_id()
+     AND g.grant_kind = 'group_read'
+     AND g.company_group_id IS NOT NULL
+     AND g.revoked_at IS NULL
+     AND g.expires_at > now()
+$$;
+```
+
+Three properties follow, and each is the point of doing it this way rather than exempting:
+
+- **Absence still denies.** A principal with no live `group_read` grant gets `'{}'`, and
+  `company_group_id = ANY ('{}')` is false for every row. The polarity of T1 is preserved at the group level:
+  no grant means no rows, not all rows.
+- **The grant is time-boxed and audited.** `delegation_grant.expires_at` is `NOT NULL` (§29), so group
+  visibility expires by construction, and both the grant and each use produce a `principal_auth_event`. This is
+  what makes "who could read across companies, and when" answerable — the question upstream cannot answer,
+  because cross-company consolidation is an ordinary report permission
+  (`accounts/report/consolidated_trial_balance/consolidated_trial_balance.py:32-45`).
+- **The legs stay company-scoped.** `intercompany_transaction` is group-scoped, but
+  `intercompany_transaction_leg_line` carries `company_id NOT NULL` and the ordinary company policy, so each
+  company sees its own leg without a group grant. Only the *fact that a crossing exists* needs group
+  visibility. That asymmetry is deliberate: it is what lets AlphaCo's accountant work normally while keeping
+  the group view privileged (S13 §7.8).
+
+`delegation_grant` itself is **company-scoped**, not exempt: it carries `company_id NOT NULL` (§29), and a
+`group_read` grant additionally names `company_group_id`. `authenticated_principal_id()` is the sibling of
+`authenticated_company_id()` over the same protected context row.
+
+---
+
 ## 32. Group structure, inter-company crossings and transfer pricing
 
 Upstream's group model is `Company.parent_company` — a nested set carrying no ownership percentage, no
@@ -3183,8 +3247,9 @@ company_group(id, code varchar(32), name text,
     presentation_currency_id bigint NOT NULL,     -- the group's DEFAULT; a run may override (§35)
     fiscal_calendar_id bigint NOT NULL)
    UNIQUE (code)
-   -- [NOT COMPANY-SCOPED: a group spans companies by definition. Reads require a `group_read`
-   --  delegation_grant (§29); writes are platform-administered.]
+   -- [GROUP-SCOPED (§31.1): a group spans companies by definition. `company_group_id` + the
+   --  group_scope policy; reads require a live `group_read` delegation_grant (§29); writes are
+   --  platform-administered.]
 
 company_group_edge(id, company_group_id, parent_company_id, child_company_id,
     ownership_pct numeric(9,6) NOT NULL,
@@ -3251,8 +3316,9 @@ intercompany_transaction(id, company_group_id,
    -- IMMUTABLE once both legs are present (L2 trigger). REVOKE UPDATE, DELETE FROM app_role except
    -- the one-time leg attachment. There is NO unlink: a pair is reversed as a whole by a reversing
    -- transaction that cites it, and at most one direct reversal exists.
-   -- [NOT COMPANY-SCOPED — it names two. Visible under a `group_read` grant, or from either leg's
-   --  company via the leg. The two LEGS are ordinary company-scoped documents.]
+   -- [GROUP-SCOPED (§31.1) — it names two companies. Visible under a live `group_read` grant. The
+   --  two LEGS are ordinary company-scoped rows, so each company sees its own leg WITHOUT a group
+   --  grant; only the fact that a crossing exists needs group visibility.]
    -- The `authorising_delegation_grant_id` is NOT NULL because of §29.1: the seller's session
    -- physically cannot write the buyer's leg (`WITH CHECK` rejects it), so a crossing is two scoped
    -- writes and the second one requires a named, expiring authority. Upstream writes both legs in one
@@ -3632,9 +3698,12 @@ consolidation_run(id, company_group_id, period_id NOT NULL,
    -- overwritten. `source_watermark` makes a consolidation a statement about a KNOWN PREFIX of the
    -- event stream: a crossing posted after it appears in the next run, not silently in this one.
    -- `authorising_delegation_grant_id` is NOT NULL because this is the most privileged read in the
-   -- system. Upstream it is an ordinary report permission on a doctype.  [NOT COMPANY-SCOPED]
+   -- system. Upstream it is an ordinary report permission on a doctype.  [GROUP-SCOPED (§31.1)]
 
-consolidation_member(id, consolidation_run_id, company_id NOT NULL,
+-- Every child of a group-scoped parent carries `company_group_id NOT NULL` denormalised, for the same
+-- reason `company_id` is repeated on child tables in §2: a policy must be evaluable on the row itself,
+-- without a join. An L2 trigger asserts it equals the parent's.
+consolidation_member(id, consolidation_run_id, company_group_id NOT NULL, company_id NOT NULL,
     company_group_edge_id bigint NULL,             -- NULL for the parent
     ownership_pct numeric(9,6) NOT NULL,
     consolidation_method consolidation_method_enum NOT NULL,
