@@ -2329,22 +2329,29 @@ All conventions at the top of this document apply. Money `numeric(19,4)`; rates 
 `numeric(9,6)`; `company_id` everywhere with RLS and `FORCE RLS`; stable lower-case enum codes; append-only
 facts with reversal/supersession.
 
+**One deliberate exception to the company-scoping convention.** `tax_jurisdiction`, `tax_area` and
+`tax_area_postal_range` are **global reference data** — country and state codes are not tenant data — so they
+carry no `company_id` and no RLS policy. Every table that *references* them is company-scoped as usual. This
+is stated explicitly because doc 49 §2 asserts company scoping for all localisation tables; these three are
+the exception.
+
 ```sql
-tax_jurisdiction(id, code varchar(8), name text)  UNIQUE (code)   -- 'in', 'ae', 'gb'
+tax_jurisdiction(id, code varchar(8), name text)  UNIQUE (code)   -- 'in', 'ae', 'gb'  [GLOBAL]
 tax_jurisdiction_revision(id, company_id, tax_jurisdiction_id, revision_no integer,
     effective_from date, effective_to date NULL, state revision_state_enum,
     requires_e_invoice bool, requires_e_waybill bool, supports_reverse_charge bool,
     supports_composition bool, classification_scheme_id bigint,
+    snapshot_max_age_hours integer NOT NULL,   -- the policy window §27.1 step 3 REFUSES on
     approved_at NULL, approved_by NULL, supersedes_revision_id bigint NULL)
    UNIQUE (company_id, tax_jurisdiction_id, revision_no)
    EXCLUDE USING gist (company_id WITH =, tax_jurisdiction_id WITH =,
       daterange(effective_from, effective_to, '[)') WITH &&) WHERE (state = 'approved')
 
-tax_area(id, company_id, tax_jurisdiction_id, area_code varchar(8), name text,
-    is_outside_jurisdiction bool NOT NULL DEFAULT false)
-   UNIQUE (company_id, tax_jurisdiction_id, area_code)
+tax_area(id, tax_jurisdiction_id, area_code varchar(8), name text,
+    is_outside_jurisdiction bool NOT NULL DEFAULT false)                                -- [GLOBAL]
+   UNIQUE (tax_jurisdiction_id, area_code)
    -- Indian states by GST state number; '96' becomes is_outside_jurisdiction, not a magic literal
-tax_area_postal_range(id, company_id, tax_area_id, range_start integer, range_end integer)
+tax_area_postal_range(id, tax_area_id, range_start integer, range_end integer)         -- [GLOBAL]
    CHECK (range_end >= range_start)
    -- an unmapped area is a REFUSAL, never a silent pass (doc 45 §3.2)
 
@@ -2364,8 +2371,10 @@ tax_registration_snapshot(id, company_id, source_doc_type text, source_doc_id bi
     registration_no varchar(32), registration_category registration_category_enum,
     tax_area_id, status registration_status_enum, registered_on date NULL,
     cancelled_on date NULL, source snapshot_source_enum /*api|manual|derived*/,
-    retrieved_at timestamptz NOT NULL, fetch_attempt_id bigint NULL)
+    retrieved_at timestamptz NOT NULL,
+    statutory_submission_attempt_id bigint NULL)     -- the recorded fetch, when source = 'api'
    UNIQUE (company_id, source_doc_type, source_doc_id, party_role)
+   CHECK ((source = 'api') = (statutory_submission_attempt_id IS NOT NULL))
    -- IMMUTABLE. This is what makes doc 45 §3.3's async, log-only validation impossible: the write
    -- blocks until a snapshot within the policy window exists, and a later portal refresh cannot
    -- retroactively invalidate a posted document.
@@ -2377,9 +2386,16 @@ classification_code_revision(id, company_id, classification_scheme_id, code varc
     revision_no integer, description text, effective_from date, effective_to date NULL,
     state revision_state_enum)
    UNIQUE (company_id, classification_scheme_id, code, revision_no)
-item_classification(id, company_id, item_id, classification_code_revision_id,
-    effective_from date, effective_to date NULL)
+   EXCLUDE USING gist (company_id WITH =, classification_scheme_id WITH =, code WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&) WHERE (state = 'approved')
+item_classification(id, company_id, item_id, classification_scheme_id bigint NOT NULL,
+    classification_code_revision_id, effective_from date, effective_to date NULL)
    UNIQUE (company_id, item_id, classification_scheme_id, effective_from)
+   EXCLUDE USING gist (company_id WITH =, item_id WITH =, classification_scheme_id WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&)
+   -- the exclusion is what makes "resolve the classification for this line" single-valued; uniqueness on
+   -- effective_from alone permits two overlapping ranges
+   -- L2 trigger: classification_code_revision.classification_scheme_id equals this row's scheme
    -- items REFERENCE a classification revision; rates are never bulk-pushed into item masters
 
 tax_component(id, company_id, tax_jurisdiction_id, component_code varchar(24),
@@ -2589,6 +2605,9 @@ return_format_revision(id, company_id, return_type, revision_no integer,
     schema_definition jsonb NOT NULL, output_precision smallint NOT NULL,
     effective_from date, effective_to date NULL, state revision_state_enum)
    UNIQUE (company_id, return_type, revision_no)
+   EXCLUDE USING gist (company_id WITH =, return_type WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&) WHERE (state = 'approved')
+   CHECK (output_precision BETWEEN 0 AND 4)
    -- the statutory shape is a versioned row, not a JSON file on disk (doc 48 §2)
 
 return_working_set(id, company_id, return_period_id, version integer,
@@ -2607,12 +2626,16 @@ return_working_set_line(id, company_id, return_working_set_id,
 authority_dataset(id, company_id, tax_registration_id, dataset_type text,
     period_start date, period_end date, retrieved_at timestamptz,
     payload_hash char(64), source authority_source_enum /*api|upload*/,
-    statutory_submission_attempt_id bigint NOT NULL)
+    statutory_submission_attempt_id bigint NULL, uploaded_by bigint NULL)
    UNIQUE (company_id, tax_registration_id, dataset_type, period_start, payload_hash)
+   CHECK ((source = 'api') = (statutory_submission_attempt_id IS NOT NULL))
+   CHECK ((source = 'upload') = (uploaded_by IS NOT NULL))
 
 match_policy_revision(id, company_id, tax_jurisdiction_revision_id, dataset_type text,
     revision_no integer, effective_from date, effective_to date NULL, state revision_state_enum)
    UNIQUE (company_id, tax_jurisdiction_revision_id, dataset_type, revision_no)
+   EXCLUDE USING gist (company_id WITH =, tax_jurisdiction_revision_id WITH =, dataset_type WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&) WHERE (state = 'approved')
 match_policy_tier(id, company_id, match_policy_revision_id, tier_no integer,
     resulting_finding finding_enum)
    UNIQUE (company_id, match_policy_revision_id, tier_no)
@@ -2663,10 +2686,14 @@ customs_assessment(id, company_id, doc_no, import_declaration_no text, assessed_
 customs_assessment_allocation(id, company_id, customs_assessment_id,
     source_line_type text, source_line_id bigint, tax_component_id NULL, duty_code text NULL,
     amount numeric(19,4), destination credit_destination_enum,
-    stock_move_id NULL, asset_cost_event_id NULL, expense_account_id NULL, ordinal integer)
+    stock_value_event_id NULL, asset_cost_event_id NULL, expense_account_id NULL, ordinal integer)
    UNIQUE (company_id, customs_assessment_id, source_line_id, tax_component_id, duty_code, ordinal)
       NULLS NOT DISTINCT
-   CHECK (num_nonnulls(stock_move_id, asset_cost_event_id, expense_account_id) <= 1)
+   CHECK (num_nonnulls(stock_value_event_id, asset_cost_event_id, expense_account_id) = 1)
+   CHECK ((destination = 'inventory_valuation') = (stock_value_event_id IS NOT NULL))
+   CHECK ((destination = 'asset_cost')          = (asset_cost_event_id  IS NOT NULL))
+   CHECK ((destination = 'named_expense')       = (expense_account_id   IS NOT NULL))
+   CHECK (destination <> 'creditable' OR tax_component_id IS NOT NULL)
    -- deferred: Σ allocation per source line ≤ that line's assessed residual, under a source-line lock.
    -- Coverage between the commercial invoice and the assessment is a doc_link graph with a derived
    -- residual — never a `pending_boe_qty` counter (doc 48 §4).
