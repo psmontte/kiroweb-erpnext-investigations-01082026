@@ -110,7 +110,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
       is the evidence base for target rule X-5
     - _Requirements: 5.1, 6.4_
 
-  - [ ] 2.5 Establish the render effect of the field flags
+  - [x] 2.5 Establish the render effect of the field flags
     - State the render effect of `hidden`, `read_only`, `bold`, `allow_on_submit`, `in_list_view`,
       `print_hide` and `translatable`, one cited statement per flag
     - Note for each flag whether the effect is client-only, and therefore whether it is a security boundary or

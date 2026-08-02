@@ -1312,7 +1312,7 @@ Searched: `grep -rn "print_hide" frappe/public/js/frappe/form/` returns **no hit
 `get_field_display_status` (`frappe/public/js/frappe/model/perm.js:246-307`) and in none of the three
 `DocType Layout` override lists — the form's two (`frappe/public/js/frappe/form/layout.js:92-105`,
 `frappe/public/js/frappe/form/layout.js:555-568`) or the grid's child-layout one
-(`frappe/public/js/frappe/form/grid.js:916-926`), so it is not even overridable by a layout. No line number is
+(`frappe/public/js/frappe/form/grid.js:916-929`), so it is not even overridable by a layout. No line number is
 given for an absent form-side consumer. Its effect is confined to the print path.
 
 **Client-only?** No — `print_hide` is resolved **on the server**, which makes it the second of the seven to
@@ -1471,9 +1471,10 @@ nevertheless updates it on submitted Sales Orders — through `db_set`
 (`controllers/status_updater.py:677-683`), configured by the `target_parent_field` entry in
 `Sales Invoice.status_updater` (`accounts/doctype/sales_invoice/sales_invoice.py:260-275`). That is the
 bypass of §4.2 in live use: the framework's own write path does not honour the flag it enforces against
-callers. The field immediately below it, `billing_status`, carries `hidden: 1`
-(`selling/doctype/sales_order/sales_order.json:1291-1296`) and is written by the same mechanism — a hidden
-field being maintained server-side is the ordinary case, not an exception.
+callers. The field immediately below it, `billing_status`, carries both `hidden: 1` and `print_hide: 1`
+(`selling/doctype/sales_order/sales_order.json:1291-1302`) and is written by the same mechanism, through the
+`status_field` entry of the same configuration (`controllers/status_updater.py:672-675`) — a hidden field
+being maintained server-side is the ordinary case, not an exception.
 
 ### 4.5 Findings recorded for §8
 
