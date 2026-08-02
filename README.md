@@ -126,12 +126,20 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       see [`docs/logic/44`](docs/logic/44-tranche-c-closure-and-our-asset-spec.md).
 - [x] **Tranche F complete** (`docs/logic/45`–`49`, scenario `S12`) — localisation with **India GST**.
       India GST is **not in ERPNext** (removed in v14), so this tranche pins a third repository,
-      `india-compliance@205c3de` (`17.0.0-dev`, 50,407 LOC, **27 DocTypes**), read at controller depth:
+      `india-compliance@205c3de` (`17.0.0-dev`, ~49,000 LOC, **26 DocTypes**), read at controller depth:
       registration identity and status, settings, HSN/SAC, the five-component tax structure, place of supply
       and component determination, reverse charge, ineligible ITC, e-invoice/e-way bill as external state
       machines, GSTR-1/3B, purchase reconciliation and Bill of Entry. ERPNext's `@allow_regional` overlay and
       settings-toggled custom fields are **rejected** in favour of jurisdiction-as-data. Invariant register
       **G1–G29**; see [`docs/logic/49`](docs/logic/49-tranche-f-closure-and-our-localisation-spec.md).
 - [x] ~~Tranche D~~ — CRM, projects, support: **out of scope** by decision
-- [ ] Build — **application implementation has not started**; every named functional gap is now closed, so
-      the remaining gate is declaring the investigation complete
+- [ ] **Tranche G — security, tenancy and multi-entity** (**next**) — authentication and session identity,
+      the permission model end to end, **tenant isolation and RLS proved under attack** rather than asserted,
+      audit-trail integrity, plus **multi-company** (inter-company, common party, transfer pricing),
+      **multi-currency** (transaction / functional / presentation layering, translation vs revaluation),
+      **multi-location/branch/segment**, and **consolidation** (group reporting, elimination, minority
+      interest, differing fiscal calendars). Every prior tranche asserted `company_id` + RLS + `FORCE RLS`;
+      none tested it. Planned docs 50–57 and scenario S13; see
+      [`docs/INVESTIGATION-PLAN.md`](docs/INVESTIGATION-PLAN.md).
+- [ ] Build — **application implementation has not started**; the functional gaps are closed, so the
+      remaining gates are Tranche G and declaring the investigation complete

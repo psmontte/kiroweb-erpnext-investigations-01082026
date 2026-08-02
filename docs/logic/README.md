@@ -112,7 +112,7 @@ schema, write/reversal ordering and build sequence. **Application implementation
 ### Tranche F — localisation, India GST first (**complete**)
 
 India GST is **not in ERPNext**: removed in v14 (`patches/v14_0/remove_india_localisation.py:5-21`) and
-maintained as `resilient-tech/india-compliance`, pinned at `205c3de` (`17.0.0-dev`, 50,407 Python LOC, 27
+maintained as `resilient-tech/india-compliance`, pinned at `205c3de` (`17.0.0-dev`, ~49,000 Python LOC, 26
 DocTypes). Verify Tranche F citations with the third app root:
 
 ```bash

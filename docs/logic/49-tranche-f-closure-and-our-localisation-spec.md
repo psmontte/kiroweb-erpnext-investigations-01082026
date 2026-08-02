@@ -33,8 +33,8 @@ repository** to read.
 |---|---|
 | App | `resilient-tech/india-compliance`, pinned `205c3de` |
 | Version alignment | `17.0.0-dev`, requires `frappe >=17.0.0-dev` — matches our pinned frappe/erpnext exactly |
-| Python | 50,407 lines across 318 non-test files |
-| DocTypes | **27** |
+| Python | ~49,000 lines across ~313 files, excluding `test_*` and `tests/` |
+| DocTypes | **26** |
 | Documents | 45 (identity, settings, classification, tax structure), 46 (determination), 47 (external artefacts), 48 (returns, reconciliation, imports) |
 
 The ERPNext-side coverage matrix is unchanged and remains closed: **203 parents, 178 cited, zero uncited
@@ -310,7 +310,7 @@ This tranche is the most cross-cutting of all, and the seams must be built delib
 | **F** | **localisation, India GST** | **complete — docs 45–49, S12** |
 
 ERPNext coverage remains **203 parents / 178 cited / 0 uncited submittable / 0 uncited configuration / 25
-exclusions**, plus 27 India Compliance DocTypes read at controller depth. Invariant registers: `L/S/D/P`,
+exclusions**, plus 26 India Compliance DocTypes read at controller depth. Invariant registers: `L/S/D/P`,
 `F/T/R/V/U`, `M1–M69`, `A1–A26`, `G1–G29`. Scenarios **S01–S12**.
 
 **Application implementation has not started.** With this tranche the named functional gaps are closed; what

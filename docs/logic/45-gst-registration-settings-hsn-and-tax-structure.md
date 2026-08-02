@@ -53,11 +53,11 @@ actually implements it, which is why this tranche pins a third repository. Anyth
 | | |
 |---|---|
 | App | `resilient-tech/india-compliance`, pinned `205c3de` |
-| Python | 50,407 lines across 318 non-test files |
+| Python | ~49,000 lines across ~313 files, excluding `test_*` and `tests/` |
 | DocTypes | **26** |
 | Version alignment | `17.0.0-dev`, `frappe >=17.0.0-dev` — matches our pinned frappe/erpnext exactly |
 
-The 27 DocTypes, grouped by what they are for:
+The 26 DocTypes, grouped by what they are for:
 
 | Group | DocTypes |
 |---|---|

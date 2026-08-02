@@ -129,7 +129,7 @@ ledger, freezing, balance-must-be) has not been read line by line.
 |---|---|---|
 | 1 | `uncited_submittable` = 0 | Accounts **0** ✔, Stock **0** ✔, Selling **0** ✔, Buying **0** ✔, Manufacturing **0** ✔, Subcontracting **0** ✔, Quality Management **0** ✔ |
 | 2 | Config DocTypes cited or excluded | **✔ 0 uncited config** in every audited module; Stock operational-QI exclusions removed after doc 39 |
-| 3 | Scenario per cross-subsystem flow | **✔** S01–S11 complete, including the full asset lifecycle |
+| 3 | Scenario per cross-subsystem flow | **✔** S01–S12 complete, including the full asset lifecycle and the GST compliance cycle |
 | 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 5520 citations** |
 | 5 | Table regenerated | **✔** |
 
@@ -152,7 +152,7 @@ completes the worked cross-subsystem scenario with accepted, blocked, warned and
 **Tranche F (localisation, India GST) is complete.** India GST is **not in ERPNext** — removed in v14
 (`patches/v14_0/remove_india_localisation.py:5-21`) — so docs 45–49 and
 [S12](scenarios/S12-gst-invoice-e-invoice-and-gstr1.md) read a third pinned repository,
-`india-compliance@205c3de`, covering its **27 DocTypes** at controller depth. That app is outside this
+`india-compliance@205c3de`, covering its **26 DocTypes** at controller depth. That app is outside this
 matrix, which counts ERPNext parents only; the ERPNext totals above are unchanged. Invariants **G1–G29**.
 
 Verify Tranche F citations with the third app root:
