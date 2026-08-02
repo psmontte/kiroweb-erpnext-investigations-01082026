@@ -36,7 +36,7 @@ does not proceed past it.
 | **G0 — sources present** | `/projects/sandbox/frappe/frappe` and `/projects/sandbox/erpnext/erpnext` exist and are directories | Stop. Record in Notes_Register. No UI_Doc may be written, because no Citation can be read (Requirement 5.4). |
 | **G1 — commits match** | `git -C /projects/sandbox/frappe rev-parse HEAD` = `5da68e856ca7f036b20d2583167b9d00c4a8db56`; `git -C /projects/sandbox/erpnext rev-parse HEAD` = `ceefd4add77715d2762c19db337fb83e28a477de` | Stop. A different commit invalidates every line number. Record the observed hashes in Notes_Register. |
 | **G2 — branch** | current branch is `kiro/spec-planning` | Stop (Requirement 18.1). |
-| **G3 — upstream docs present** | `docs/logic/18-metadata-and-runtime-ddl.md`, `docs/logic/19-permissions-and-access-control.md`, `docs/logic/24-reporting-framework.md`, `docs/logic/25-our-platform-spec.md`, `docs/design/FINAL-SCHEMA.md` all exist | Stop; cross-references cannot resolve (Requirement 17.4, 17.5). |
+| **G3 — upstream docs present** | `docs/logic/18-metadata-and-runtime-ddl.md`, `docs/logic/19-permissions-and-access-control.md`, `docs/logic/24-reporting-framework.md`, `docs/logic/25-our-platform-spec.md`, `docs/design/FINAL-SCHEMA.md` all exist | Stop; cross-references cannot resolve (Requirement 17.8, 17.9). |
 | **G4 — acceptance** | §8 pipeline reports 0 problems, `git diff --check` empty, all relative links resolve | Iterate until satisfied (Requirement 17.2). |
 
 ### 2.1 G0/G1 state at design time — a live blocker
@@ -147,7 +147,7 @@ use the same skeleton minus the defect inventory (they state a target, not an an
 | **T8 Defect and race inventory** | numbered table; **every row carries ≥ 1 Citation** | 3.6, 5.1 |
 | **T9 Invariants** | `UI*` rules, one testable rule each | 4.1, 4.4, 4.6 |
 | **T10 Adopt / Change / Reject matrix** | one row per analysed capability with the target decision | 3.7 |
-| **T11 Cross-reference footer** | every related document by relative path | 3.8, 17.4 |
+| **T11 Cross-reference footer** | every related document by relative path | 3.8, 17.8 |
 
 ### 5.1 T2 — the exact header form
 
@@ -217,8 +217,10 @@ belongs to FORM-LAYOUT. If it needs a value, a locale, a user or a viewport, it 
 | Tax_Regime localised field sets; GST layout concerns; jurisdiction variation | **UI-SPEC** | FORM-LAYOUT | 14.1–14.3, 14.5 |
 | `@allow_regional` exclusion | **UI-SPEC** (B/B/D matrix) | 05 | 14.4 |
 | Enforcement-layer assignment per guarantee | **UI-SPEC** | logic/25 §2 | 15.2 |
-| Storage binding table (layout field → FINAL-SCHEMA table.column) | **UI-SPEC** | FORM-LAYOUT | 15.4 |
-| RLS `company_id` scoping of layout queries | **UI-SPEC** | logic/19 | 15.5 |
+| `layout_revision` / `layout_node` table definitions (presentation-metadata storage) | **FORM-LAYOUT** | UI-SPEC, 05 | 15.4 |
+| Storage binding table, **business-data** rows (layout field → FINAL-SCHEMA table.column) | **UI-SPEC** | FORM-LAYOUT | 15.5 |
+| Storage binding table, **presentation-metadata** rows (layout field → FORM-LAYOUT table.column) | **UI-SPEC** | FORM-LAYOUT | 15.6 |
+| RLS `company_id` scoping of layout queries | **UI-SPEC** | logic/19 | 15.9 |
 | Build / buy / drop matrix | **UI-SPEC** | 05 | 15.1 |
 
 Boundary cases decided explicitly, so they are not re-litigated:
@@ -229,6 +231,10 @@ Boundary cases decided explicitly, so they are not re-litigated:
   FORM-LAYOUT. Which columns the server exposes and their widths → UI-SPEC.
 - **Precision.** The canonical storage type → UI-SPEC Formatting_Contract (with the binding to FINAL-SCHEMA).
   A field node's declared display precision → FORM-LAYOUT node schema, referencing UI-SPEC for resolution.
+- **Table *definition* vs binding *row*.** The DDL for `layout_revision` and `layout_node` → FORM-LAYOUT
+  (Requirement 15.4). The single binding table that maps each layout field to a table and column — whichever
+  document defines that table — → UI-SPEC (Requirements 15.5, 15.6, §10.5). FORM-LAYOUT therefore owns the
+  definitions and UI-SPEC owns the bindings, which keeps the single-source rule intact for both kinds.
 
 ---
 
@@ -240,14 +246,25 @@ Reading is breadth-first per document, deepest on the modules that own an algori
 
 | Doc | Read order |
 |---|---|
-| 01 | `frappe/public/js/frappe/form/form.js` → `layout.js` → `section.js`, `column.js`, `form_page` → `controls/base_control.js` → `controls/` per field type → `frappe/model/meta.js` and the `Meta` shape established by logic/18 → precision/format helpers |
-| 02 | `frappe/public/js/frappe/form/grid.js` → `grid_row.js` → `grid_form.js` → `grid_pagination.js` → paste/template handlers → child-row validation path into `frappe/model/` |
+| 01 | `frappe/public/js/frappe/views/formview.js` (`frappe.views.FormFactory`, the construction entry point) → `frappe/public/js/frappe/form/form.js` → `layout.js` → `section.js`, `column.js`, `tab.js` → `controls/base_control.js` → `controls/` per field type → `frappe/model/meta.js` and the `Meta` shape established by logic/18 → precision/format helpers |
+| 02 | `frappe/public/js/frappe/form/grid.js` → `grid_row.js` → `grid_row_form.js` → `grid_pagination.js` → paste/template handlers → child-row validation path into `frappe/model/` |
 | 03 | `frappe/custom/doctype/customize_form/` → `custom_field/`, `property_setter/` → `doctype_layout/`, `workspace/`, `form_tour/`, `client_script/`, `custom_html_block/` → merge points in metadata assembly (**cross-reference logic/18, do not re-derive**) |
 | 04 | `frappe/public/js/frappe/list/` (`list_view.js`, `list_sidebar*`, `list_settings`, filter area) → `frappe/public/js/frappe/views/` for Kanban/Calendar/Gantt/Tree/Image/Map/Dashboard → bulk action handlers → `listview_settings` consumers in erpnext |
 | 05 | no source reading; reads 01–04, logic/25 §2–§3, FINAL-SCHEMA |
 
 Where an ERPNext-side behaviour is involved (regional field sets, `listview_settings` overrides), erpnext is
 read second and cited without the `frappe/` prefix.
+
+Every unit name is checked against the pinned tree **before** it enters a reading order, because a name that
+does not exist upstream would otherwise have to be recorded as an absence finding (Requirement 6.9). The two
+names this design previously carried were wrong and are corrected above:
+
+| Named unit | Status at the pinned commits | Evidence |
+|---|---|---|
+| `frappe.views.FormFactory` | present; the point at which the form is constructed (Requirement 6.1) | `frappe/public/js/frappe/views/formview.js:6` |
+| `frappe/public/js/frappe/form/tab.js` | present; the `Tab` unit named by Requirement 6.1 | file present at the pinned commit |
+| `form_page` | **absent** — no `form_page*` module exists under `frappe/public/js/frappe/`; `tab.js` is the unit | no line number, per Requirement 5.5 |
+| `grid_form.js` | **absent** — the expanded-row module is `grid_row_form.js` (Requirement 7.1) | no line number, per Requirement 5.5 |
 
 ### 7.2 Claim protocol
 
@@ -521,6 +538,18 @@ layout_revision(
 )
 ```
 
+**Lineage of this table (Requirement 15.4).** `layout_revision` — and `layout_node` in §10.2 — is the concrete
+form of the `ui_field` / `ui_layout` capability that `docs/logic/25-our-platform-spec.md` §3.1 records as
+**BUILD**, "describes rendering only; cannot affect storage" (`docs/logic/25-our-platform-spec.md:79`; the same
+capability is listed again among the permitted admin surfaces at `:259`).
+
+| Fact | Evidence | Consequence |
+|---|---|---|
+| Doc 25 commits to building `ui_field` / `ui_layout` at L4 | `docs/logic/25-our-platform-spec.md:79` | the capability is decided; only its concrete shape is open |
+| `docs/design/FINAL-SCHEMA.md` defines no `ui_field`, `ui_layout`, `layout_revision` or `layout_node` | search of that file for all four names returns no match | the specification of both tables **originates in `FORM-LAYOUT.md`** |
+| FINAL-SCHEMA is read-only for this investigation | Requirement 15.7, §11.1 | the tables are specified, never added to FINAL-SCHEMA |
+| The divergence is registered, not hidden | Requirement 15.8, §11.2 | the Notes_Register names it, pending backend confirmation |
+
 Stated rules:
 
 | Rule | Statement | Requirement |
@@ -551,6 +580,12 @@ layout_node(
 )
 ```
 
+`layout_node` carries the same lineage as `layout_revision` (§10.1): it is the `ui_layout` half of doc 25
+§3.1's **BUILD** decision (`docs/logic/25-our-platform-spec.md:79`), specified in `FORM-LAYOUT.md` because
+`docs/design/FINAL-SCHEMA.md` defines no such table (Requirement 15.4), with the divergence recorded under
+Requirement 15.8. It is presentation metadata only and has no effect on stored business schema
+(Requirement 15.3, rule E-3 in §10.7).
+
 Publish-time validation (Requirement 10.2, 10.3). Every rule below yields an **identified error code** and
 rejects the whole revision:
 
@@ -562,7 +597,8 @@ rejects the whole revision:
 | `LT-ORDINAL` | Ordinals within a parent are gap-free from 0 |
 | `LT-FIELD` | `field_key` present iff `node_kind = 'field'`, and resolves to a known field for the doctype |
 | `LT-DUP` | A `field_key` appears at most once per revision |
-| `LT-BIND` | Every `field_key` bound to storage names an existing FINAL-SCHEMA table and column (§10.5) |
+| `LT-BIND-BUS` | Every `field_key` bound to **business data** names an existing `docs/design/FINAL-SCHEMA.md` table and column (§10.5, Requirement 15.5) |
+| `LT-BIND-META` | Every `field_key` stored as **presentation metadata** names an existing `layout_revision` or `layout_node` column as defined in `FORM-LAYOUT.md` (§10.1, §10.2, §10.5, Requirement 15.6) |
 | `LT-EXPR` | Every referenced expression validates (§10.3) |
 | `LT-LABEL` | `label_key` is a key, not display text |
 
@@ -641,11 +677,23 @@ cannot invalidate a reference that never pointed at `idx`. G-4 is the answer to 
 | F-4 | A design that writes a formatted or translated string to a stored field is **rejected**, and the rejection is recorded in the Adopt/Change/Reject matrix | 13.4 |
 | F-5 | The separation of stored value from displayed text is a numbered `UI*` invariant in doc 05 | 13.5 |
 
-Binding table form (Requirement 15.4) — `FINAL-SCHEMA.md` is read-only and only referenced:
+Binding table form (Requirements 15.5, 15.6) — one table in UI-SPEC carries **both** binding kinds, and every
+row names the document that defines the table it binds to. `FINAL-SCHEMA.md` is read-only and only referenced
+(Requirement 15.7):
 
-| Layout field key | FINAL-SCHEMA table | Column | Canonical type | Display precision source |
-|---|---|---|---|---|
-| … | … | … | `numeric(19,4)` | field node / currency minor unit |
+| Layout field key | Binding kind | Defining document | Table | Column | Canonical type | Display precision source |
+|---|---|---|---|---|---|---|
+| … | **business data** | `docs/design/FINAL-SCHEMA.md` (read-only) | … | … | `numeric(19,4)` | field node / currency minor unit |
+| … | **presentation metadata** | `docs/design/FORM-LAYOUT.md` (specified per §10.1, §10.2) | `layout_node` | `display_precision` | `smallint` | — |
+
+Stated rules:
+
+| Rule | Statement | Requirement |
+|---|---|---|
+| B-1 | Binding kind is one of exactly two values — business data or presentation metadata — and every bound layout field declares one | 15.5, 15.6 |
+| B-2 | A **business-data** row names a table and column defined in `docs/design/FINAL-SCHEMA.md`; the name is cited, never proposed, and FINAL-SCHEMA is left unchanged | 15.5, 15.7 |
+| B-3 | A **presentation-metadata** row names a `layout_revision` or `layout_node` column defined in `docs/design/FORM-LAYOUT.md` | 15.4, 15.6 |
+| B-4 | A name absent from its declared defining document fails publish validation (`LT-BIND-BUS`, `LT-BIND-META` in §10.2); no row binds one field to both documents | 15.5, 15.6 |
 
 F-1/F-2 are also the target answer to doc 01's precision-resolution chain (Requirement 6.7): the chain is
 analysed upstream and **rejected** in favour of a type in the column, consistent with
@@ -672,9 +720,10 @@ than relying on those documents for the Citation.
 | E-1 | Each analysed presentation capability carries a **build / buy / drop** decision in the format of `docs/logic/25-our-platform-spec.md` | 15.1 |
 | E-2 | Each guarantee is assigned to the **lowest enforcement layer that can enforce it without cooperation from a caller** (L1 schema, L2 triggers/RLS, L3 orchestration, L4 service code) | 15.2 |
 | E-3 | Presentation metadata governs rendering only and **cannot affect stored schema** | 15.3 |
-| E-4 | Every layout field states its FINAL-SCHEMA table and column; FINAL-SCHEMA is read-only | 15.4 |
-| E-5 | Every layout query that reads a business table is **RLS-scoped by `company_id`** | 15.5 |
-| E-6 | Content is expressed as tables, an expression grammar and precedence rules; prose is never the sole statement of a rule | 15.6 |
+| E-4a | Every layout field bound to **business data** states its `docs/design/FINAL-SCHEMA.md` table and column; FINAL-SCHEMA is read-only and left unchanged | 15.5, 15.7 |
+| E-4b | Every layout field stored as **presentation metadata** states its `layout_revision` or `layout_node` table and column as defined in `docs/design/FORM-LAYOUT.md`, which specifies both tables as the concrete form of doc 25 §3.1's `ui_field` / `ui_layout` **BUILD** decision (`docs/logic/25-our-platform-spec.md:79`), with the divergence from FINAL-SCHEMA recorded in the Notes_Register | 15.4, 15.6, 15.8 |
+| E-5 | Every layout query that reads a business table is **RLS-scoped by `company_id`** | 15.9 |
+| E-6 | Content is expressed as tables, an expression grammar and precedence rules; prose is never the sole statement of a rule | 15.10 |
 
 Decision-table column order, matching doc 25 §3:
 
@@ -682,13 +731,17 @@ Decision-table column order, matching doc 25 §3:
 |---|---|---|
 | … | **BUILD** / **BUY** / **DROP** | L1 / L2 / L3 / L4 / build step / — |
 
-**Note on a stale cross-reference.** Requirement 15.1 cites "`docs/logic/25-our-platform-spec.md` section 6"
-for the build/buy/drop format. On this branch the decision tables are in **§3** ("Build / buy / drop, by
-capability"); §6 is "What this costs us". The design follows the requirement's *intent* — the format used by
-doc 25 — and links §3, which is where that format lives. Recorded in the Notes_Register.
+**Note on a resolved cross-reference.** Requirement 15.1 now cites `docs/logic/25-our-platform-spec.md`
+**section 3** for the build/buy/drop format, which is where that format lives on this branch —
+`## 3. Build / buy / drop, by capability` at `docs/logic/25-our-platform-spec.md:66`, with the capability
+tables in §3.1–§3.7; §6, "Cost of leaving Frappe — honest accounting", is at `:292` and contains no decision
+table. The earlier discrepancy (the requirement citing §6) is therefore **resolved in the requirement itself**:
+no request against `docs/logic/**` remains, and the Notes_Register records the point as closed rather than
+outstanding (§11.2).
 
 E-3 aligns with doc 25 §3.1's `ui_field` / `ui_layout` entry ("describes rendering only; cannot affect
-storage"), which the target contract refines rather than contradicts.
+storage", `docs/logic/25-our-platform-spec.md:79`), which the target contract refines rather than contradicts:
+E-4b gives that entry its concrete tables, and E-3 keeps them confined to rendering.
 
 ---
 
