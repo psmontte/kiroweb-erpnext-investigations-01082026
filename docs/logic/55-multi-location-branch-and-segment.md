@@ -132,8 +132,10 @@ So: no operating segments, no segment disclosure, no reconciliation of segment t
 group that must report by segment builds it in the report layer, per report, with no constraint that two reports
 agree.
 
-This mirrors doc 53 §1's finding about consolidation and doc 54 §4's about translation. The pattern across all
-three: **ERPNext models the transaction layer thoroughly and the reporting-entity layer not at all.**
+This is the sharpest of the three reporting-entity gaps. Consolidation *does* exist as reports (doc 53 §1) and a
+translation residual *is* computed (doc 54 §4) — both incompletely. Segments have nothing at all. The pattern
+across all three: **ERPNext models the transaction layer thoroughly, and the reporting-entity layer as report
+output rather than as facts.**
 
 ---
 

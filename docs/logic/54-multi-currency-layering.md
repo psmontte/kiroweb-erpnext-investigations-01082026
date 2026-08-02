@@ -34,12 +34,22 @@ Invariants continue from doc 53 at **T19**.
 `default_currency` is the functional currency in all but name: every `gl_entry` amount is expressed in it, the
 inter-company check compares it (doc 53 §3.1), and party ledger currency is validated against it (doc 01 §1.6).
 
-`reporting_currency` exists as a field. It is not the same thing as a *group* presentation currency, and there
-is no mechanism that translates a company's books into it as a reproducible, stored result — which is why doc 56
-has nothing to consolidate into.
+`reporting_currency` **is** used, but only by the consolidation reports, and only as a fallback.
+`get_reporting_currency` decides (`accounts/report/consolidated_trial_balance/consolidated_trial_balance.py:323-336`):
+
+```text
+if every selected company shares one default_currency → use that, ignore reporting_currency
+if they differ                                        → use the ROOT company's reporting_currency
+```
+
+So a presentation currency is selected **only when the group is genuinely multi-currency**, and it comes from
+one company's field rather than from the group. There is no stored, reproducible statement of a subsidiary's
+balances in that currency — the conversion happens inside a report run
+(`accounts/report/consolidated_trial_balance/consolidated_trial_balance.py:370-383`) and is discarded with it.
 
 So the layering is: transaction currency on the document, functional currency on the ledger, and presentation
-currency as a label. The middle layer is never named, which is what makes the next two sections possible.
+currency as a **report parameter**. The middle layer is never named, which is what makes the next two sections
+possible.
 
 > **Invariant T19 — three currency layers, each named and each recorded.** Every monetary fact stores its
 > transaction currency and amount, the functional currency of the owning company and the amount in it, and the
@@ -165,9 +175,28 @@ one.
 posted balances rather than from a rate table is a reasonable fallback and a poor authority: it means the
 revaluation's starting point depends on posting order.
 
-There is **no cumulative translation adjustment account** on `Company`
-(`setup/doctype/company/company.json:14-30`), and no per-period translated balance anywhere — so a group whose
-subsidiaries have different functional currencies cannot be consolidated without inventing both.
+A translation residual **is** computed, in one place: `calculate_foreign_currency_translation_reserve` in the
+Consolidated Trial Balance (`accounts/report/consolidated_trial_balance/consolidated_trial_balance.py:255-292`).
+Its method is worth quoting, because it defines what kind of number it is:
+
+```python
+opening_dr_cr_diff = total_row["opening_debit"] - total_row["opening_credit"]
+dr_cr_diff         = total_row["debit"] - total_row["credit"]
+fctr_row = {... "debit": abs(dr_cr_diff) if dr_cr_diff < 0 else 0.0, ...}
+```
+
+The reserve is **the amount required to make the consolidated trial balance balance** — a residual read off the
+debit/credit difference after conversion, inserted next to Equity (or Liability when no Equity row is found,
+`:293-312`) and added into the total row.
+
+As a practical device in a report, that is defensible and it is honest about what it is. As a translation
+adjustment it is not one: a CTA under the standard is derived from applying **prescribed rates by item class** —
+closing for balance-sheet items, average for income, historical for equity — and the residual is the
+*consequence*, not the definition. Here the residual is the definition, so nothing distinguishes translation
+difference from a conversion error, a missing rate, or an unbalanced source ledger.
+
+There is also **no CTA account on `Company`** (`setup/doctype/company/company.json:14-30`) and no stored
+per-period translated balance: the reserve exists for the duration of a report run and is never posted.
 
 > **Invariant T21 — revaluation and translation are distinct, both are dated facts.** Revaluation restates
 > monetary balances at a dated closing rate and posts realised or unrealised FX to named accounts. Translation
@@ -329,9 +358,14 @@ transaction, so §2 step 7's synchronous HTTP call inside a write disappears.
    (`setup/utils.py:112-160`).
 10. **A synchronous HTTP call sits in the conversion path** — inside whatever transaction is posting
     (`setup/utils.py:112-160`).
-11. **`reporting_currency` has no translation mechanism** (`setup/doctype/company/company.json:960-970`).
-12. **No cumulative translation adjustment account or translated balances exist** — so a multi-currency group
-    cannot be consolidated (§4).
+11. **`reporting_currency` is used only as a report fallback**, taken from the root company and only when the
+    group's currencies differ
+    (`accounts/report/consolidated_trial_balance/consolidated_trial_balance.py:323-336`).
+12. **The translation reserve is a balancing plug**, derived from the post-conversion debit/credit difference
+    rather than from prescribed rates by item class, and inserted next to Equity — or Liability when no Equity
+    row exists (`accounts/report/consolidated_trial_balance/consolidated_trial_balance.py:255-312`).
+12a. **No CTA account and no stored translated balances**: the reserve lives only inside a report run
+    (`setup/doctype/company/company.json:14-30`).
 13. **Revaluation can derive its rate from the last GL entry**, making the result posting-order dependent
     (`accounts/doctype/exchange_rate_revaluation/exchange_rate_revaluation.py:649-697`).
 14. **Functional currency is a mutable field** on `Company`, with nothing freezing it once posted facts exist
@@ -351,7 +385,7 @@ Genuinely good, and adopted: the four-case peg arithmetic including cross-peg re
 | Mechanism | Decision | Ours |
 |---|---|---|
 | `default_currency` as the ledger currency | **Adopt, rename** | `company_functional_currency`, effective-dated and frozen once posted |
-| `reporting_currency` as a field | **Change** | presentation currency is a parameter of a `translation_run` |
+| `reporting_currency` as a report fallback | **Change** | presentation currency is a parameter of a stored `translation_run` |
 | Transaction + base amounts on every row | **Adopt** | plus the rate **identity** |
 | Rate value copied to the document | **Change** | `exchange_rate_id` + `rate_applied` |
 | `Currency Exchange` dated rows | **Adopt** | append-only, sourced, superseding |
@@ -371,8 +405,8 @@ Genuinely good, and adopted: the four-case peg arithmetic including cross-peg re
 | Booked vs unbooked FX split | **Adopt** | the same split drives revaluation and CTA |
 | `rounding_loss_allowance` | **Adopt** | explicit tolerance on the revaluation, not on the ledger |
 | Rate derived from the last GL entry | **Reject** | rates come from `exchange_rate` |
-| No translation mechanism | **Reject** | `translation_run` + `translated_balance` + `translation_adjustment` |
-| No CTA account | **Reject** | `cta_account_id`, and the residual is a fact |
+| Translation inside a report run | **Change** | `translation_run` + `translated_balance`, stored and reproducible |
+| CTA as a balancing plug | **Reject** | rates prescribed per item class; the residual is a consequence, posted to `cta_account_id` |
 | Cross-currency inter-company refused | **Reject** | legs in different functional currencies, one agreed transaction amount |
 
 Invariants introduced here are **T19–T22**. Doc 55 continues at **T23** with location, branch and segment
