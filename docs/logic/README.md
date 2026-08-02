@@ -130,6 +130,19 @@ python3 tools/verify_refs.py --docs docs/logic \
 | 48 | [48-gst-returns-reconciliation-and-imports.md](48-gst-returns-reconciliation-and-imports.md) | the periodic obligations, where **the government holds a competing copy of our data**: GSTR-1's statutory taxonomy and its memoised working set gated by `is_latest_data`; reconciliation that keeps the signed difference (good) but writes `upload_status` back into its own input (bad); three separate hard-coded 2-decimal precisions; the **declarative purchase-matching rule ladder** — exact/fuzzy/rounding tiers as data, the best design in the tranche — undermined by match decisions being mutable link edits with no history; and Bill of Entry posting customs duty into inventory and asset value |
 | 49 | [49-tranche-f-closure-and-our-localisation-spec.md](49-tranche-f-closure-and-our-localisation-spec.md) | **Tranche F deliverable**: what the tranche measured (a third repository, not an ERPNext module), G1–G29 mapped to enforcement layers, the five decision themes — adopt wholesale / reject mechanism / reject display-text-as-data / reject defaults and tolerances that decide money / reject mutable facts — the **signature finding**, the concrete schema in `FINAL-SCHEMA` §24–§28, the 11-step build sequence, and the seams where localisation touches stock, assets, periods and the link graph |
 
+### Tranche G — security, tenancy and multi-entity (**in progress**)
+
+The boundary every previous tranche asserted and none tested. **Frappe has no row-level security, no tenant
+context and no session scope** — a search of the pinned tree returns zero occurrences of `ROW LEVEL SECURITY`,
+and the only `current_setting(` is in a query-builder test. Company is a *data dimension* filtered by
+`User Permission`, and `ignore_permissions=True` appears **892 times** across Frappe and ERPNext. Invariant
+prefix **T**.
+
+| Read | File | Covers |
+|---|---|---|
+| 50 | [50-authentication-session-and-tenant-context.md](50-authentication-session-and-tenant-context.md) | why there is no tenant context to bind RLS to; the two login paths and the **downgrade-to-`Guest`** fallback; two-axis lockout (adopted); non-interactive auth where a **caller-supplied header chooses the authenticating DocType**, authenticators swallow exceptions, and the fail-closed guard only fires when an `Authorization` header was present; sessions that carry **no company**; and our `principal` / `principal_company_membership` / `auth_session` model with the `auth.current_company()` function RLS actually binds to |
+
+
 
 Assets are documented in docs **41–44** plus **[S11](../scenarios/S11-asset-lifecycle.md)**: all 14
 parent controllers are cited with zero submittable and zero configuration gaps, and the register runs
