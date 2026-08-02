@@ -102,7 +102,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
     - Add a worked example running a concrete field list through the numbered steps
     - _Requirements: 3.3, 3.4, 5.1, 6.2, 6.3_
 
-  - [ ] 2.4 Establish the evaluation of the `*_depends_on` family
+  - [x] 2.4 Establish the evaluation of the `*_depends_on` family
     - State evaluation scope, evaluation timing and failure behaviour for `depends_on`,
       `mandatory_depends_on`, `read_only_depends_on` and `collapsible_depends_on`, including what happens when
       an expression throws
