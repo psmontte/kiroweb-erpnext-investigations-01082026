@@ -116,12 +116,18 @@ four candidate places for it, and none of them holds it.
 **Probe 1 — the database.** Is there a tenant context that a policy could read?
 
 ```text
-$ grep -rn "current_setting" frappe/ erpnext/ --include=*.py
-frappe/tests/test_query_builder.py:368
+$ grep -rniI "row level security" frappe/ erpnext/
+   → 0
+
+$ grep -rn "current_setting(" frappe/ erpnext/ --include=*.py | grep -v get_current_setting
+frappe/tests/test_query_builder.py:368,382,426,436,438,446
+   → 6 occurrences, 1 file, all current_setting('timezone')
 ```
 
-One occurrence, in a query-builder test. There is no row-level security, no policy, no tenant context
-function. Company is a data dimension, and confinement to it is the application's job.
+Six occurrences in one file, all asserting the SQL a timezone conversion generates. (The `grep -v` excludes a
+similarly-named helper in two log-retention patches, which is not the Postgres function.) There is no
+row-level security, no policy, and **no call site in either application that reads a session-scoped database
+setting**. Company is a data dimension, and confinement to it is the application's job.
 
 **Probe 2 — the session.** `Session.insert_session_record` writes the session document
 (`frappe/sessions.py:256-310`). It carries `user`, `sid`, `device`, `session_data`, `ip_address`,
@@ -193,8 +199,9 @@ to share a currency, which is the only configuration upstream supports.
 
 Three rules exist and each is optional or misdirected:
 
-- **Price list must be both buying and selling** — a role check on a price list, not an approval of a price
-  (`accounts/services/internal_transfer.py:120-135`).
+- **Price list must be both buying and selling** — a role check on a price list, not an approval of a price,
+  and skipped entirely when the document *is* an internal transfer
+  (`accounts/doctype/sales_invoice/mapper.py:149-175`).
 - **`ignore_pricing_rule`** is set on the document, suppressing promotional rules. The intent is right — a
   transfer price is not a discount — but it is a field on one document rather than a policy for the company
   pair (`accounts/services/internal_transfer.py:120-135`).
@@ -728,9 +735,9 @@ nothing is stored, "the March consolidation" is whatever the report returns toda
    (`accounts/doctype/sales_invoice/mapper.py:149-175`), so a group with subsidiaries in India, the UK and the
    Netherlands cannot record the transaction that §1.2 describes. Everything after that point in §3–§5 is an
    analysis of what *would* happen.
-2. **There is no tenant context to enforce anything against.** One `current_setting` in two repositories, in a
-   test; no scope on the session record; and the scoping mechanism returns *unrestricted* when it finds no
-   rules.
+2. **There is no tenant context to enforce anything against.** Zero `ROW LEVEL SECURITY` across two
+   repositories, and every use of Postgres's `current_setting()` confined to one query-builder test; no scope
+   on the session record; and the scoping mechanism returns *unrestricted* when it finds no rules.
 3. **The intra-group balance eliminating to zero is a consequence of two separate dated operations.** EUR
    6,666.67 on both sides happens because revaluation used the derived closing GBP/INR rate and translation
    used the two EUR closing rates. Collapse revaluation and translation into one report-time conversion — as

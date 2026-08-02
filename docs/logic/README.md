@@ -134,7 +134,7 @@ python3 tools/verify_refs.py --docs docs/logic \
 
 The boundary every previous tranche asserted and none tested. **Frappe has no row-level security, no tenant
 context and no session scope** — a search of the pinned tree returns zero occurrences of `ROW LEVEL SECURITY`,
-and the only `current_setting(` is in a query-builder test. Company is a *data dimension* filtered by
+and every `current_setting(` is in one query-builder test. Company is a *data dimension* filtered by
 `User Permission`, and `ignore_permissions=True` appears **892 times** across Frappe and ERPNext. Worse than
 absent, the mechanism that exists **fails open**: an empty result from the scoping lookup means *unrestricted*
 (`frappe/permissions.py:351-380`). Invariant prefix **T**, register **T1–T30**, **84 defects** catalogued,
@@ -150,7 +150,7 @@ target tables in [`FINAL-SCHEMA` §29–§37](../design/FINAL-SCHEMA.md), walked
 | 54 | [54-multi-currency-layering.md](54-multi-currency-layering.md) | three currency layers where ERPNext has two: functional currency is `default_currency` in all but name, `reporting_currency` is a **label with no translation mechanism**, and there is **no CTA account and no translated balances** — so a multi-currency group cannot be consolidated. Rate resolution fails four different silent ways, including a **`0.00` rate** when settings are disabled and an author's own unresolved 2016 comment asking whether a missing currency should throw. Documents store the rate **value, not its identity**; pegs are **not effective-dated**; a synchronous HTTP fetch sits in the conversion path. Adopted: four-case peg arithmetic with cross-peg recursion, purpose-scoped rates, the **booked/unbooked** FX split |
 | 55 | [55-multi-location-branch-and-segment.md](55-multi-location-branch-and-segment.md) | every axis other than company and currency: **two separate dimension systems** (accounting and inventory) that both perform runtime DDL and need a shared dimension defined twice; dimension filters that constrain **writes only**, so no dimension is ever a read boundary; `Warehouse.is_group` **inferred** from whether children exist; **no segment reporting at all**; and the Tranche F seam — a GST registration is **per state, carried on the `Address`**, so a company has plural statutory periods. Our model: one `dimension` as data, one `operating_location` hierarchy, `location_registration`, and `dimension_read_narrowing` that may only subtract from company scope |
 | 56 | [56-consolidation-and-group-reporting.md](56-consolidation-and-group-reporting.md) | consolidation **does exist** — two reports, one side-by-side and one genuinely merged, with the codebase's only structural group rule (all companies must share a root). What it does not do is the three things that turn aggregation into consolidation: **no eliminations** (intra-group revenue, cost, receivables and payables all double-counted), **no ownership weighting** (a 60%-owned subsidiary consolidates at 100%), **no minority interest**. Aggregation joins on **`account_name`**, the translation reserve is a **balancing plug** that absorbs missing rates indistinguishably, and **nothing is stored** — so a group statement cannot be reproduced and adjustments cannot be posted |
-| 57 | [57-tranche-g-closure-and-our-security-spec.md](57-tranche-g-closure-and-our-security-spec.md) | **Tranche G closure.** Twenty-three schema sections asserted `company_id` + forced RLS + an authenticated tenant-context function; this closes the assumption. The measured result: **no isolation mechanism exists** — the only `current_setting` in either tree is in a query-builder test — and 892 sites switch the application-level filtering off. Consolidates **T1–T30** mapped to enforcement layer, the 84-defect catalogue, the Adopt/Change/Reject decisions in five themes, an explicit **threat model** with its out-of-scope boundary, and a 16-step build sequence that is **step 0** — it precedes every other tranche, because retrofitting scope columns and an execution-context contract onto populated tables is a rewrite |
+| 57 | [57-tranche-g-closure-and-our-security-spec.md](57-tranche-g-closure-and-our-security-spec.md) | **Tranche G closure.** Twenty-three schema sections asserted `company_id` + forced RLS + an authenticated tenant-context function; this closes the assumption. The measured result: **no isolation mechanism exists** — every use of Postgres's `current_setting()` in either tree is in one query-builder test — and 892 sites switch the application-level filtering off. Consolidates **T1–T30** mapped to enforcement layer, the 84-defect catalogue, the Adopt/Change/Reject decisions in five themes, an explicit **threat model** with its out-of-scope boundary, and a 16-step build sequence that is **step 0** — it precedes every other tranche, because retrofitting scope columns and an execution-context contract onto populated tables is a rewrite |
 
 
 
@@ -206,7 +206,7 @@ Last run against the anchor commits:
 
 | Directory | Citations | Confirmed by symbol name | Problems |
 |---|---|---|---|
-| `docs/logic` | 5132 | 1593 | 0 |
+| `docs/logic` | 5138 | 1593 | 0 |
 | `docs/scenarios` | 824 | 164 | 0 |
 | `docs/design` | 87 | 0 | 0 |
 

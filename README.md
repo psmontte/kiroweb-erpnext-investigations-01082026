@@ -113,7 +113,7 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       submittable and configuration alike; see [`docs/COVERAGE.md`](docs/COVERAGE.md) (generated)
       and the closure statement in
       [`docs/logic/32`](docs/logic/32-stock-configuration-and-remaining-masters.md) §5.
-      **5,956 citations verified across `docs/logic` and `docs/scenarios`, 0 problems** (6,043
+      **5,962 citations verified across `docs/logic` and `docs/scenarios`, 0 problems** (6,049
       including `docs/design`).
 - [x] **Tranche B complete** (`docs/logic/33`–`40`, scenarios `S07`–`S10`) — manufacturing,
       supplier/customer-owned subcontracting, quality, coverage closure and the consolidated production
@@ -138,7 +138,7 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       Every prior tranche asserted `company_id` + RLS + `FORCE RLS` and an authenticated tenant-context
       function across twenty-three schema sections; **none tested it, and none said where the context comes
       from**. Measured result: **there is no tenant isolation mechanism in the pinned tree** — the only
-      `current_setting` in either repository is in a query-builder test — and **892** call sites switch the
+      use of Postgres's `current_setting()` in either repository is in one query-builder test — and **892** call sites switch the
       application-level check off (`ignore_permissions=True`). Worse than absent, the mechanism that exists
       **fails open**: an empty result from the scoping lookup means *unrestricted*. Covered: authentication
       and session identity, the permission model traced branch by branch, **tenant isolation under attack**

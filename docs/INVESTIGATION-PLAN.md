@@ -53,7 +53,7 @@ Consolidated target design: **`docs/design/FINAL-SCHEMA.md`** (finalised tables,
 business rules, lifecycle state machine, fulfilment views, settlement model, invariant register).
 
 Citation verification across `docs/logic/`: superseded — see the current coverage matrix
-(**5,956 citations, 0 problems** across logic and scenarios, shorthand included; 6,043 including
+(**5,962 citations, 0 problems** across logic and scenarios, shorthand included; 6,049 including
 `docs/design`).
 
 ~~**Still named but not chased**~~: putaway rules (doc 27 §3), warehouse capacity (doc 27 §3, doc 16
@@ -146,8 +146,9 @@ rather than a caller-settable GUC (a defect the Tranche B review caught in `FINA
 shape). Consolidation and the currency layering were likewise assumed. This tranche closed both.
 
 **Measured result:** there is no tenant isolation mechanism in the pinned tree — no RLS, no tenant context, no
-scope on the session record; the only `current_setting` in either repository is in a query-builder test
-(`frappe/tests/test_query_builder.py:368`) — and **892** call sites switch the application-level check off.
+scope on the session record; every use of Postgres's `current_setting()` in either repository is in one
+query-builder test (`frappe/tests/test_query_builder.py:368` and five siblings) — and **892** call sites
+switch the application-level check off.
 Worse than absent, the mechanism that exists **fails open**: an empty result from the scoping lookup means
 *unrestricted* (`frappe/permissions.py:351-380`). **84 defects** catalogued across the seven documents.
 

@@ -43,8 +43,10 @@ multi-company database into group financial statements.
 The measured result of the tranche is a single sentence, and it is the reason the tranche exists:
 
 > **There is no tenant isolation mechanism in the pinned tree.** No row-level security, no tenant context
-> function, no scope on the session record. The only occurrence of `current_setting` in either repository is
-> in a query-builder test (`frappe/tests/test_query_builder.py:368`). Company is a data dimension that the
+> function, no scope on the session record. Zero occurrences of `ROW LEVEL SECURITY`, and every use of
+> Postgres's `current_setting()` in either repository is in one query-builder test asserting timezone SQL
+> (`frappe/tests/test_query_builder.py:368` and five siblings) — so **no call site reads a session-scoped
+> database setting**. Company is a data dimension that the
 > application is expected to filter on, and there are **892** places where the filtering is switched off
 > (`ignore_permissions=True`: 524 in Frappe, 368 in ERPNext).
 

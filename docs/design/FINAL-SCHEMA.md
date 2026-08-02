@@ -2788,8 +2788,9 @@ every section above assumed. Twenty-three sections asserted `company_id`, `ENABL
 those four things actually come from, and §31 is where the assertion becomes a build gate.
 
 The driving constraint: **there is no tenant isolation mechanism in the pinned tree.** No RLS, no tenant
-context, no scope on the session record — the only `current_setting` in either repository is in a query-builder
-test (`frappe/tests/test_query_builder.py:368`) — and `892` call sites switch the application-level check off
+context, no scope on the session record — every use of Postgres's `current_setting()` in either repository is
+in one query-builder test (`frappe/tests/test_query_builder.py:368` and five siblings) — and `892` call sites
+switch the application-level check off
 (`ignore_permissions=True`). Worse than absent, the mechanism that exists **fails open**: an empty result from
 the scoping lookup means *unrestricted* (`frappe/permissions.py:351-380`).
 

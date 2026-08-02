@@ -18,13 +18,28 @@ The answer reframes the whole tranche.
 
 ## 1. There is no tenant context
 
-A search of the entire pinned Frappe tree for row-level security returns **nothing**:
+A search of the entire pinned Frappe and ERPNext trees for row-level security returns **nothing**, and every
+use of Postgres's session-setting function sits in **one** file — a query-builder test asserting timezone SQL:
 
 ```text
-ROW LEVEL SECURITY   → 0 occurrences
-current_setting(     → 1 occurrence, in a query-builder test asserting timezone SQL
-                       (frappe/tests/test_query_builder.py:368)
+$ grep -rniI "row level security" frappe/ erpnext/
+   → 0 occurrences
+
+$ grep -rn "current_setting(" frappe/ erpnext/ --include=*.py | grep -v get_current_setting
+frappe/tests/test_query_builder.py:368   "at time zone current_setting('timezone'))) as bigint)",
+frappe/tests/test_query_builder.py:382   ...
+frappe/tests/test_query_builder.py:426   ...
+frappe/tests/test_query_builder.py:436   ...
+frappe/tests/test_query_builder.py:438   ...
+frappe/tests/test_query_builder.py:446   ...
+   → 6 occurrences, 1 file, all current_setting('timezone')
 ```
+
+The `grep -v` matters and is not a convenience: the bare string `current_setting` also matches a helper named
+`get_current_setting` in two log-retention patches and several Python locals called `current_settings`, none of
+which is the Postgres function. The measured claim is therefore precise: **no call site in either application
+reads a session-scoped database setting**, and the only ones that mention the function are asserting the SQL a
+timezone conversion generates.
 
 Frappe has no row-level security, no tenant-context function, and no session-scoped database setting. This is
 not an oversight — it is a different architecture:
@@ -351,7 +366,8 @@ rather than *unauthenticated*.
 ## 7. Defects and risks
 
 1. **No tenant isolation mechanism exists.** No RLS, no tenant context, no session scope; company is a data
-   dimension (§1, `frappe/tests/test_query_builder.py:368` is the only `current_setting` in the tree).
+   dimension (§1: zero `ROW LEVEL SECURITY`, and every `current_setting(` in either tree is in one
+   query-builder test — `frappe/tests/test_query_builder.py:368` and five siblings).
 2. **892 permission bypasses.** `ignore_permissions=True` — 524 in Frappe, 368 in ERPNext.
 3. **Session resumption failure downgrades to `Guest`** rather than failing
    (`frappe/auth.py:123-148`, `frappe/sessions.py:346-360`).
