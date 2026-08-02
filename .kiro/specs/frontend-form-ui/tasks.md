@@ -84,7 +84,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
     - Pre-allocate the invariant block `UI1`–`UI9` in a placeholder register table; allocate upward from `UI1`
     - _Requirements: 3.1, 3.2, 3.8, 4.1, 4.4_
 
-  - [ ] 2.2 Establish the runtime form construction order, and record the `FormPage` absence
+  - [x] 2.2 Establish the runtime form construction order, and record the `FormPage` absence
     - Read `frappe/public/js/frappe/form/form.js` → `layout.js` → `section.js`, `column.js`, `tab.js`, and
       `frappe/public/js/frappe/views/formview.js`; record path and 1-based line numbers in the same pass
     - State the construction order as numbered steps with branch conditions, not a prose summary, with a
