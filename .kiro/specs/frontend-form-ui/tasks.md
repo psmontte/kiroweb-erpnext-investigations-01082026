@@ -93,7 +93,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
       related code, and omit any line number for the absent class
     - _Requirements: 3.3, 3.4, 5.1, 5.3, 5.5, 6.1_
 
-  - [ ] 2.3 Establish the `Meta.fields` → visual tree algorithm and its malformed-input behaviour
+  - [x] 2.3 Establish the `Meta.fields` → visual tree algorithm and its malformed-input behaviour
     - Transcribe the algorithm converting the ordered field list plus `Tab Break`, `Section Break` and
       `Column Break` rows into the visual tree, in the numbered form of design §7.3 (Algorithm A-01-2), each
       step carrying a shorthand citation resolving against a fully cited file
