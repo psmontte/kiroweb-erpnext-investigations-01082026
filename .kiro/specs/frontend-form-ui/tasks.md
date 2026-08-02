@@ -46,8 +46,8 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
 
 ## Tasks
 
-- [ ] 1. Establish gates and the Notes_Register
-  - [ ] 1.1 Verify gates G0–G3 and record the observed state
+- [x] 1. Establish gates and the Notes_Register
+  - [x] 1.1 Verify gates G0–G3 and record the observed state
     - Confirm `/projects/sandbox/frappe/frappe` and `/projects/sandbox/erpnext/erpnext` exist as directories
     - Confirm `git -C /projects/sandbox/frappe rev-parse HEAD` = `5da68e856ca7f036b20d2583167b9d00c4a8db56` and
       `git -C /projects/sandbox/erpnext rev-parse HEAD` = `ceefd4add77715d2762c19db337fb83e28a477de`
@@ -59,7 +59,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
     - Read-only commands only; if any gate fails, stop and record the failure rather than proceeding
     - _Requirements: 5.4, 17.5, 18.1_
 
-  - [ ] 1.2 Create `docs/agents/NOTES-frontend.md` with its fixed headings and seeded entries
+  - [x] 1.2 Create `docs/agents/NOTES-frontend.md` with its fixed headings and seeded entries
     - Create the file with exactly two top-level headings, `## Open questions` and
       `## Requests for the backend agent`
     - Seed under `## Requests for the backend agent`: extend `tools/verify_refs.py` citation regex beyond
