@@ -45,8 +45,10 @@ upstream dependency because form layout is driven by metadata.
   `docs/design/FINAL-SCHEMA.md`, `docs/COVERAGE.md`, `docs/INVESTIGATION-PLAN.md`, `README.md`, `tools/**`,
   `schema/**`, or `semantic-review/**`.
 - **Layout_Revision**: A versioned, approved, immutable form-layout record in the target design, scoped by
-  doctype, role and company, carrying an effective range.
-- **Layout_Tree**: The typed hierarchy tab → section → column → field that a Layout_Revision contains.
+  doctype, role and company, carrying an effective range, and stored in the presentation-metadata table
+  `layout_revision` specified by `docs/design/FORM-LAYOUT.md`.
+- **Layout_Tree**: The typed hierarchy tab → section → column → field that a Layout_Revision contains, stored
+  in the presentation-metadata table `layout_node` specified by `docs/design/FORM-LAYOUT.md`.
 - **Expression_Language**: The constrained declarative language specified by the Target_UI_Contract for
   visibility, mandatory, read-only and collapsible conditions.
 - **Grid_Contract**: The section of the Target_UI_Contract governing child-table data entry.
@@ -156,8 +158,9 @@ engine documented exactly, so that our layout model is designed against known be
 #### Acceptance Criteria
 
 1. THE `docs/ui/01-form-rendering-and-layout-engine.md` document SHALL state the runtime construction order
-   of a form across `Form`, `Layout`, `Section`, `Column`, and `FormPage`, with Citations into
-   `frappe/public/js/frappe/form/`.
+   of a form across `Form`, `Layout`, `Section`, `Column`, and `Tab`, with Citations into
+   `frappe/public/js/frappe/form/`, and SHALL state the point at which `frappe.views.FormFactory` constructs
+   the form, with a Citation into `frappe/public/js/frappe/views/formview.js`.
 2. THE `docs/ui/01-form-rendering-and-layout-engine.md` document SHALL state the algorithm that converts the
    ordered `Meta.fields` list, together with `Tab Break`, `Section Break`, and `Column Break` rows, into a
    visual tree.
@@ -177,6 +180,9 @@ engine documented exactly, so that our layout model is designed against known be
    SHALL identify each point at which a displayed value diverges from the stored value.
 8. THE `docs/ui/01-form-rendering-and-layout-engine.md` document SHALL state the dirty-state model and the
    re-render cost of `refresh_field`, `set_value`, and `toggle_display`.
+9. IF a class named in this specification is absent from Pinned_Sources, THEN THE UI_Doc SHALL record the
+   absence as a finding under the convention stated in Requirement 5 criterion 5, SHALL name the absent
+   class, and SHALL omit any line number for the absent class.
 
 ### Requirement 7
 
@@ -354,18 +360,27 @@ backend specification.
 #### Acceptance Criteria
 
 1. THE `docs/ui/05-our-frontend-and-form-spec.md` document SHALL state a build, buy, or drop decision for
-   each analysed presentation capability, in the format used by `docs/logic/25-our-platform-spec.md` section 6.
+   each analysed presentation capability, in the format used by `docs/logic/25-our-platform-spec.md` section 3.
 2. THE Target_UI_Contract SHALL assign each specified guarantee to the lowest enforcement layer able to
    enforce that guarantee without cooperation from a caller.
 3. THE Target_UI_Contract SHALL specify presentation metadata as governing rendering only, with no effect on
    stored schema.
-4. THE Target_UI_Contract SHALL state the binding between each specified layout field and the target table
-   and column defined in `docs/design/FINAL-SCHEMA.md`, and SHALL treat `docs/design/FINAL-SCHEMA.md` as
-   read-only.
-5. THE Target_UI_Contract SHALL specify row-level security scoping by `company_id` for every layout query
+4. THE `docs/design/FORM-LAYOUT.md` document SHALL specify the presentation-metadata tables
+   `layout_revision` and `layout_node` as the concrete form of the `ui_field` and `ui_layout` capability that
+   `docs/logic/25-our-platform-spec.md` section 3 commits to building.
+5. WHERE a specified layout field is bound to business data, THE Target_UI_Contract SHALL name the target
+   table and the target column as defined in `docs/design/FINAL-SCHEMA.md`.
+6. WHERE a specified layout field is stored as presentation metadata, THE Target_UI_Contract SHALL name the
+   target table and the target column as defined in `docs/design/FORM-LAYOUT.md`.
+7. THE Frontend_Investigation SHALL treat `docs/design/FINAL-SCHEMA.md` as read-only and SHALL leave
+   `docs/design/FINAL-SCHEMA.md` unchanged.
+8. THE Notes_Register SHALL record that `docs/design/FORM-LAYOUT.md` specifies the `layout_revision` and
+   `layout_node` tables pending confirmation by the backend agent, and SHALL name the divergence from
+   `docs/design/FINAL-SCHEMA.md`, which defines neither table.
+9. THE Target_UI_Contract SHALL specify row-level security scoping by `company_id` for every layout query
    that reads a business table.
-6. THE Target_UI_Contract SHALL express its content as tables, an expression grammar, and precedence rules,
-   and SHALL avoid prose as the sole statement of a rule.
+10. THE Target_UI_Contract SHALL express its content as tables, an expression grammar, and precedence rules,
+    and SHALL avoid prose as the sole statement of a rule.
 
 ### Requirement 16
 
@@ -392,11 +407,22 @@ rather than assumed.
    SHALL produce a report of 0 problems.
 2. IF the Citation_Verifier reports one or more problems, THEN THE Frontend_Investigation SHALL correct the
    affected Citations and SHALL re-run the Citation_Verifier until the report states 0 problems.
-3. WHEN `git diff --check` is executed, THE Frontend_Investigation SHALL produce no whitespace or conflict
+3. THE Notes_Register SHALL record that the Citation_Verifier verifies only Citations whose path ends in
+   `.py`, referencing the mandatory `.py` extension of the citation pattern at `tools/verify_refs.py:35` and
+   the Python-only symbol index built at `tools/verify_refs.py:62`.
+4. THE Frontend_Investigation SHALL treat a Citation_Verifier report of 0 problems as necessary and
+   insufficient evidence of Citation correctness.
+5. THE Frontend_Investigation SHALL re-read every Citation whose path ends in an extension other than `.py`
+   at the cited line in Pinned_Sources and SHALL confirm that the cited line contains the construct named by
+   the Behavioural_Claim carrying that Citation.
+6. IF the re-reading required by criterion 5 does not confirm that the cited line contains the construct
+   named by the Behavioural_Claim, THEN THE Frontend_Investigation SHALL correct or remove that Citation
+   before the acceptance gate passes.
+7. WHEN `git diff --check` is executed, THE Frontend_Investigation SHALL produce no whitespace or conflict
    marker output.
-4. THE Frontend_Investigation SHALL ensure that every relative Markdown link in a UI_Doc, in the
+8. THE Frontend_Investigation SHALL ensure that every relative Markdown link in a UI_Doc, in the
    Target_UI_Contract, and in the Notes_Register resolves to an existing file in the repository.
-5. THE Frontend_Investigation SHALL reference the upstream documents by the filenames present on the branch,
+9. THE Frontend_Investigation SHALL reference the upstream documents by the filenames present on the branch,
    specifically `docs/logic/18-metadata-and-runtime-ddl.md`,
    `docs/logic/19-permissions-and-access-control.md`, and `docs/logic/24-reporting-framework.md`.
 
