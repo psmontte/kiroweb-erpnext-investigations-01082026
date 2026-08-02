@@ -77,7 +77,7 @@ explicitly (never `git add -A`), imperative-mood messages, no force-push, and no
     - _Requirements: 2.7, 4.5, 16.2, 16.4_
 
 - [ ] 2. Write `docs/ui/01-form-rendering-and-layout-engine.md`
-  - [ ] 2.1 Create doc 01 and its section skeleton
+  - [x] 2.1 Create doc 01 and its section skeleton
     - Write T1 title `# 01 — Form Rendering and Layout Engine`, T2 pinned-source blockquote naming both trees
       and both commit hashes in the exact form of design §5.1, T3 framing paragraph stating what is deferred
       to a cross-referenced document, T4 numbered section headings, and the T11 cross-reference footer
