@@ -112,7 +112,10 @@ def _build_suffix_index(apps: dict[str, str]) -> None:
         for dirpath, _dn, filenames in os.walk(root):
             for fn in filenames:
                 if fn.endswith(".py"):
-                    _SUFFIX_INDEX.setdefault(fn, []).append(os.path.join(dirpath, fn))
+                    # Store posix-separated: citations are written with "/" and the suffix match
+                    # below compares against them. Forward slashes still open fine on Windows.
+                    full = os.path.join(dirpath, fn).replace(os.sep, "/")
+                    _SUFFIX_INDEX.setdefault(fn, []).append(full)
 
 
 _RESOLVED: dict[str, str | None] = {}
@@ -154,12 +157,20 @@ def resolve(rel: str, apps: dict[str, str]) -> str | None:
                 # cannot retroactively make older unprefixed citations ambiguous.
                 default_root = next(iter(apps.values()), None)
                 if default_root:
-                    in_default = [m for m in (preferred or matches) if m.startswith(default_root)]
+                    default_root = default_root.replace(os.sep, "/").rstrip("/")
+                    in_default = [
+                        m for m in (preferred or matches) if m.startswith(default_root + "/")
+                    ]
                     if len(in_default) == 1:
                         found = in_default[0]
                 if not found:
                     found = None
 
+    # Normalise separators so the same file resolves to one identity however it was spelled.
+    # `candidate_pool` and `resolve_shorthand` dedupe on this string; a mix of "\" and "/" would
+    # make one file look like two candidates and every shorthand ref to it read as ambiguous.
+    if found:
+        found = found.replace(os.sep, "/")
     _RESOLVED[rel] = found
     return found
 

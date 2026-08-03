@@ -1,12 +1,17 @@
 # Handoff — ERPNext/Frappe investigation
 
-**State at handoff:** the investigation is **complete**. All planned tranches are closed, both deliberately-open
-localisation seams are closed, and **application implementation has not started**. Everything is committed and
-pushed; nothing exists only in the sandbox.
+**State at handoff:** the investigation is **complete and fully reviewed**. All planned tranches are closed,
+both deliberately-open localisation seams are closed, the last unreviewed document has been reviewed and its
+tables transcribed, and **application implementation has not started**.
 
-- Repo: `/projects/sandbox/erp`, branch **`docs/localisation-india-gst`**, HEAD `e27ad90`, clean, 0 unpushed.
-- Open PR: **https://github.com/psmontte/kiroweb-erpnext-investigations-01082026/pull/2** (Tranche G; doc 58 and
-  the closure edits landed on the same branch after it was opened, so the PR now covers both).
+- Repo: `D:\uni-projects\uni-apps\erpnext-research`, branch **`main`**, remote
+  `github.com/psmontte/kiroweb-erpnext-investigations-01082026`.
+- Verified on this machine, 3 Aug 2026: **6,087 citations, 0 problems**; coverage 203 parents / 178 cited /
+  0 gaps / 25 exclusions; `docs/COVERAGE.md` not stale.
+- **This repository is the sole design authority.** The prior project at
+  `D:\uni-projects\uni-apps\unibizapp` — its decision register D01–D151+ included — is read-only reference
+  material, not binding (owner ruling, 3 Aug 2026). See
+  [`docs/design/SALVAGE-FROM-UNIBIZAPP.md`](design/SALVAGE-FROM-UNIBIZAPP.md).
 
 ---
 
@@ -24,7 +29,8 @@ pushed; nothing exists only in the sandbox.
 | — | the two seams doc 49 left open | doc 58 |
 
 **Target design:** `docs/design/FINAL-SCHEMA.md` — §1–§18 core/production, §19–§23 assets, §24–§28 localisation,
-**§29–§37 security/tenancy/group**, §38 what remains open.
+**§29–§37 security/tenancy/group**, §38 what remains open, **§39 statutory numbering and withholding
+derivation** (belongs with §24–§28; appended rather than renumbering ten sections).
 
 **Invariant registers:** `L/S/D/P` and `F/T/R/V/U` (A/E), `M1–M69` (B), `A1–A26` (C), **`G1–G41`** (F + doc 58),
 **`T1–T30`** (G). `U` is reserved for the frontend agent.
@@ -48,18 +54,26 @@ cited / 0 gaps / 25 exclusions**. 0 broken intra-repo links.
 
 ---
 
-## 2. The one outstanding task
+## 2. ~~The one outstanding task~~ — closed 3 Aug 2026
 
-**Transcribe doc 58 §5's five tables into `FINAL-SCHEMA.md`.** Doc 58 specifies them completely — DDL,
-constraints and rationale — but they are not yet in the schema file. `FINAL-SCHEMA` §38 says so explicitly.
+**Doc 58 was reviewed and its tables are transcribed.** `FINAL-SCHEMA` **§39** now carries them, §28 points
+forward to it, and §38 no longer names an outstanding schema task. **The investigation is complete with
+nothing left open that a session can close on its own.**
 
-- `statutory_series`, `statutory_number_allocation` → a new section after §28
-- `withholding_regime`, `withholding_section_revision`, `withholding_base` → same section
-- Add the allocation step to the posting funnel **immediately before** registration-snapshot capture (a number
-  must be lawful before the document carrying it is validated against a counterparty)
-- Extend §28's register to **G30–G41**
+It was not mechanical. The review
+([`semantic-review/2026-08-03-doc-58-review.md`](../semantic-review/2026-08-03-doc-58-review.md)) returned
+**19 findings, two of them blocking**: doc 58 §5 referenced a document-number **format rule** and a
+**statutory year** that existed in neither `FINAL-SCHEMA` nor anywhere else, so there was nothing to
+transcribe them against. Five more were substantive design defects — a hard-coded Indian regex in a
+`CHECK` on a jurisdiction-agnostic table (`@allow_regional` in schema form, which §24 rejects), an
+allocation uniqueness that forbade a lawful two-registration state, a series that could be declared unable
+to produce a lawful number, a `bigint[]` of foreign keys with no referential integrity, and an unscoped
+table that would have failed §31's `rls_conformance` build gate. Six were citations that resolve and are
+in range but point at the wrong branch of the right function — invisible to `tools/verify_refs.py`.
 
-This is mechanical: the design decisions are made and reviewed. Roughly one session.
+§39 therefore carries **eight** tables, not five: `statutory_format_revision`, `statutory_year`,
+`statutory_series`, `statutory_number_allocation`, `withholding_regime`, `withholding_section_revision`,
+`withholding_section_component`, `withholding_base`. The localisation register runs **G1–G41**.
 
 ---
 
@@ -139,26 +153,40 @@ These were argued and are load-bearing. If a future session wants to change one,
 
 ## 6. Environment notes for the next session
 
-- **Pinned sources:** `erpnext@ceefd4add77715d2762c19db337fb83e28a477de`,
-  `frappe@5da68e856ca7f036b20d2583167b9d00c4a8db56`,
-  `india_compliance@205c3de939bd99cc1df1e0d1cb76cff2e76eee55` (cloned at `/projects/sandbox/india_compliance`,
-  26 DocTypes). All three trees are present in the sandbox.
-- **`git push` and `git fetch` do not work** — both fail with
-  `remote: Missing header field, please provide AuthToken` … `error: 400`. Push **only** via the `github` power:
-  `action=use`, `serverName=github`, `toolName=push_to_remote`, args
-  `{owner:"psmontte", path:"/projects/sandbox/erp", remote_branch_name:"docs/localisation-india-gst",
-  repository_name:"kiroweb-erpnext-investigations-01082026"}`. Because fetch fails, the local `origin/main` ref
-  is **stale** — don't trust `git log origin/main..HEAD` counts.
-- **`fs_write` to `/tmp` is not visible to bash.** Write scratch files under `/projects/sandbox/`.
-- **`tools/verify_refs.py` was patched**: unprefixed citations resolve against the **first** `--app` when
-  ambiguous across apps. Always pass all three `--app` roots or you get ~60 false failures.
+**The work moved off the Kiro sandbox onto a Windows machine on 3 Aug 2026.** Everything below that
+mentioned `/projects/sandbox` no longer applies; the repository now lives at
+`D:\uni-projects\uni-apps\erpnext-research` on branch `main`.
+
+- **Pinned sources are cloned into the repository at `upstream/`** and git-ignored. Recreate with a
+  depth-1 fetch of the **exact commit**, never a branch tip:
+
+  ```bash
+  cd erpnext-research && mkdir -p upstream/frappe && git init -q upstream/frappe
+  git -C upstream/frappe remote add origin https://github.com/frappe/frappe.git
+  git -C upstream/frappe fetch -q --depth 1 origin 5da68e856ca7f036b20d2583167b9d00c4a8db56
+  git -C upstream/frappe checkout -q FETCH_HEAD
+  ```
+
+  Same shape for `erpnext` (`https://github.com/frappe/erpnext.git`, `ceefd4add77715d2762c19db337fb83e28a477de`)
+  and `india_compliance` (`https://github.com/resilient-tech/india-compliance.git`,
+  `205c3de939bd99cc1df1e0d1cb76cff2e76eee55`, 26 DocTypes).
+- **Run the tools with `python`, not `python3`** — `python3` is not on `PATH` on this machine.
+- **`tools/verify_refs.py` was patched twice.** (a) Unprefixed citations resolve against the **first**
+  `--app` when ambiguous across apps — always pass all three `--app` roots or you get ~60 false failures.
+  (b) **Windows path separators**: the file index was built with `os.path.join` (`\`) and matched with
+  `endswith("/" + rel)`, and resolved paths mixed both separators so one file looked like two candidates.
+  That produced **376 false failures** and 28 false "ambiguous shorthand" reports. Both are fixed by
+  normalising to `/`; do not reintroduce `os.sep` into either path.
+- **The DDL in `schema/ddl/` has not been loaded on this machine.** PostgreSQL 16.2 is installed but
+  `psql` prompts for a password that is not recorded. `tools/verify_ddl.sh` is written for a Linux sandbox
+  (it installs PostgreSQL and runs `initdb`) and will need a Windows equivalent or a connection string.
+  The last recorded run was clean: 429 tables, 2,051 FKs, 0 dangling FK targets.
 - **Commit style:** imperative subject, no body needed.
   `git -c user.email=kiro@example.com -c user.name=Kiro commit -q -m "..."`
 - **Filenames I have gotten wrong before:** `19-permissions-and-access-control.md`,
   `24-reporting-framework.md`, `18-metadata-and-runtime-ddl.md`, `14-banking-and-collections.md`,
   `16-stock-reservation-picking-warehouse.md`, `S06-multi-currency.md`.
-- **Branch name is stale** — it says `docs/localisation-india-gst` but carries Tranche G and doc 58. Rename or
-  re-cut if that matters for the merge.
+- ~~**Branch name is stale**~~ — the Tranche G and doc 58 branches are merged; work is on `main`.
 
 ---
 
@@ -169,21 +197,35 @@ Every tranche closure has been followed by a semantic review, and each found rea
 two *blocking* issues — the forgeable GUC, and a foreign key onto a partial unique index that PostgreSQL would
 have rejected — plus a one-cent arithmetic cascade in S13.
 
-**Doc 58 has not been reviewed.** That is the first thing to do next session, before or alongside the
-transcription in §2. The pattern says to expect findings, and to check specifically: the five tables' DDL, the
-G30–G41 wording against the body text, and whether the claims about Indian statute (Rule 46(b), CBDT Circular
-23/2017, s.206C(1H), s.51/s.52) are stated as *upstream-observable facts* versus *legal assertions* — the
-codebase evidence is verified, but the statutory characterisation is mine and is the weakest link in that
-document.
+~~**Doc 58 has not been reviewed.**~~ **Reviewed 3 Aug 2026 — 19 findings**, keeping the pattern intact
+(32 / 39 / 8 / 19). The prediction in this section was right on both counts: the tables' DDL held most of
+the defects, and the statutory characterisation was the weakest link. **Rule 46(b)** is stated as law and
+then *evidenced* by `GST_INVOICE_NUMBER_FORMAT`, which encodes it exactly — sound. **CBDT Circular 23/2017**
+and **s.206C(1H)** are bare legal assertions with no citation of any kind, and the whole G36 argument rests
+on them. The design conclusion survives (a base rule that cannot be dated and attributed is wrong whatever
+the correct bases are), but doc 58 now carries a block saying the specific bases **must not be seeded on its
+authority** — golden rule 9, and the reason `authority` is `NOT NULL` on `withholding_section_revision`.
+
+**Nothing in this repository is now unreviewed.**
 
 ---
 
 ## 8. Where to pick up
 
-1. Review doc 58 (`semantic_reviewer`), fix findings, push.
-2. Transcribe doc 58 §5 into `FINAL-SCHEMA` (§2 above), extend §28's register to G41, push.
-3. Ask me the three questions in §3 if they are still unanswered — 1 and 2 gate the first migration.
-4. Then implementation can start, and the build order is fixed:
+~~1. Review doc 58.~~ ~~2. Transcribe doc 58 §5 into `FINAL-SCHEMA`.~~ Both done, 3 Aug 2026.
+
+1. **Audit the metadata-driven form engine in `D:\uni-projects\uni-apps\uni-app-turborepo`** (5,549 `.tsx`
+   files, plus a `*-fe-metadata` skill family) against
+   [`docs/ui/01-form-rendering-and-layout-engine.md`](ui/01-form-rendering-and-layout-engine.md). This is
+   the largest unassessed asset and the flexibility requirement rests on it. It is **not** in `unibizapp`,
+   whose `apps/web` is an untouched Next.js starter — see
+   [`docs/design/SALVAGE-FROM-UNIBIZAPP.md`](design/SALVAGE-FROM-UNIBIZAPP.md) §1.
+2. **Finish `docs/ui/01`** — §6–§8 and §10 are empty headings and `UI1`–`UI9` are entirely unallocated
+   (9 of 56 sub-tasks done). It is the only deliverable in the repository that is genuinely incomplete.
+3. **Answer §3's three questions.** Scale and audit retention gate the first migration; jurisdictions gates
+   how much of §24–§28 needs seeding.
+4. **Then implementation starts**, and the build order is fixed:
    [doc 57 §8](logic/57-tranche-g-closure-and-our-security-spec.md#8-build-sequence-and-boundary), whose
    **step 0** is the boundary — because retrofitting scope columns and an execution-context contract onto
-   populated tables is a rewrite, not a migration.
+   populated tables is a rewrite, not a migration. `unibizapp` is the worked example of that step looking
+   finished when it was not (`SALVAGE-FROM-UNIBIZAPP.md` §4).

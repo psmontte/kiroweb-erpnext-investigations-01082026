@@ -88,7 +88,7 @@ frappe.msgprint(message, title=title)
 |---|---|
 | `india_compliance/gst_india/overrides/sales_invoice.py:71` | **refusal** |
 | `india_compliance/gst_india/overrides/purchase_invoice.py:70` | a dismissible message; the document posts |
-| `india_compliance/gst_india/overrides/subcontracting_transaction.py:39` | a dismissible message; the document posts |
+| `india_compliance/gst_india/overrides/subcontracting_transaction.py:290` | a dismissible message; the document posts |
 | `india_compliance/gst_india/utils/transaction_data.py:260` | refusal, but only at e-invoice/e-way bill generation — long after posting |
 
 A self-invoice for a reverse-charge inward supply from an unregistered person is a Purchase Invoice, and it is
@@ -209,7 +209,8 @@ TCS = re.compile(r"^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[C]{1}[0-9A-Z]{1}
 categories `"Tax Deductor"` and `"Tax Collector"` onto them
 (`india_compliance/gst_india/constants/__init__.py:1461-1473`). But nothing *computes* GST TDS or TCS. The only
 other appearance is reading what a counterparty deducted from us, via GSTR-2A's deductor fields
-(`india_compliance/gst_india/utils/gstr_2/gstr_2a.py:276-290`).
+`gstin_deductor`, `deductor_name` and `amt_ded`
+(`india_compliance/gst_india/utils/gstr_2/gstr_2a.py:285-292`).
 
 Meanwhile `india_compliance/income_tax_india/` handles the income-tax side, and its entire contribution to the
 seam is a PAN lookup (`india_compliance/income_tax_india/overrides/tax_withholding_category.py:15-20`):
@@ -245,19 +246,35 @@ entire seam.
 ### 4.1 The basis is a dropdown with a default
 
 `tax_deduction_basis` is a two-option `Select`, required, defaulting to `Net Total`
-(`accounts/doctype/tax_withholding_category/tax_withholding_category.json:80-83`):
+(`accounts/doctype/tax_withholding_category/tax_withholding_category.json:79-84`), quoted in file order:
 
 ```json
+"default": "Net Total",
 "fieldname": "tax_deduction_basis",
 "fieldtype": "Select",
 "label": "Deduct Tax On Basis",
 "options": "\nGross Total\nNet Total",
-"default": "Net Total"
+"reqd": 1
 ```
 
 Under Indian law this is not a preference. CBDT Circular 23/2017 directs that TDS on services applies to the
 amount **excluding** GST where GST is shown separately; TCS on sale of goods under s.206C(1H) is charged on the
 **gross** consideration *including* GST. Both regimes coexist in one company, on one supplier, in one period.
+
+> **These two sentences are legal assertions, not upstream-observable facts, and they are the only such
+> claims in this document.** Everything else here is evidenced by a cited line in a pinned tree; these are
+> not, and nothing upstream states them. The design conclusion does not depend on them — a base rule that
+> cannot be dated and attributed is wrong whatever the correct bases turn out to be.
+>
+> **Resolved by design, 4 Aug 2026 — no ruling needed.** We ship **zero** `withholding_section_revision`
+> rows. `authority` is `NOT NULL`, and withholding computation **refuses** when no approved section
+> revision covers the posting date, rather than falling back to a default. So the system cannot deduct the
+> wrong tax on this document's say-so: it deducts nothing and stops. The first row is written by whoever
+> is accountable for it — a tax professional, at the point the company actually runs Indian withholding —
+> and the `authority` column records who. This is the same fail-closed shape as G11's unmapped-account
+> refusal, and it converts an open legal question into an ordinary empty table.
+>
+> Recorded in `semantic-review/2026-08-03-doc-58-review.md`.
 The basis is therefore a property of the **statutory section**, and here it is a property of a
 user-maintained category with a default that is right for one regime and wrong for the other — with nothing
 recording which section the category represents, and nothing preventing one category from being reused across
@@ -293,7 +310,8 @@ model, and only one of them is lawful.
 
 India Compliance determines GST in `before_validate`
 (`india_compliance/gst_india/overrides/transaction.py:1574-1614`, wired at
-`india_compliance/hooks.py`), and the withholding controller runs in `validate`
+`india_compliance/hooks.py:188-199` — the Purchase Invoice block, where `before_validate`, `validate`,
+`before_save` and `before_submit` are all declared together), and the withholding controller runs in `validate`
 (`accounts/doctype/purchase_invoice/purchase_invoice.py:306`):
 
 ```python
@@ -305,7 +323,7 @@ obvious thing to suspect and it is not the defect — and because our design mus
 than discover it (§6, G41).
 
 One real ordering hazard remains downstream: `update_valuation_rate` runs at `before_save` and `before_submit`,
-after `validate` (`india_compliance/hooks.py`), and ineligible-ITC handling patches valuation rates in place
+after `validate` (`india_compliance/hooks.py:198-199`), and ineligible-ITC handling patches valuation rates in place
 (`india_compliance/gst_india/overrides/ineligible_itc.py:291-312`, rejected in doc 49 §4.5). Blocked GST that
 becomes cost after the withholding base was computed cannot change it, which happens to be correct — but it is
 correct by accident of hook order, not by rule.
@@ -331,9 +349,10 @@ when it was filed. This is doc 45 §1's "jurisdiction is data" applied to a rule
 withheld at all.
 
 Two adjacent behaviours compound it: a `cumulative_threshold` of `0` means *always withhold* rather than *no
-cumulative threshold* (`tax_withholding_entry.py:586-588`), so an unset field and a deliberate zero are the
+cumulative threshold* (`tax_withholding_entry.py:591-592`), so an unset field and a deliberate zero are the
 same value; and `ignore_tax_withholding_threshold` on the document forces the threshold crossed
-(`tax_withholding_entry.py:581-583`) with no reason recorded.
+(`tax_withholding_entry.py:583-584`) with no reason recorded — the first branch of
+`_is_threshold_crossed_for_category`, before any threshold is read.
 
 ---
 
@@ -345,47 +364,81 @@ The row's identity and the statutory number separate completely. `id` remains a 
 the internal document number from doc 20; and the statutory number becomes a **third** attribute, allocated
 from a declared series and immutable once allocated.
 
+Two supporting tables have to exist first, and neither did. `FINAL-SCHEMA` §24 has no document-number format
+rule and no statutory year — the first draft of this section referenced both as though they were already
+there. They are defined in `FINAL-SCHEMA` §39 and summarised here:
+
+```sql
+statutory_format_revision(id, company_id, tax_jurisdiction_id, document_class statutory_doc_class_enum NULL,
+    revision_no integer NOT NULL, pattern text NOT NULL, max_length smallint NOT NULL,
+    effective_from date NOT NULL, effective_to date NULL,
+    authority text NOT NULL, state revision_state_enum NOT NULL)
+   -- Rule 46(b) becomes a SEED ROW, not a CHECK. `document_class NULL` means "every class in this
+   -- jurisdiction", which is what India needs; a jurisdiction that formats credit notes differently
+   -- adds a narrower row rather than an ALTER TABLE. This is the difference between jurisdiction as
+   -- data (G1/G2) and @allow_regional, which §24 rejects.
+
+statutory_year(id, company_id, tax_jurisdiction_id, code varchar(9),   -- e.g. '2026-27'
+    starts_on date NOT NULL, ends_on date NOT NULL, state revision_state_enum NOT NULL)
+   -- The STATUTORY year, which is not the company's fiscal calendar: India's GST year runs
+   -- 1 April - 31 March whatever year-end the company chose, and G31 keys the series on it.
+```
+
 ```sql
 statutory_series(id, company_id, tax_registration_id NOT NULL,
     document_class statutory_doc_class_enum
       /*tax_invoice|credit_note|debit_note|delivery_challan|self_invoice|
         payment_voucher|receipt_voucher|refund_voucher|bill_of_supply*/,
-    statutory_year_id NOT NULL,              -- the STATUTORY year, not the fiscal calendar
+    statutory_year_id NOT NULL,              -- FK to statutory_year
     prefix varchar(8) NOT NULL, suffix varchar(8) NOT NULL DEFAULT '',
     width smallint NOT NULL, next_value bigint NOT NULL,
-    format_revision_id NOT NULL,             -- the jurisdiction's format rule (§24)
+    statutory_format_revision_id NOT NULL,   -- the jurisdiction's format rule
     state series_state_enum /*active|closed*/ NOT NULL)
    UNIQUE (company_id, tax_registration_id, document_class, statutory_year_id, prefix)
    CHECK (width BETWEEN 1 AND 12)
    -- Per REGISTRATION and per STATUTORY YEAR, because Rule 46(b)'s "unique for a financial year" is
    -- per registration (T25) — a company with two GSTINs runs two independent series, and doc 55 §5
    -- is why that is expressible at all.
+   -- L2 trigger: length(prefix) + width + length(suffix) <= the format revision's max_length. A series
+   -- that can only ever produce an unlawful number is refused AT DECLARATION, not months later at the
+   -- moment someone tries to issue an invoice from it. Same reasoning as G34, one level up.
 
 statutory_number_allocation(id, company_id, statutory_series_id,
-    serial_value bigint NOT NULL, statutory_number varchar(16) NOT NULL,
+    serial_value bigint NOT NULL, statutory_number varchar(32) NOT NULL,
     allocated_at timestamptz NOT NULL, allocated_to_doc_type text, allocated_to_doc_id bigint,
     state allocation_state_enum /*allocated|issued|cancelled|void*/ NOT NULL,
-    supersedes_allocation_id bigint NULL)
+    void_reason text NULL, supersedes_allocation_id bigint NULL)
    UNIQUE (company_id, statutory_series_id, serial_value)
-   UNIQUE (company_id, statutory_number)
-   CHECK (statutory_number ~ '^[^\W_][A-Za-z0-9\-/]{0,15}$')
-   -- IMMUTABLE in statutory_number and serial_value. The CHECK is the statutory format as a SCHEMA
-   -- constraint, so an unlawful number cannot exist to be excluded from a return later.
-   -- `void` exists because a gap must be EXPLICABLE, not impossible: a number allocated and never
-   -- issued is recorded as void with a reason, which is exactly what Table 13 must report.
+   UNIQUE (company_id, statutory_series_id, statutory_number)
+   CHECK ((state = 'void') = (void_reason IS NOT NULL))
+   -- IMMUTABLE in statutory_number and serial_value.
+   -- Uniqueness is keyed on the SERIES, which already pins registration, class and year — a
+   -- company-wide unique would forbid two GSTINs of one company each issuing 'INV/001', which is
+   -- lawful and is the exact case G31 exists for.
+   -- The FORMAT is not a CHECK here. A literal regex on this table would be Rule 46(b) compiled into
+   -- the schema, so UAE would need an ALTER TABLE — @allow_regional in another costume. Instead an
+   -- L2 trigger matches statutory_number against the pattern and max_length on the series' format
+   -- revision. varchar(32) is a storage bound, not the statutory one.
+   -- `void` exists because a gap must be EXPLICABLE, not impossible.
 ```
 
 Five properties, each negating a specific §2 finding:
 
-- **Allocation precedes insertion and is a separate fact.** The number is drawn, then the document is written
-  against it. A rolled-back document leaves a `void` allocation, not a silent gap.
+- **Allocation precedes insertion and is a separate fact, committed separately.** The number is drawn and
+  committed, then the document is written against it. The separate commit is the whole mechanism, not an
+  implementation detail: if the draw shared the document's transaction, a rollback would erase the
+  allocation along with the document and there would be no `void` row to explain the gap — the state this
+  design claims over upstream's heuristic would never occur. So a rolled-back document leaves an allocation
+  moved to `void` with a `void_reason`, and Table 13 can report it.
 - **The number is never the identity**, so correcting one does not rewrite references, and renaming a row
   cannot change a statutory number.
 - **Amendment allocates a new number and cites the old one.** There is no `-1` suffix and no string splitting
   on the last hyphen; the amended document's statutory number is a first-class allocation whose predecessor is
   recorded — which is also what a credit-note-against-invoice reference needs.
-- **Format compliance is a `CHECK`**, applied identically to every `document_class`. The self-invoice and the
-  delivery challan get the same refusal as the tax invoice.
+- **Format compliance is a refusal at allocation, applied identically to every `document_class`.** The
+  self-invoice and the delivery challan get the same refusal as the tax invoice. The rule itself is a
+  `statutory_format_revision` row rather than a literal in the schema, so India's Rule 46(b) and a future
+  jurisdiction's rule are two rows, not two code paths.
 - **Table 13 is a projection**, not a reconstruction: `GROUP BY statutory_series_id` over allocations gives the
   series, `min`/`max(serial_value)` give the range, and the counts come from `state`. `is_same_naming_series`
   and its documented false positives have no analogue, because the series is recorded rather than inferred.
@@ -393,32 +446,48 @@ Five properties, each negating a specific §2 finding:
 ### 5.2 Withholding: the base is derived from the section
 
 ```sql
-withholding_regime(id, code varchar(24), name text,
+withholding_regime(id, company_id, tax_jurisdiction_id NOT NULL, code varchar(24), name text,
     statute withholding_statute_enum /*income_tax|gst|other*/,
     identity_kind party_identity_kind_enum /*pan|gstin|tin|other*/ NOT NULL,
     return_form varchar(16))
-   UNIQUE (code)
+   UNIQUE (company_id, tax_jurisdiction_id, code)
    -- The table that removes the acronym collision. `income_tax` aggregates on PAN, `gst` on GSTIN, and
    -- a design cannot silently use one identity for the other. GST TDS/TCS (s.51/s.52) is a regime with
    -- no implementation upstream; here it is a row, and §7 records that we have not walked it.
+   -- COMPANY-SCOPED like every other localisation revision table. §24's global exception list is
+   -- exactly three tables (tax_jurisdiction, tax_area, tax_area_postal_range) and is closed; an
+   -- unscoped table would also fail §31's generated rls_conformance gate, which is step 6 of the
+   -- build order.
+   -- tax_jurisdiction_id is NOT NULL because a regime is inherently jurisdictional: `statute` names
+   -- Indian statutes and `return_form` holds '24Q' and 'GSTR-7'. Without it UAE has nowhere to hang
+   -- its regimes, and the design stops being jurisdiction-agnostic (G1/G2).
 
 withholding_section_revision(id, company_id, withholding_regime_id, section_code varchar(16),
     base_rule withholding_base_enum /*net_of_tax|gross_including_tax|gross_including_named_components*/,
-    included_component_ids bigint[] NOT NULL DEFAULT '{}',
     on_payment_or_credit trigger_basis_enum /*earlier_of|payment_only|credit_only*/,
+    once_deducted_continues bool NOT NULL,
+    cumulative_threshold numeric(19,4) NULL,          -- NULL = no cumulative threshold; 0 = always
     revision_no integer NOT NULL, effective_from date NOT NULL, effective_to date NULL,
     authority text NOT NULL, state revision_state_enum NOT NULL)
    UNIQUE (company_id, withholding_regime_id, section_code, revision_no)
    EXCLUDE USING gist (company_id WITH =, withholding_regime_id WITH =, section_code WITH =,
       daterange(effective_from, effective_to, '[)') WITH &&) WHERE (state = 'approved')
-   CHECK ((base_rule = 'gross_including_named_components')
-          = (array_length(included_component_ids, 1) IS NOT NULL))
+   -- requires the btree_gist extension, as every EXCLUDE in §24 does
    -- `base_rule` lives on the SECTION, effective-dated, with `authority` NOT NULL — so CBDT Circular
    -- 23/2017 and s.206C(1H) are two rows with two bases, not one dropdown with a default. A category
    -- cannot be reused across sections that disagree, because the base is not on the category.
+
+withholding_section_component(id, company_id, withholding_section_revision_id, tax_component_id)
+   UNIQUE (company_id, withholding_section_revision_id, tax_component_id)
    -- `gross_including_named_components` is the third option upstream lacks: it names the §24 tax
    -- components that enter the base, so "including GST" and "including GST and freight" are
    -- different, checkable values.
+   -- A JUNCTION TABLE, not a bigint[] on the revision. An array of foreign keys carries no
+   -- referential integrity, so superseding a tax_component would leave a silent stale id inside a
+   -- statutory tax base — in a schema that has 2,051 FKs and 0 dangling targets precisely because
+   -- that is refused. It also makes G38's sum constraint an ordinary join instead of `= ANY(array)`.
+   -- L2 trigger: rows exist here if and only if the revision's base_rule is
+   -- 'gross_including_named_components'.
 ```
 
 The base becomes a derivation rather than a lookup, and it records what it read:
@@ -433,18 +502,20 @@ withholding_base(id, company_id, source_doc_type text, source_doc_id bigint, sou
    UNIQUE (company_id, source_doc_type, source_doc_id, source_line_id,
            withholding_section_revision_id)
    -- deferred: base_amount = net_amount + included_component_amount, exactly.
-   -- deferred: included_component_amount = Σ tax_determination_component.amount over exactly the
-   --   components named by the section revision — so an untyped or unmapped charge cannot enter a
-   --   withholding base by default. Doc 45 §5's unmapped-account refusal (G11) is what makes this
-   --   expressible.
+   -- deferred: included_component_amount = Σ tax_determination_component.amount joined through
+   --   withholding_section_component — exactly the components the section revision names, and no
+   --   others. An untyped or unmapped charge cannot enter a withholding base by default. Doc 45 §5's
+   --   unmapped-account refusal (G11) is what makes this expressible.
    -- The identity is captured, not joined: withholding aggregates on PAN and GST on GSTIN, and a
    -- posted base records which identity it used (§3).
 ```
 
-Threshold state and relief keep doc 28 §7.5's shape with two additions: `once_deducted_continues` becomes a
-**field on the section revision** rather than a comment citing a forum, so the position is dated and a past
-period reproduces under the rule then in force; and `cumulative_threshold` is nullable, so *unset* and
-*deliberately zero* are different values. Forcing a threshold requires a reason, on the same footing as every
+Threshold state and relief keep doc 28 §7.5's shape with two additions, both now columns on
+`withholding_section_revision` above. `once_deducted_continues` is a **dated field on the section revision**
+rather than a comment citing a forum, so the position is attributable and a past period reproduces under the
+rule then in force. `cumulative_threshold` is **nullable**, so *unset* and *deliberately zero* are different
+values — upstream conflates them, and a `0` there silently means "always withhold"
+(`tax_withholding_entry.py:591-592`). Forcing a threshold requires a reason, on the same footing as every
 other override in the design.
 
 ---
@@ -472,10 +543,12 @@ Continuing doc 49's register.
 > allocation citing its predecessor. No statutory number is produced by concatenating a version suffix, and
 > no statutory number is parsed to discover one.
 
-> **Invariant G34 — statutory format is a schema constraint, applied to every document class.** Length and
-> character rules are a `CHECK` on the allocation, so an unlawful number cannot be stored. There is no
+> **Invariant G34 — statutory format is an approved dated rule, enforced as a refusal at allocation, for
+> every document class.** Length and character rules live in an approved `statutory_format_revision` with a
+> named authority, and no number that violates the rule its series points at can be stored. There is no
 > document class for which a format failure is a dismissible message, and no code path where a format
-> failure is deferred to filing time and answered by exclusion.
+> failure is deferred to filing time and answered by exclusion. The rule is **data**: a second jurisdiction
+> is a second row, never a second `CHECK` and never a code path selected at runtime.
 
 > **Invariant G35 — withholding regimes are distinct systems with distinct identities.** Income-tax
 > withholding and GST withholding are separate regimes, each naming the party identity it aggregates on. No
@@ -517,7 +590,8 @@ Continuing doc 49's register.
 
 | Mechanism | Decision | Ours |
 |---|---|---|
-| `GST_INVOICE_NUMBER_FORMAT` regex | **Adopt wholesale** | the same expression, as a `CHECK` on the allocation |
+| `GST_INVOICE_NUMBER_FORMAT` regex | **Adopt wholesale** | the same expression, as the `pattern` on a seeded `statutory_format_revision` row — not a `CHECK`, which would compile one jurisdiction into the schema (G34) |
+| A series whose prefix, width and suffix cannot fit the statutory length | **Reject** | refused at series declaration against the format revision's `max_length` |
 | Statutory number as the row's primary key | **Reject** | three separate columns (G30) |
 | Severity by document class — throw for Sales Invoice, message for the rest | **Reject** | one refusal for every class (G34) |
 | `validate_invoice_number(doc, throw=False)` as a filing-time classifier | **Reject** | unrepresentable; the constraint fires at allocation |
@@ -548,10 +622,18 @@ Continuing doc 49's register.
 build position and six invariants; the withholding ↔ GST seam has a schema, an ordering rule and six
 invariants. Neither depends on an unanswered question, so neither blocks implementation any longer.
 
-`FINAL-SCHEMA` gains `statutory_series`, `statutory_number_allocation`, `withholding_regime`,
-`withholding_section_revision` and `withholding_base` alongside §24–§28, and the allocation step joins the
-posting funnel immediately before registration-snapshot capture — a number must be lawful before the document
-that carries it can be validated against a counterparty.
+`FINAL-SCHEMA` gains eight tables in a new **§39**: `statutory_format_revision`, `statutory_year`,
+`statutory_series`, `statutory_number_allocation`, `withholding_regime`, `withholding_section_revision`,
+`withholding_section_component` and `withholding_base`. The allocation step joins the posting funnel
+immediately before registration-snapshot capture — a number must be lawful before the document that carries
+it can be validated against a counterparty.
+
+> **Review record.** This document was reviewed on 3 Aug 2026 against the pinned trees; the findings and
+> their disposition are in [`semantic-review/2026-08-03-doc-58-review.md`](../../semantic-review/2026-08-03-doc-58-review.md).
+> Nineteen findings, two of them blocking: the first draft referenced a document-number format rule and a
+> statutory year that existed in neither `FINAL-SCHEMA` nor anywhere else, which is why §5.1 now defines
+> both. The analysis in §2–§4 survived the review unchanged; every defect was in §5's target design or in a
+> citation's precision.
 
 **Not closed, and now explicitly scoped rather than implied.**
 

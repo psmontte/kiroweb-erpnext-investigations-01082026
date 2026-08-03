@@ -153,11 +153,24 @@ clean DDL   clean_01_tables.sql, clean_02_constraints.sql                  all O
       [`FINAL-SCHEMA` §29–§37](docs/design/FINAL-SCHEMA.md); see
       [`docs/logic/57`](docs/logic/57-tranche-g-closure-and-our-security-spec.md) and
       [`S13`](docs/scenarios/S13-cross-company-consolidation-and-isolation.md).
+- [x] **Doc 58 reviewed and transcribed** (3 Aug 2026) — the last unreviewed document. **19 findings, two
+      blocking**: it referenced a document-number format rule and a statutory year that existed nowhere.
+      [`FINAL-SCHEMA` §39](docs/design/FINAL-SCHEMA.md) now carries **eight** tables and the localisation
+      register runs **G1–G41**; see
+      [`semantic-review/2026-08-03-doc-58-review.md`](semantic-review/2026-08-03-doc-58-review.md).
+      **6,087 citations, 0 problems**, re-verified against the pinned trees.
+- [x] **Salvage assessed** — [`docs/design/SALVAGE-FROM-UNIBIZAPP.md`](docs/design/SALVAGE-FROM-UNIBIZAPP.md):
+      what the suspended `unibizapp` backend can contribute (migration runner, throwaway-schema discipline,
+      trigger compiler, migration shape), what it cannot (its JSON orchestration engine — 128 steps per
+      document save, and one orchestration ever written), and the one component that **must not** be
+      salvaged: its tenant-isolation migration is built on the forgeable `current_setting()` context this
+      repository rejected twice.
 - [ ] Build — **application implementation has not started**. The investigation is complete: all planned
-      tranches (A, B, C, E, F, G) are closed. What remains before building is three answers — **scale
-      targets** (decides materialised vs computed balances), **audit retention** for the auth/access event
-      streams, and **which jurisdictions besides India** — plus the two open localisation seams in
-      [`docs/logic/49`](docs/logic/49-tranche-f-closure-and-our-localisation-spec.md) §7.2. The build order
-      itself is fixed: [`docs/logic/57`](docs/logic/57-tranche-g-closure-and-our-security-spec.md) §8, whose
-      **step 0** is the boundary, because retrofitting scope columns and an execution-context contract onto
-      populated tables is a rewrite.
+      tranches (A, B, C, E, F, G) are closed and nothing is unreviewed. What remains before building is
+      three answers — **scale targets** (decides materialised vs computed balances), **audit retention** for
+      the auth/access event streams, and **which jurisdictions besides India** — and one unfinished
+      deliverable, [`docs/ui/01`](docs/ui/01-form-rendering-and-layout-engine.md) (9 of 56 sub-tasks). The
+      build order itself is fixed:
+      [`docs/logic/57`](docs/logic/57-tranche-g-closure-and-our-security-spec.md) §8, whose **step 0** is the
+      boundary, because retrofitting scope columns and an execution-context contract onto populated tables
+      is a rewrite.
