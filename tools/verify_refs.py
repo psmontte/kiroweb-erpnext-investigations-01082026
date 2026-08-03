@@ -145,7 +145,20 @@ def resolve(rel: str, apps: dict[str, str]) -> str | None:
             found = matches[0]
         elif len(matches) > 1:
             preferred = [m for m in matches if "/test" not in m and "/regional/" not in m]
-            found = preferred[0] if len(preferred) == 1 else None
+            if len(preferred) == 1:
+                found = preferred[0]
+            else:
+                # Still ambiguous across apps. The documented convention is that an unprefixed
+                # citation is relative to the FIRST --app (erpnext); every other app must be named
+                # explicitly in the path. Prefer that app before giving up, so adding a third app
+                # cannot retroactively make older unprefixed citations ambiguous.
+                default_root = next(iter(apps.values()), None)
+                if default_root:
+                    in_default = [m for m in (preferred or matches) if m.startswith(default_root)]
+                    if len(in_default) == 1:
+                        found = in_default[0]
+                if not found:
+                    found = None
 
     _RESOLVED[rel] = found
     return found

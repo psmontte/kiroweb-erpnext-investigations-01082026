@@ -40,6 +40,8 @@ Citations are `path:line` and are verified mechanically by `tools/verify_refs.py
 | **S09** | [S09-quality-gated-production-and-receipt.md](S09-quality-gated-production-and-receipt.md) | Multi-row Purchase Receipt → post-transaction inspection → Job Card operation gate → separately gated Manufacture Stock Entry | Inventory and GL remain balanced under Accepted and Warn, but **Warn posts draft/Rejected evidence as ordinary stock and one allow-after row returns from the entire receipt loop**; exact scoped release and durable exceptions are absent |
 | **S10** | [S10-customer-owned-subcontracting-inward.md](S10-customer-owned-subcontracting-inward.md) | Subcontracted SO service → customer RM receipt/return → internal Work Order/Job Card/Manufacture → FG delivery/return → service + company-material Sales Invoice | Customer material moves through company warehouses at **zero company value but without an owner dimension**; gross delivery 10 and return 2 leaves net fulfilment 8 while status is Delivered |
 | **S11** | [S11-asset-lifecycle.md](S11-asset-lifecycle.md) | Purchase Receipt → Asset + CWIP capitalisation → monthly depreciation → capitalised repair → partial sale (implicit split) → scrap | Every voucher balances and net assets are right, yet the **balance sheet is still wrong**: disposal removes `net_purchase_amount` and a *subtracted* accumulated depreciation, so a capitalised repair overstates Fixed Assets by 3,000.00 and Accumulated Depreciation by exactly the same amount — silently reclassifying cost as depreciation. Selling part of a multi-quantity asset creates a second asset and **cancels and re-posts submitted depreciation journals** |
+| **S12** | [S12-gst-invoice-e-invoice-and-gstr1.md](S12-gst-invoice-e-invoice-and-gstr1.md) | Intra-state and inter-state invoices → determination → e-invoice (incl. the duplicate-IRN path) → cancellation inside the 24-hour window → e-way bill and scheduled extension → GSTR-1 reconciliation and filing | The same 18% resolves to `9+9` or `18` from one template. Tax treatment is decided by **slicing a display label**; a missing place of supply silently picks CGST+SGST; the authority's signature is decoded with verification **off**; the IRN is **erased on cancellation**; and three separate hard-coded 2-decimal precisions govern a statutory balance, a reconciliation and the declared values |
+| **S13** | [S13-cross-company-consolidation-and-isolation.md](S13-cross-company-consolidation-and-isolation.md) | Cross-currency inter-company sale (INR seller → GBP buyer) from the seller's *second* GST registration → onward external sale of 40 of 100 units → closing revaluation → three translation runs → an EUR consolidation with eliminations, ownership weighting and minority interest → then **the same flow walked as an attacker** | Upstream **cannot run this scenario at all** — cross-currency inter-company documents are refused. The consolidated trial balance ties to the cent (Dr = Cr = 24,829.27; group profit 2,566.02, of which 1,459.61 attributable to the parent), and the intra-group balance eliminates to **exactly zero** only because revaluation and translation are two separate dated facts. A single rate *choice* moves 283.57 between profit and the translation reserve — ours records the choice, upstream's FCTR absorbs it by subtraction. The adversarial half: nine of ten reads succeed upstream; all fail in our design, each leaving an `isolation_denial` row |
 
 ## Reading order
 
@@ -91,6 +93,19 @@ largest gap between what the system appears to do and what it does.
 | Depreciation schedules, methods, posting, shifts and revaluation | [doc 42](../logic/42-depreciation-engine-schedules-shifts-and-adjustments.md) |
 | Asset custody, maintenance, repair, split and disposal | [doc 43](../logic/43-asset-custody-maintenance-repair-and-disposal.md) |
 | Tranche C closure, A1–A26 and the asset schema | [doc 44](../logic/44-tranche-c-closure-and-our-asset-spec.md) |
+| GST registration, settings, HSN and tax structure | [doc 45](../logic/45-gst-registration-settings-hsn-and-tax-structure.md) |
+| Place of supply, components, reverse charge, ineligible ITC | [doc 46](../logic/46-gst-place-of-supply-and-component-determination.md) |
+| E-invoice and e-way bill as external state machines | [doc 47](../logic/47-e-invoice-and-e-waybill-external-state-machines.md) |
+| GST returns, reconciliation and imports | [doc 48](../logic/48-gst-returns-reconciliation-and-imports.md) |
+| Tranche F closure, G1–G29 and the localisation schema | [doc 49](../logic/49-tranche-f-closure-and-our-localisation-spec.md) |
+| Authentication, sessions and where tenant context comes from | [doc 50](../logic/50-authentication-session-and-tenant-context.md) |
+| The permission decision path, and where it fails open | [doc 51](../logic/51-permission-model-end-to-end.md) |
+| Tenant isolation under attack, and the executable test matrix | [doc 52](../logic/52-tenant-isolation-and-rls-under-attack.md) |
+| Group structure, inter-company crossings and transfer pricing | [doc 53](../logic/53-multi-company-intercompany-and-transfer-pricing.md) |
+| Transaction / functional / presentation currency, rates, revaluation and translation | [doc 54](../logic/54-multi-currency-layering.md) |
+| Dimensions, operating locations, statutory registrations and segments | [doc 55](../logic/55-multi-location-branch-and-segment.md) |
+| Consolidation, eliminations, ownership weighting and minority interest | [doc 56](../logic/56-consolidation-and-group-reporting.md) |
+| Tranche G closure, T1–T30, the threat model and the build sequence | [doc 57](../logic/57-tranche-g-closure-and-our-security-spec.md) |
 | The target schema and invariant register | [FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md) |
 
 ## What is left
@@ -99,11 +114,15 @@ largest gap between what the system appears to do and what it does.
 |---|---|
 | **Tranche B** | **COMPLETE** — [doc 40](../logic/40-tranche-b-coverage-closure-and-our-production-spec.md) closes measured coverage and the target production specification |
 | **Tranche C (Assets)** | **COMPLETE** — docs 41–43, closed by [doc 44](../logic/44-tranche-c-closure-and-our-asset-spec.md), walked by [S11](S11-asset-lifecycle.md); all 14 Assets parents cited, 0 gaps |
-| **Tranche F (Localisation, India GST first)** | **NEXT** — required capability, scoped in doc 44 §11 |
+| **Tranche F (Localisation, India GST first)** | **COMPLETE** — docs 45–49 and [S12](S12-gst-invoice-e-invoice-and-gstr1.md) |
+| **Tranche G (Security, tenancy, group)** | **COMPLETE** — docs 50–56, closed by [doc 57](../logic/57-tranche-g-closure-and-our-security-spec.md), walked by [S13](S13-cross-company-consolidation-and-isolation.md); invariants **T1–T30** |
 | Application implementation | **Has not started** |
 
 All trade / inventory / accounts flows that cross three or more subsystems are covered by
-**S01–S11**, including in-house manufacturing, both ownership directions of subcontracting, the
-quality-gated receipt/production boundary and the full asset lifecycle. S09 completed the Tranche B
-scenario set, doc 40 completed that tranche, and S11 closes the assets scenario set.
+**S01–S13**, including in-house manufacturing, both ownership directions of subcontracting, the
+quality-gated receipt/production boundary, the full asset lifecycle, the GST compliance cycle, and the
+cross-company/cross-currency crossing that consolidates into group statements. S09 completed the Tranche B
+scenario set, doc 40 completed that tranche, S11 closes the assets scenario set, and **S13 is the only scenario
+with an adversarial second half** — because a group that consolidates correctly and leaks across companies has
+not solved the problem it appears to have solved.
 See [../COVERAGE.md](../COVERAGE.md) for the DocType-level coverage matrix.

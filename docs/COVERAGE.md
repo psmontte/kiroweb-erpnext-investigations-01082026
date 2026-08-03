@@ -119,8 +119,9 @@ ledger, freezing, balance-must-be) has not been read line by line.
 4. `tools/verify_refs.py` reports **0 problems** across all doc directories — no unresolved paths,
    no out-of-range lines, and no ambiguous shorthand refs. This covers both full citations and the
    `` (`:NNN`) `` shorthand; the shorthand is the bulk of the corpus, so verifying it is what makes
-   the "every claim is checkable" statement true. Current: **4455** citations in `docs/logic` and
-   **726** in `docs/scenarios`, all resolving (**5181 total**).
+   the "every claim is checkable" statement true. Current: **5163** citations in `docs/logic`,
+   **824** in `docs/scenarios` and **88** in `docs/design`, all resolving (**6075 total**; **5987**
+   across logic and scenarios).
 5. This table is regenerated and checked.
 
 ### Status against that definition
@@ -129,8 +130,8 @@ ledger, freezing, balance-must-be) has not been read line by line.
 |---|---|---|
 | 1 | `uncited_submittable` = 0 | Accounts **0** ✔, Stock **0** ✔, Selling **0** ✔, Buying **0** ✔, Manufacturing **0** ✔, Subcontracting **0** ✔, Quality Management **0** ✔ |
 | 2 | Config DocTypes cited or excluded | **✔ 0 uncited config** in every audited module; Stock operational-QI exclusions removed after doc 39 |
-| 3 | Scenario per cross-subsystem flow | **✔** S01–S11 complete, including the full asset lifecycle |
-| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 5181 citations** |
+| 3 | Scenario per cross-subsystem flow | **✔** S01–S13 complete, including the full asset lifecycle, the GST compliance cycle, and a cross-company/cross-currency crossing consolidated into group statements |
+| 4 | `verify_refs.py` 0 problems | **✔ 0 problems, 6075 citations** across `docs/logic`, `docs/scenarios` and `docs/design` |
 | 5 | Table regenerated | **✔** |
 
 **Trade-core definition remains met.** `Accounts`, `Stock`, `Selling` and `Buying` have zero uncited
@@ -148,6 +149,31 @@ ownership directions, custody, transfer, consumption, receipt/manufacture, SLE, 
 four Stock-owned operational inspection parents are cited, with zero gaps. Doc 39 covers criteria,
 sampling, formulas, transaction and Job Card gates, QM workflows, scheduler behavior and races. S09
 completes the worked cross-subsystem scenario with accepted, blocked, warned and post-transaction gates.
+
+**Tranche F (localisation, India GST) is complete.** India GST is **not in ERPNext** — removed in v14
+(`patches/v14_0/remove_india_localisation.py:5-21`) — so docs 45–49 and
+[S12](scenarios/S12-gst-invoice-e-invoice-and-gstr1.md) read a third pinned repository,
+`india-compliance@205c3de`, covering its **26 DocTypes** at controller depth. That app is outside this
+matrix, which counts ERPNext parents only; the ERPNext totals above are unchanged. Invariants **G1–G29**.
+
+Verify Tranche F citations with the third app root:
+
+```bash
+python3 tools/verify_refs.py --docs docs/logic \
+  --app erpnext=/projects/sandbox/erpnext/erpnext \
+  --app frappe=/projects/sandbox/frappe/frappe \
+  --app india_compliance=/projects/sandbox/india_compliance/india_compliance
+```
+
+**Tranche G (security, tenancy, multi-entity) is complete.** Docs 50–57 and
+[S13](scenarios/S13-cross-company-consolidation-and-isolation.md) close the boundary every other tranche
+assumed. Docs 50–52 read Frappe framework modules and docs 53–56 read controllers and reports under parents
+already counted, so **the ERPNext totals above are unchanged** — this tranche adds no new parents. What it adds
+is a *test* obligation on every table already counted: `FINAL-SCHEMA` §31 defines a `business_table_catalogue`
+and an `rls_conformance` view, and CI fails when any table lacks a non-nullable scope column, RLS enabled
+**and** forced, a policy with both clauses, or a case in the generated isolation matrix. That is deliberately
+the same generated-coverage discipline this file applies to documentation: enumerate the population, assert
+each member is exercised, fail on a gap. Invariants **T1–T30**; **84 defects** catalogued.
 
 **Tranche B is closed at coverage and design depth:**
 [doc 40](logic/40-tranche-b-coverage-closure-and-our-production-spec.md) preserves the exact final table,

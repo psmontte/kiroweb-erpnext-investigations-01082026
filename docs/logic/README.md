@@ -109,6 +109,52 @@ schema, write/reversal ordering and build sequence. **Application implementation
 | 43 | [43-asset-custody-maintenance-repair-and-disposal.md](43-asset-custody-maintenance-repair-and-disposal.md) | custody as scalars recomputed from movement history; the maintenance planner and its logs writing to each other; Asset Repair's ledger-checked invoice residual, per-book cost duplication and a cancellation that leaves the stock issue posted; splitting an asset by document copy that **amends posted depreciation journals**; and the four disposal callers sharing one derivation |
 | 44 | [44-tranche-c-closure-and-our-asset-spec.md](44-tranche-c-closure-and-our-asset-spec.md) | **Tranche C deliverable**: measured closure across every audited module, A1–A26 mapped to enforcement layers, the concrete asset schema, deterministic locks/idempotency, write and reversal ordering, the Adopt/Change/Reject matrix, the pinned defect catalog, the build sequence — and the localisation/India-GST boundary that comes next |
 
+### Tranche F — localisation, India GST first (**complete**)
+
+India GST is **not in ERPNext**: removed in v14 (`patches/v14_0/remove_india_localisation.py:5-21`) and
+maintained as `resilient-tech/india-compliance`, pinned at `205c3de` (`17.0.0-dev`, ~49,000 Python LOC, 26
+DocTypes). Verify Tranche F citations with the third app root:
+
+```bash
+python3 tools/verify_refs.py --docs docs/logic \
+  --app erpnext=/projects/sandbox/erpnext/erpnext \
+  --app frappe=/projects/sandbox/frappe/frappe \
+  --app india_compliance=/projects/sandbox/india_compliance/india_compliance
+```
+
+| Read | File | Covers |
+|---|---|---|
+| 45 | [45-gst-registration-settings-hsn-and-tax-structure.md](45-gst-registration-settings-hsn-and-tax-structure.md) | why GST cannot be read from ERPNext; how the app attaches (`doc_events` + **custom fields toggled by a settings checkbox**); GSTIN's seven category-specific formats and mod-36 check digit; GSTIN status as a cached external fact whose validation can arrive **after** the write; GST Settings gating scheduler rows; five components → fifteen account roles; the `gst_rate == tax_rate × 2` intra-state rule; HSN/SAC and its unversioned bulk push into item masters |
+| 46 | [46-gst-place-of-supply-and-component-determination.md](46-gst-place-of-supply-and-component-determination.md) | the arithmetic core: place of supply stored as a **display string whose first two characters are statutory**; a missing place of supply silently meaning intra-state; source state recovered by slicing a GSTIN with `"96"` as a magic literal; intra/inter account filtering; the reverse-charge forward/booked cancellation and its **hard-coded 2-decimal tolerance** beside a refund rule that uses document precision; ineligible ITC redirecting tax into inventory and **asset** valuation in place; item-wise distribution; and GSTR-1-filed backdating control held in a Single |
+| 47 | [47-e-invoice-and-e-waybill-external-state-machines.md](47-e-invoice-and-e-waybill-external-state-machines.md) | the two government endpoints that mint legal artefacts: applicability, the well-built error taxonomy (server / not-applicable / validation), `DUPIRN` reconciliation that compares only two fields **after decoding the authority's JWT with `verify_signature=False`**, the log written by a background job, the IRN **blanked on cancellation** because the field doubles as a state flag, a 24-hour statutory deadline read from an **onload cache**, our clock recorded as the authority's cancellation time, and a retry loop whose gate is cleared before the work it guards |
+| 48 | [48-gst-returns-reconciliation-and-imports.md](48-gst-returns-reconciliation-and-imports.md) | the periodic obligations, where **the government holds a competing copy of our data**: GSTR-1's statutory taxonomy and its memoised working set gated by `is_latest_data`; reconciliation that keeps the signed difference (good) but writes `upload_status` back into its own input (bad); three separate hard-coded 2-decimal precisions; the **declarative purchase-matching rule ladder** — exact/fuzzy/rounding tiers as data, the best design in the tranche — undermined by match decisions being mutable link edits with no history; and Bill of Entry posting customs duty into inventory and asset value |
+| 49 | [49-tranche-f-closure-and-our-localisation-spec.md](49-tranche-f-closure-and-our-localisation-spec.md) | **Tranche F deliverable**: what the tranche measured (a third repository, not an ERPNext module), G1–G29 mapped to enforcement layers, the five decision themes — adopt wholesale / reject mechanism / reject display-text-as-data / reject defaults and tolerances that decide money / reject mutable facts — the **signature finding**, the concrete schema in `FINAL-SCHEMA` §24–§28, the 11-step build sequence, and the seams where localisation touches stock, assets, periods and the link graph |
+
+### Tranche G — security, tenancy and multi-entity (**complete**)
+
+The boundary every previous tranche asserted and none tested. **Frappe has no row-level security, no tenant
+context and no session scope** — a search of the pinned tree returns zero occurrences of `ROW LEVEL SECURITY`,
+and every `current_setting(` is in one query-builder test. Company is a *data dimension* filtered by
+`User Permission`, and `ignore_permissions=True` appears **892 times** across Frappe and ERPNext. Worse than
+absent, the mechanism that exists **fails open**: an empty result from the scoping lookup means *unrestricted*
+(`frappe/permissions.py:351-380`). Invariant prefix **T**, register **T1–T30**, **84 defects** catalogued,
+target tables in [`FINAL-SCHEMA` §29–§37](../design/FINAL-SCHEMA.md), walked end to end by
+[S13](../scenarios/S13-cross-company-consolidation-and-isolation.md).
+
+| Read | File | Covers |
+|---|---|---|
+| 50 | [50-authentication-session-and-tenant-context.md](50-authentication-session-and-tenant-context.md) | why there is no tenant context to bind RLS to; the two login paths and the **downgrade-to-`Guest`** fallback; two-axis lockout (adopted); non-interactive auth where a **caller-supplied header chooses the authenticating DocType**, authenticators swallow exceptions, and the fail-closed guard only fires when an `Authorization` header was present; sessions that carry **no company**; and our `principal` / `principal_company_membership` / `auth_session` model with the `auth.current_company()` function RLS actually binds to |
+| 51 | [51-permission-model-end-to-end.md](51-permission-model-end-to-end.md) | the decision path traced branch by branch, asking at each one *what happens when the rule is absent* — and finding that **the permission system fails open**: no `User Permission` rows means unrestricted, an empty allowed-list skips the check, an **empty link value evades scope** unless a strictness setting is on, that setting is off by default and switched off again for new documents, `Administrator` bypasses everything first, and **sharing grants** what roles denied. Adopted wholesale: **controllers may only deny**, and permission failures explain themselves |
+| 52 | [52-tenant-isolation-and-rls-under-attack.md](52-tenant-isolation-and-rls-under-attack.md) | the adversarial question: from a session in company A, how do you reach company B? Five attack classes — **the database layer applies no permissions at all** (`db.sql`/`get_value`/`get_values` are unguarded), **background jobs default to `Administrator`** and so hold total authorisation by omission, 892 in-code bypasses plus 34 identity switches, reports as a parallel read path gated only by a doctype capability, and count/link endpoints as cardinality and existence oracles. Delivers the **executable test matrix** (read, write, execution-context, authorisation edges) and a generated `rls_conformance` check that fails the build |
+| 53 | [53-multi-company-intercompany-and-transfer-pricing.md](53-multi-company-intercompany-and-transfer-pricing.md) | what the system records when a transaction legitimately crosses companies. Two consolidation reports **do** exist and aggregate a company subtree, but they eliminate nothing, weight nothing and store nothing (doc 56) — and the `Company` tree carries no ownership, method or acquisition date. Cross-currency crossings are **refused outright**; the counterparty is **guessed** (`parties[0]`) when several internal parties exist; leg-rate agreement is **opt-in and off by default**; the pairing is two mutable scalars that can be **unlinked after posting**; and unrealised intra-group margin is **parked in an account, never tracked to realisation**. Adopted: bidirectional reference validation, `Allowed To Transact With`, `Party Link`'s non-chaining rules, partial mirroring |
+| 54 | [54-multi-currency-layering.md](54-multi-currency-layering.md) | three currency layers where ERPNext has two: functional currency is `default_currency` in all but name, `reporting_currency` is a **label with no translation mechanism**, and there is **no CTA account and no translated balances** — so a multi-currency group cannot be consolidated. Rate resolution fails four different silent ways, including a **`0.00` rate** when settings are disabled and an author's own unresolved 2016 comment asking whether a missing currency should throw. Documents store the rate **value, not its identity**; pegs are **not effective-dated**; a synchronous HTTP fetch sits in the conversion path. Adopted: four-case peg arithmetic with cross-peg recursion, purpose-scoped rates, the **booked/unbooked** FX split |
+| 55 | [55-multi-location-branch-and-segment.md](55-multi-location-branch-and-segment.md) | every axis other than company and currency: **two separate dimension systems** (accounting and inventory) that both perform runtime DDL and need a shared dimension defined twice; dimension filters that constrain **writes only**, so no dimension is ever a read boundary; `Warehouse.is_group` **inferred** from whether children exist; **no segment reporting at all**; and the Tranche F seam — a GST registration is **per state, carried on the `Address`**, so a company has plural statutory periods. Our model: one `dimension` as data, one `operating_location` hierarchy, `location_registration`, and `dimension_read_narrowing` that may only subtract from company scope |
+| 56 | [56-consolidation-and-group-reporting.md](56-consolidation-and-group-reporting.md) | consolidation **does exist** — two reports, one side-by-side and one genuinely merged, with the codebase's only structural group rule (all companies must share a root). What it does not do is the three things that turn aggregation into consolidation: **no eliminations** (intra-group revenue, cost, receivables and payables all double-counted), **no ownership weighting** (a 60%-owned subsidiary consolidates at 100%), **no minority interest**. Aggregation joins on **`account_name`**, the translation reserve is a **balancing plug** that absorbs missing rates indistinguishably, and **nothing is stored** — so a group statement cannot be reproduced and adjustments cannot be posted |
+| 57 | [57-tranche-g-closure-and-our-security-spec.md](57-tranche-g-closure-and-our-security-spec.md) | **Tranche G closure.** Twenty-three schema sections asserted `company_id` + forced RLS + an authenticated tenant-context function; this closes the assumption. The measured result: **no isolation mechanism exists** — every use of Postgres's `current_setting()` in either tree is in one query-builder test — and 892 sites switch the application-level filtering off. Consolidates **T1–T30** mapped to enforcement layer, the 84-defect catalogue, the Adopt/Change/Reject decisions in five themes, an explicit **threat model** with its out-of-scope boundary, and a 16-step build sequence that is **step 0** — it precedes every other tranche, because retrofitting scope columns and an execution-context contract onto populated tables is a rewrite |
+| 58 | [58-statutory-numbering-and-the-withholding-gst-seam.md](58-statutory-numbering-and-the-withholding-gst-seam.md) | **Closes the two items doc 49 §7.2 left open**, both worse than the deferral implied. **Numbering**: the statutory invoice number **is the row's primary key**, so amendment rewrites it by string-concatenating `-1` and splitting on the last hyphen — in a format that legitimately contains hyphens — and silently consumes the 16-character statutory limit. A non-compliant number is a refusal for Sales Invoice and a **dismissible warning** for the self-invoices and delivery challans we also issue; at filing the document is routed to `Excluded from Report (Invalid Invoice Number)`, so tax determined, posted and paid is **omitted from the return** on the strength of a warning clicked through weeks earlier. GSTR-1 Table 13 reconstructs series by **string-comparing adjacent primary keys**, with two false positives its own docstring documents and a consecutiveness test that splits one series at every gap. **Withholding**: whether GST enters the TDS base is a two-option dropdown defaulting to `Net Total` — but the basis is fixed by *statute* (CBDT Circular 23/2017 excludes GST; s.206C(1H) includes it), and "gross" sums **every** non-withholding charge, so "including GST" and "including GST and freight" are the same number. "TDS/TCS" names **two unrelated tax systems**: income-tax withholding aggregates on PAN, GST s.51/s.52 on a separate GSTIN, and only the first exists in either tree. Register **G30–G41** |
+
+
+
 Assets are documented in docs **41–44** plus **[S11](../scenarios/S11-asset-lifecycle.md)**: all 14
 parent controllers are cited with zero submittable and zero configuration gaps, and the register runs
 **A1–A26**. S11 is the one scenario in this repository where every voucher balances, net assets are right,
@@ -116,6 +162,14 @@ and the balance sheet is still wrong: capitalised repair and revaluation leave e
 in Fixed Assets and Accumulated Depreciation, because disposal derives both from mutable scalars by
 subtraction, silently reclassifying cost as depreciation. **[Doc 44](44-tranche-c-closure-and-our-asset-spec.md)**
 closes the tranche and names localisation — India GST first — as what remains.
+
+Tranche G is documented in docs **50–57** plus **[S13](../scenarios/S13-cross-company-consolidation-and-isolation.md)**.
+It adds no new ERPNext parents — docs 50–52 read Frappe framework modules, docs 53–56 read controllers and
+reports under parents already counted — but it is the tranche the other twenty-three schema sections stand on,
+which is why [doc 57](57-tranche-g-closure-and-our-security-spec.md) §8 makes the boundary **step 0** of the
+build sequence rather than a later hardening pass. S13 is the only scenario here with an adversarial second
+half, and the only one that **cannot be run upstream at all**: cross-currency inter-company documents are
+refused outright.
 
 Consolidated target schema: **[../design/FINAL-SCHEMA.md](../design/FINAL-SCHEMA.md)** — finalised
 accounting/trade plus concrete production, owner/custodian, planning, capacity, execution,
@@ -153,8 +207,9 @@ Last run against the anchor commits:
 
 | Directory | Citations | Confirmed by symbol name | Problems |
 |---|---|---|---|
-| `docs/logic` | 4455 | 1574 | 0 |
-| `docs/scenarios` | 726 | 164 | 0 |
+| `docs/logic` | 5163 | 1593 | 0 |
+| `docs/scenarios` | 824 | 164 | 0 |
+| `docs/design` | 88 | 0 | 0 |
 
 Name notes under `--strict-names` are advisory: the doc line may legitimately name a symbol defined
 elsewhere in the same file. Frappe-side citations are prefixed `frappe/`.

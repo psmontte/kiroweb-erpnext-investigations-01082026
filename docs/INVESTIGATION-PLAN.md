@@ -4,7 +4,10 @@ We are in **investigation mode**: the output of this repo is documents, not appl
 **Application implementation has not started.** Every audited module — including Assets (Tranche C) —
 is now investigated; building starts only once the investigation is declared complete.
 
-Anchor commits for everything so far: `erpnext@ceefd4add7` (v17.0.0-dev), `frappe@5da68e856c`.
+Anchor commits for everything so far: `erpnext@ceefd4add7` (v17.0.0-dev), `frappe@5da68e856c`, and — for
+Tranche F only — `india-compliance@205c3de939` (`develop`, `17.0.0-dev`, requires `frappe >=17.0.0-dev`).
+**India GST is not in ERPNext core**: it was removed in v14 and lives in a separate app
+(`patches/v14_0/remove_india_localisation.py:5-21`), so Tranche F pins a third repository.
 
 ---
 
@@ -50,7 +53,8 @@ Consolidated target design: **`docs/design/FINAL-SCHEMA.md`** (finalised tables,
 business rules, lifecycle state machine, fulfilment views, settlement model, invariant register).
 
 Citation verification across `docs/logic/`: superseded — see the current coverage matrix
-(**5,181 citations, 0 problems** across logic and scenarios, shorthand included).
+(**5,987 citations, 0 problems** across logic and scenarios, shorthand included; 6,075 including
+`docs/design`).
 
 ~~**Still named but not chased**~~: putaway rules (doc 27 §3), warehouse capacity (doc 27 §3, doc 16
 §4), stock closing entry (doc 27, S05 §6), loyalty program internals (doc 31 §4), payment-gateway
@@ -77,7 +81,7 @@ invoice → payment → FX revaluation — plus everything needed to call the th
 
 **Coverage: `Accounts`, `Stock`, `Selling`, `Buying`, `Manufacturing` and `Subcontracting` are at
 zero uncited DocTypes** — submittable and configuration alike (`docs/COVERAGE.md`, generated).
-Citations: **5,181 verified, 0 problems**, including the shorthand form.
+Citations: **5,538 verified, 0 problems**, including the shorthand form.
 
 Three findings from this closure changed how confident we are in earlier decisions:
 
@@ -115,9 +119,10 @@ zero configuration gaps. Application implementation has not started.
 
 Citation verification: superseded — see the closure block above.
 
-## 2. What is left
+## 2. Tranches
 
-Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
+Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only). **All planned tranches are
+now closed; D was dropped by decision.**
 
 | Tranche | Area | DocTypes | Why it matters |
 |---|---|--:|---|
@@ -127,10 +132,53 @@ Sized by DocType count from `schema/catalog_tables.csv` (erpnext app only).
 | ~~**B**~~ | ~~**Manufacturing** — BOM (+ cost roll-up, exploded items, update-cost job), Work Order, Job Card, Operations/Routing, Workstation capacity, Production Plan, Master Production Schedule, scrap & rework, WIP accounting~~ | 48 total / 18 parents (8 submittable) | **DONE** — docs 33–37 + S07; 18/18 parent controllers cited, 0 gaps |
 | ~~**B**~~ | ~~**Subcontracting deep dive** — order/receipt lifecycle, supplied-item consumption, RM transfer, `Subcontracting BOM`, customer-owned inward flow~~ | 13 total / 4 parents (3 submittable) | **DONE** — doc 38 + S08 + S10; 4/4 parent controllers cited, 0 gaps |
 | ~~**C**~~ | ~~**Assets** — asset lifecycle, depreciation engine + schedules, finance books, shifts, capitalization, disposal, repair, movement~~ | 26 total / 14 parents (8 submittable) | **DONE** — docs 41–44 + S11; 14/14 parent controllers cited, 0 gaps |
-| **F** | **Localisation — India GST first** — jurisdiction as data, HSN/SAC, place of supply, CGST/SGST/IGST/cess components, reverse charge, TDS/TCS interaction, statutory numbering, GSTR/e-invoice extracts, amendment and credit-note semantics | cross-cutting | **NEXT** — required capability; scoped in [doc 44 §11](logic/44-tranche-c-closure-and-our-asset-spec.md). ERPNext's `@allow_regional` overlay is **rejected** (doc 21 §4, doc 42 §4.3) |
+| ~~**F**~~ | ~~**Localisation — India GST first**~~ — jurisdiction as data, HSN/SAC, place of supply, CGST/SGST/IGST/cess components, reverse charge, TDS/TCS interaction, statutory numbering, GSTR/e-invoice extracts, amendment and credit-note semantics | 26 parents in `india_compliance` | **DONE** — docs 45–49 + S12; 26 India Compliance DocTypes read at controller depth. Register **G1–G29**. ERPNext's `@allow_regional` overlay is **rejected** (doc 21 §4, doc 42 §4.3) |
 | ~~**D**~~ | ~~**Projects, Support, Maintenance, CRM**~~ — project costing, timesheet → billing, Support (11), Maintenance (5), CRM lead/opportunity/prospect (28) | ~75 | **OUT OF SCOPE** — dropped by decision. Not investigated, not built. |
 | ~~**B**~~ | ~~**Quality Management + operational quality** — Quality Management records plus Stock-owned inspection templates/readings and gates on receipts, deliveries, Stock Entry and Job Card~~ | 16 total / 8 module parents, plus 4 Stock parents | **DONE** — doc 39 + S09; all 12 parents cited, 0 gaps |
 | ~~**E**~~ | ~~**Platform mechanics we must replace, not copy**~~ — permission model, naming series, `hooks.py` extensibility, `@allow_regional` overlay, background jobs + scheduler, patch/migration system, query-report framework, custom fields & Customize Form, virtual doctypes | — | **DONE** — `docs/logic/18`–`25`, with a build/buy/drop decision per capability in `25-our-platform-spec.md` |
+| ~~**G**~~ | ~~**Security, tenancy and multi-entity**~~ — authentication and session identity, the permission model end to end (roles, user permissions, sharing, field-level, `permission_query_conditions`), **tenant isolation and RLS as an enforced boundary** rather than a query filter, credential and secret handling, audit trail integrity, API surface and rate limiting; **multi-company** (inter-company documents, common party, transfer pricing, eliminations), **multi-currency** (presentation vs functional vs transaction currency, translation and revaluation), **multi-location/warehouse/branch**, and **consolidation** (group reporting, minority interest, intra-group elimination, differing fiscal calendars) | cross-cutting | **DONE** — docs 50–57 + S13; **84 defects** catalogued, register **T1–T30**, schema `FINAL-SCHEMA` §29–§37. Measured: **no isolation mechanism exists** and **892** in-code bypasses; the scoping mechanism **fails open**. Isolation is now an executable per-table matrix plus an `rls_conformance` build gate |
+
+### Tranche G deliverables — security, tenancy and multi-entity — **complete**
+
+Every tranche before this one asserted the same tenancy boundary and never tested it: `company_id` on every business
+table, `ENABLE`/`FORCE ROW LEVEL SECURITY`, and policies bound to an authenticated tenant-context function
+rather than a caller-settable GUC (a defect the Tranche B review caught in `FINAL-SCHEMA`'s original policy
+shape). Consolidation and the currency layering were likewise assumed. This tranche closed both.
+
+**Measured result:** there is no tenant isolation mechanism in the pinned tree — no RLS, no tenant context, no
+scope on the session record; every use of Postgres's `current_setting()` in either repository is in one
+query-builder test (`frappe/tests/test_query_builder.py:368` and five siblings) — and **892** call sites
+switch the application-level check off.
+Worse than absent, the mechanism that exists **fails open**: an empty result from the scoping lookup means
+*unrestricted* (`frappe/permissions.py:351-380`). **84 defects** catalogued across the seven documents.
+
+| Order | Planned document | Scope |
+|---:|---|---|
+| 50 | [`50-authentication-session-and-tenant-context.md`](logic/50-authentication-session-and-tenant-context.md) | **DONE** — login, session identity, API keys/tokens, `frappe.session`, how a request acquires a company scope, and the unforgeable tenant-context function our RLS policies must bind to |
+| 51 | [`51-permission-model-end-to-end.md`](logic/51-permission-model-end-to-end.md) | **DONE** — roles, role profiles, user permissions, sharing, field-level permissions, `permission_query_conditions`, `has_permission` hooks — extending doc 19 into an enforceable model with **deny-by-default** and no post-hoc filtering |
+| 52 | [`52-tenant-isolation-and-rls-under-attack.md`](logic/52-tenant-isolation-and-rls-under-attack.md) | **DONE** — isolation as a boundary, not a filter: cross-company reads/writes, report and dashboard leakage, background jobs running without a session, `ignore_permissions`, `frappe.db.sql` bypass, and an **adversarial test matrix** every table must survive |
+| 53 | [`53-multi-company-intercompany-and-transfer-pricing.md`](logic/53-multi-company-intercompany-and-transfer-pricing.md) | **DONE** — company hierarchy, inter-company documents, common party, internal transfers, transfer pricing and the elimination pairs they create — extending doc 15 |
+| 54 | [`54-multi-currency-layering.md`](logic/54-multi-currency-layering.md) | **DONE** — transaction / functional / presentation currency as three explicit layers, translation vs revaluation, rate sourcing and staleness, CTA, and what must be stored versus derived — extending docs 05 and 07 |
+| 55 | [`55-multi-location-branch-and-segment.md`](logic/55-multi-location-branch-and-segment.md) | **DONE** — warehouse/branch/location/segment dimensions, per-location statutory registration (the seam into Tranche F), and dimension-scoped reporting |
+| 56 | [`56-consolidation-and-group-reporting.md`](logic/56-consolidation-and-group-reporting.md) | **DONE** — group structures, intra-group elimination, minority interest, differing fiscal calendars, consolidation as an **append-only derived ledger** rather than a report |
+| 57 | [`57-tranche-g-closure-and-our-security-spec.md`](logic/57-tranche-g-closure-and-our-security-spec.md) | **DONE** — closure, the `T` invariant register, the concrete tenancy/consolidation schema, threat model and build order |
+
+Scenario: **[S13](scenarios/S13-cross-company-consolidation-and-isolation.md)** a cross-company,
+cross-currency, multi-location transaction consolidated into group reporting, with an adversarial isolation
+walkthrough. **DONE.** Invariant register **T1–T30**; target tables in
+[`FINAL-SCHEMA` §29–§37](design/FINAL-SCHEMA.md).
+
+### Tranche F deliverables
+
+| Order | Document | Scope |
+|---:|---|---|
+| 45 | [`45-gst-registration-settings-hsn-and-tax-structure.md`](logic/45-gst-registration-settings-hsn-and-tax-structure.md) | **DONE** — GST's absence from core, the app's attachment mechanism, GSTIN/PAN identity and status caching, GST Settings, five-component tax structure, HSN/SAC |
+| 46 | [`46-gst-place-of-supply-and-component-determination.md`](logic/46-gst-place-of-supply-and-component-determination.md) | **DONE** — place of supply and provenance, intra/inter split, applicable component sets, reverse charge and refund balance rules, ineligible ITC into inventory/asset cost, item-wise distribution, statutory period control |
+| 47 | [`47-e-invoice-and-e-waybill-external-state-machines.md`](logic/47-e-invoice-and-e-waybill-external-state-machines.md) | **DONE** — obligation, submission attempts, duplicate reconciliation and signature verification, cancellation windows, in-transit amendments, durable retry |
+| 48 | [`48-gst-returns-reconciliation-and-imports.md`](logic/48-gst-returns-reconciliation-and-imports.md) | **DONE** — return periods and working sets, GSTR-1 reconciliation, GSTR-3B, the declarative purchase-match ladder, Bill of Entry and import allocations |
+| 49 | [`49-tranche-f-closure-and-our-localisation-spec.md`](logic/49-tranche-f-closure-and-our-localisation-spec.md) | **DONE** — closure, G1–G29 enforcement mapping, jurisdiction-as-data schema, build order, cross-tranche seams |
+
+Scenario: **[S12](scenarios/S12-gst-invoice-e-invoice-and-gstr1.md)** determination → e-invoice → e-way bill → GSTR-1. **DONE**.
 
 ### Tranche B deliverables
 
@@ -158,18 +206,29 @@ quality-gated receipt/production; **S10** customer-owned subcontracting inward.
    remaining items (report view library, front end, localisation data) are not framework.
    See `25-our-platform-spec.md` §6.
 3. **Scenario walkthroughs** (`docs/scenarios/`) — cross-cutting flow traces tying the subsystem
-   documents together. S01–S11 cover trade/inventory/accounts, manufacturing, subcontracting, quality and
-   the asset lifecycle.
+   documents together. S01–S12 cover trade/inventory/accounts, manufacturing, subcontracting, quality, the
+   asset lifecycle and the GST compliance cycle.
 4. ~~**Tranche B** — manufacturing → subcontracting → quality → closure/specification~~ —
    **complete**, docs 33–40 and scenarios S07–S10. Doc 40 consolidates the measured closure, M1–M69,
    target schema and build order.
 5. ~~**Tranche C** (assets + depreciation)~~ — **complete**, `docs/logic/41`–`44` and `S11`; invariant
    register **A1–A26**. Doc 44 consolidates the measured closure, enforcement mapping, asset schema and
    build order.
-5a. **Tranche F** (localisation, **India GST first**) — **next**, and now a confirmed requirement rather
-   than an open question. Scoped in doc 44 §11.
+5a. ~~**Tranche F** (localisation, **India GST first**)~~ — **complete**, `docs/logic/45`–`49` and `S12`;
+   invariant register **G1–G29**. Doc 49 consolidates the closure, enforcement mapping and build order.
+   Additional jurisdictions (UAE VAT, South Africa, Italy) remain a rule-revision mapping exercise, not new
+   code — see doc 49 §7.2.
+5b. ~~**Tranche G** (security, tenancy, multi-entity)~~ — **complete**, `docs/logic/50`–`57` and `S13`;
+   invariant register **T1–T30**, schema in `FINAL-SCHEMA` §29–§37. Every tranche before it asserted
+   `company_id` + RLS + `FORCE RLS` and a tenant-context function without proving any of it; doc 52 supplies
+   the executable per-table matrix and `FINAL-SCHEMA` §31 supplies the build gate that fails when a table is
+   missing a scope column, a forced policy, or a matrix case. Doc 57 consolidates the closure, the threat
+   model and the build order — whose **step 0** is the boundary itself.
 6. ~~**Tranche D**~~ — **dropped**: no CRM, no projects, no support.
-7. **Implementation** — has not started.
+7. **Implementation** — has not started. **The investigation is complete**: A, B, C, E, F and G are closed and
+   D is dropped. The remaining gates are the open questions in §4 — specifically scale targets (2, 4), audit
+   retention for the auth/access event streams, and which jurisdictions beyond India (3) — plus the two
+   localisation seams in doc 49 §7.2.
 
 Each tranche produces documents in the same shape as `docs/logic/`: pinned commit, `file.py:line`
 citations, invariants, and an "ours" decision per behaviour, verified by `tools/verify_refs.py`.
@@ -192,8 +251,10 @@ Answers change the order and the depth, not the method.
    reject it. Tranche F is scoped in [doc 44 §11](logic/44-tranche-c-closure-and-our-asset-spec.md).
    Still open: which **additional** jurisdictions v1 must handle alongside India.
 4. **Scale targets** — rough rows/day on the ledgers, number of companies, concurrent users. This decides
-   whether balances are materialised (doc 01 §1.9) or computed, and whether the valuation projection needs
-   partitioning.
+   whether balances are materialised (doc 01 §1.9) or computed, whether the valuation projection needs
+   partitioning, and — added by Tranche G — the retention and archival policy for `principal_auth_event` and
+   `access_decision`, which are the highest-volume tables in the design and the ones an audit most wants
+   intact (`FINAL-SCHEMA` §38).
 5. **Upstream tracking** — ERPNext ships continuously. Do you want a periodic "delta report" against a new
    commit (what changed in the areas we documented), or is the pinned snapshot sufficient for now?
 6. **Document format** — is Markdown-in-git the right final form, or do these need to become something

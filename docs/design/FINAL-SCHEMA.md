@@ -772,8 +772,11 @@ command_business_commit(id, company_id, command_receipt_id, business_commit_toke
 domain_aggregate_owner(id, company_id, aggregate_type domain_aggregate_enum,
                        aggregate_id bigint, next_event_position bigint NOT NULL, row_version bigint)
    UNIQUE (company_id, aggregate_type, aggregate_id)
-   -- domain_aggregate_enum covers production aggregates AND asset aggregates
-   -- (asset, asset_finance_book, asset_location, maintenance_task, asset_service, asset_transformation)
+   -- domain_aggregate_enum covers production, asset AND localisation aggregates:
+   -- (asset, asset_finance_book, asset_location, maintenance_task, asset_service, asset_transformation,
+   --  tax_determination, statutory_artefact, return_period)
+   -- command_kind_enum and voucher_kind_enum likewise gain localisation members (determination,
+   -- e_invoice, e_waybill, return_filing, customs_assessment).
 domain_event(id, company_id, aggregate_owner_id, event_position bigint,
                  event_type domain_event_enum, command_receipt_id, child_ordinal integer,
                  business_commit_id, reverses_event_id bigint NULL,
@@ -2317,19 +2320,1695 @@ upstream leaves behind is unrepresentable, and so is the split-rounding cent.
 
 ---
 
-## 24. What remains open
+## 24. Jurisdiction, registration and classification
+
+Tranche F ([docs 45–48](../logic/45-gst-registration-settings-hsn-and-tax-structure.md)) adds localisation.
+The driving constraint: **India GST is not in ERPNext** — it was removed in v14
+(`patches/v14_0/remove_india_localisation.py:5-21`) and lives in a separate app that attaches itself through
+`doc_events` overrides and **custom fields toggled by settings checkboxes**. We reject that mechanism and
+ERPNext's `@allow_regional` function replacement (doc 21 §4, doc 42 §4.3) in favour of jurisdiction as data.
+
+All conventions at the top of this document apply. Money `numeric(19,4)`; rates and percentages
+`numeric(9,6)`; `company_id` everywhere with RLS and `FORCE RLS`; stable lower-case enum codes; append-only
+facts with reversal/supersession.
+
+**One deliberate exception to the company-scoping convention.** `tax_jurisdiction`, `tax_area` and
+`tax_area_postal_range` are **global reference data** — country and state codes are not tenant data — so they
+carry no `company_id` and no RLS policy. Every table that *references* them is company-scoped as usual. This
+is stated explicitly because doc 49 §2 asserts company scoping for all localisation tables; these three are
+the exception.
+
+```sql
+tax_jurisdiction(id, code varchar(8), name text)  UNIQUE (code)   -- 'in', 'ae', 'gb'  [GLOBAL]
+tax_jurisdiction_revision(id, company_id, tax_jurisdiction_id, revision_no integer,
+    effective_from date, effective_to date NULL, state revision_state_enum,
+    requires_e_invoice bool, requires_e_waybill bool, supports_reverse_charge bool,
+    supports_composition bool, classification_scheme_id bigint,
+    snapshot_max_age_hours integer NOT NULL,   -- the policy window §27.1 step 3 REFUSES on
+    approved_at NULL, approved_by NULL, supersedes_revision_id bigint NULL)
+   UNIQUE (company_id, tax_jurisdiction_id, revision_no)
+   EXCLUDE USING gist (company_id WITH =, tax_jurisdiction_id WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&) WHERE (state = 'approved')
+
+tax_area(id, tax_jurisdiction_id, area_code varchar(8), name text,
+    is_outside_jurisdiction bool NOT NULL DEFAULT false)                                -- [GLOBAL]
+   UNIQUE (tax_jurisdiction_id, area_code)
+   -- Indian states by GST state number; '96' becomes is_outside_jurisdiction, not a magic literal
+tax_area_postal_range(id, tax_area_id, range_start integer, range_end integer)         -- [GLOBAL]
+   CHECK (range_end >= range_start)
+   -- an unmapped area is a REFUSAL, never a silent pass (doc 45 §3.2)
+
+tax_registration(id, company_id, party_id NULL, owning_company_id NULL,
+    tax_jurisdiction_id, registration_no varchar(32),
+    registration_category registration_category_enum, tax_area_id,
+    secondary_id varchar(32) NULL,            -- PAN or equivalent
+    valid_from date, valid_to date NULL)
+   UNIQUE (company_id, tax_jurisdiction_id, registration_no)
+   CHECK (num_nonnulls(party_id, owning_company_id) = 1)
+   -- L2 trigger: registration_no matches the format for its category on the jurisdiction revision,
+   -- and its check digit validates; a transporter-style identifier is a separate typed row, not an
+   -- exemption inside this one (doc 45 §3.2)
+
+tax_registration_snapshot(id, company_id, source_doc_type text, source_doc_id bigint,
+    party_role party_role_enum /*supplier|customer|company|transporter*/,
+    registration_no varchar(32), registration_category registration_category_enum,
+    tax_area_id, status registration_status_enum, registered_on date NULL,
+    cancelled_on date NULL, source snapshot_source_enum /*api|manual|derived*/,
+    retrieved_at timestamptz NOT NULL,
+    statutory_submission_attempt_id bigint NULL)     -- the recorded fetch, when source = 'api'
+   UNIQUE (company_id, source_doc_type, source_doc_id, party_role)
+   CHECK ((source = 'api') = (statutory_submission_attempt_id IS NOT NULL))
+   -- IMMUTABLE. This is what makes doc 45 §3.3's async, log-only validation impossible: the write
+   -- blocks until a snapshot within the policy window exists, and a later portal refresh cannot
+   -- retroactively invalidate a posted document.
+
+classification_scheme(id, company_id, code, name, allowed_lengths integer[],
+    service_prefix varchar(4) NULL)
+   UNIQUE (company_id, code)          -- HSN lengths {4,6,8} and prefix '99' are DATA (doc 45 §6)
+classification_code_revision(id, company_id, classification_scheme_id, code varchar(16),
+    revision_no integer, description text, effective_from date, effective_to date NULL,
+    state revision_state_enum)
+   UNIQUE (company_id, classification_scheme_id, code, revision_no)
+   EXCLUDE USING gist (company_id WITH =, classification_scheme_id WITH =, code WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&) WHERE (state = 'approved')
+item_classification(id, company_id, item_id, classification_scheme_id bigint NOT NULL,
+    classification_code_revision_id, effective_from date, effective_to date NULL)
+   UNIQUE (company_id, item_id, classification_scheme_id, effective_from)
+   EXCLUDE USING gist (company_id WITH =, item_id WITH =, classification_scheme_id WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&)
+   -- the exclusion is what makes "resolve the classification for this line" single-valued; uniqueness on
+   -- effective_from alone permits two overlapping ranges
+   -- L2 trigger: classification_code_revision.classification_scheme_id equals this row's scheme
+   -- items REFERENCE a classification revision; rates are never bulk-pushed into item masters
+
+tax_component(id, company_id, tax_jurisdiction_id, component_code varchar(24),
+    component_role component_role_enum /*output|input|reverse_charge|refund*/,
+    sign_policy sign_policy_enum /*positive|negative*/, is_quantity_based bool)
+   UNIQUE (company_id, tax_jurisdiction_id, component_code, component_role)
+tax_component_account(id, company_id, tax_component_id, account_id)
+   UNIQUE (company_id, tax_component_id)
+   UNIQUE (company_id, account_id)     -- one account cannot serve two component roles (doc 45 §5)
+
+tax_treatment(id, company_id, tax_jurisdiction_id, code treatment_enum
+    /*taxable|zero_rated|nil_rated|exempted|non_gst*/, allows_nonzero_rate bool,
+    reporting_category text)
+   UNIQUE (company_id, tax_jurisdiction_id, code)
+tax_rate_revision(id, company_id, tax_jurisdiction_id,
+    classification_scheme_id bigint NOT NULL, classification_code varchar(16) NOT NULL,
+    supply_type supply_type_enum, component_role component_role_enum NOT NULL,
+    headline_rate numeric(9,6), tax_treatment_id,
+    revision_no integer, effective_from date, effective_to date NULL, state revision_state_enum)
+   UNIQUE (company_id, classification_scheme_id, classification_code, supply_type,
+           component_role, revision_no)
+   EXCLUDE USING gist (company_id WITH =, classification_scheme_id WITH =, classification_code WITH =,
+      supply_type WITH =, component_role WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&)
+      WHERE (state = 'approved')
+   CHECK (headline_rate >= 0)
+   -- the exclusion is keyed on the classification CODE, not a code revision: codes are themselves
+   -- versioned, so keying on the revision row would let two approved rate revisions for one HSN code be
+   -- effective simultaneously
+   -- deferred: headline_rate = 0 unless tax_treatment.allows_nonzero_rate  (doc 45 §8)
+tax_rate_component(id, company_id, tax_rate_revision_id, tax_component_id,
+    rate numeric(9,6) NOT NULL)
+   UNIQUE (company_id, tax_rate_revision_id, tax_component_id)
+   -- deferred: Σ rate = headline_rate EXACTLY, over components of the revision's OWN component_role.
+   -- This generalises the intra-state doubling relationship (doc 45 §5.1) — which upstream never actually
+   -- sums, checking each row independently against abs(tax_rate) — into a real constraint, and supports
+   -- three-way or quantity-based splits without new code.
+   -- L2 trigger: every tax_component here has component_role = tax_rate_revision.component_role
+```
+
+---
+
+## 25. Determination and blocked credit
+
+```sql
+tax_determination(id, company_id, source_doc_type text, source_doc_id bigint,
+    tax_jurisdiction_revision_id, engine_version varchar(64), determined_at timestamptz,
+    supply_type supply_type_enum,
+    liability_direction liability_direction_enum /*forward|reverse|refund|zero_rated*/,
+    place_of_supply_area_id bigint NOT NULL,
+    place_of_supply_basis pos_basis_enum /*party_registration|shipping_address|
+                                          company_registration|explicit_override|statutory_default*/,
+    source_area_id bigint NOT NULL, source_basis pos_basis_enum,
+    supplier_registration_snapshot_id, customer_registration_snapshot_id,
+    tax_registration_id bigint NOT NULL,        -- OUR registration; the return this document belongs to
+    money_precision smallint NOT NULL,
+    is_self_supply bool NOT NULL DEFAULT false,
+    command_receipt_id, reverses_determination_id bigint NULL)
+   UNIQUE (company_id, source_doc_type, source_doc_id) WHERE reverses_determination_id IS NULL
+   CHECK (money_precision BETWEEN 2 AND 4)     -- G12's exactness cannot be widened to 0 or 1
+   CHECK (NOT is_self_supply)                  -- a supply to oneself is REFUSED, not zero-taxed
+   -- tax_registration_id is resolved BEFORE the return_period guard in §27.1, which keys on it
+   -- place of supply is an AREA FK, never a "NN-State Name" label whose first two characters are
+   -- statutory (doc 46 §2.1). Absence of a place of supply is a refusal, not intra-state.
+
+tax_determination_line(id, company_id, tax_determination_id, source_line_id bigint,
+    classification_code_revision_id, tax_rate_revision_id, tax_treatment_id,
+    taxable_amount numeric(19,4), ordinal integer)
+   UNIQUE (company_id, tax_determination_id, source_line_id)
+   CHECK (taxable_amount >= 0)
+
+tax_determination_component(id, company_id, tax_determination_line_id, tax_component_id,
+    component_role component_role_enum, rate numeric(9,6), amount numeric(19,4),
+    account_id, is_residual bool NOT NULL DEFAULT false)
+   UNIQUE (company_id, tax_determination_line_id, tax_component_id, component_role)
+   -- deferred triggers, all scoped BY component_role because a role may carry a negative sign_policy:
+   --   the component is in the applicable set for (jurisdiction, supply_type, direction, role)
+   --   per line and per role: Σ amount = round(taxable_amount × Σ rate) with exactly ONE residual
+   --   per component and role: Σ amount across lines = doc_tax.amount for that account, EXACTLY
+   --   forward (role='output'/'input') and reverse (role='reverse_charge') amounts cancel EXACTLY at
+   --      determination.money_precision — never at a hard-coded 2 (doc 46 §4.1)
+   --   when any refund component is present: Σ ALL component amounts = 0 at money_precision
+   --      (doc 46 §4.3's refund net-zero rule, which upstream skips entirely on reverse-charge documents)
+   --   tax_determination_line.tax_treatment_id must equal its tax_rate_revision's tax_treatment_id
+
+tax_credit_block(id, company_id, tax_determination_line_id, tax_component_id,
+    reason_code credit_block_reason_enum /*place_of_supply|blocked_category|personal_use|
+                                          exempt_output|composition|statutory_list*/,
+    destination credit_destination_enum /*inventory_valuation|asset_cost|named_expense*/,
+    amount numeric(19,4),
+    stock_value_event_id NULL, asset_cost_event_id NULL, expense_account_id NULL,
+    voucher_id bigint REFERENCES voucher(id) DEFERRABLE INITIALLY DEFERRED)
+   UNIQUE (company_id, tax_determination_line_id, tax_component_id)
+   CHECK (num_nonnulls(stock_value_event_id, asset_cost_event_id, expense_account_id) = 1)
+   CHECK ((destination = 'inventory_valuation') = (stock_value_event_id IS NOT NULL))
+   CHECK ((destination = 'asset_cost')          = (asset_cost_event_id  IS NOT NULL))
+   CHECK ((destination = 'named_expense')       = (expense_account_id   IS NOT NULL))
+   -- blocked credit reaches inventory through `stock_value_event` (§4/§14), NOT `stock_move`: the value
+   -- event is the authoritative signed company-value fact, so a backdated replay appends an adjustment
+   -- instead of stranding the allocation. Asset cost uses `asset_cost_event` (§19.2). Never an in-place
+   -- valuation-rate edit (doc 46 §5).
+   -- voucher_id is DEFERRABLE because §27.1 inserts credit blocks in the same transaction as, but before,
+   -- the voucher.
+```
+
+**Which structure is authoritative.** `tax_determination_component` is the **producer**; `doc_tax` and
+`doc_tax_line_alloc` (§5) remain the document's tax presentation and are **derived** from it for jurisdictional
+documents. The tie is a constraint, not a convention:
+
+```sql
+doc_tax_line_alloc
+   ADD COLUMN tax_determination_component_id bigint NULL
+   -- deferred, per (document, tax account, line):
+   --   Σ doc_tax_line_alloc.amount = Σ tax_determination_component.amount   EXACTLY
+   -- and per component: Σ tax_determination_component.amount across lines = doc_tax.amount for that
+   --   account, EXACTLY  ← this is the referent of §25's third trigger
+```
+
+`gl_entry` already carries `asset_id`/`finance_book_id` (§3); determination adds no columns to it. Component
+amounts post through the existing `voucher`/`gl_entry` boundary with `source_line_type`/`source_line_id`
+pointing at `tax_determination_component`.
+
+---
+
+## 26. Statutory artefacts and external submission
+
+```sql
+statutory_artefact(id, company_id, artefact_type statutory_artefact_enum
+        /*e_invoice|e_waybill|e_invoice_cancellation|import_declaration|return_filing*/,
+    tax_jurisdiction_revision_id, tax_registration_id,
+    source_doc_type text, source_doc_id bigint, tax_determination_id bigint NULL,
+    generation_no integer NOT NULL DEFAULT 1, obligation_basis text NOT NULL,
+    authority_identifier varchar(128) NULL, issued_at timestamptz NULL,
+    valid_until timestamptz NULL,
+    evidence_class evidence_class_enum /*authority_confirmed|manually_asserted*/,
+    carries_signed_payload bool NOT NULL,    -- only the e-invoice endpoint returns a signed artefact
+    signed_payload text NULL, signature_verified bool NULL, signing_cert_id bigint NULL,
+    state artefact_state_enum /*required|pending|issued|cancelled|expired|not_applicable|failed*/,
+    command_receipt_id)
+   UNIQUE (company_id, artefact_type, authority_identifier)
+      WHERE authority_identifier IS NOT NULL
+   UNIQUE (company_id, artefact_type, source_doc_type, source_doc_id, generation_no)
+   UNIQUE (company_id, artefact_type, source_doc_type, source_doc_id)
+      WHERE state IN ('required','pending','issued')     -- at most ONE live generation per document
+   CHECK (state NOT IN ('issued','cancelled','expired') OR authority_identifier IS NOT NULL)
+   CHECK (state NOT IN ('required','pending','not_applicable') OR authority_identifier IS NULL)
+   CHECK (NOT carries_signed_payload OR evidence_class <> 'authority_confirmed'
+          OR signature_verified IS TRUE)
+   -- authority_identifier is NEVER blanked (doc 47 §4.2) and SURVIVES cancellation and expiry, which is
+   -- why the state/identifier coupling is two one-directional checks rather than a biconditional: a
+   -- biconditional would refuse every cancelled artefact and make G19 impossible.
+   -- The signature check is scoped to signed artefact types, so jwt.decode(..., verify_signature=False)
+   -- is structurally unavailable for e-invoices while unsigned e-way bill and return-filing responses
+   -- can still be authority_confirmed.
+   -- `failed` after the authority issued an identifier (the timeout_unknown → reconcile path) keeps it.
+
+statutory_artefact_event(id, company_id, statutory_artefact_id, event_no integer,
+    event_type artefact_event_enum /*requested|issued|vehicle_updated|transporter_updated|
+                                    validity_extended|cancelled|expired|rejected*/,
+    authority_timestamp timestamptz NULL, local_timestamp timestamptz NOT NULL,
+    timestamp_source timestamp_source_enum /*authority|local_fallback*/,
+    reason_code text NULL, payload jsonb, domain_event_id bigint NOT NULL)
+   UNIQUE (company_id, statutory_artefact_id, event_no)
+   CHECK ((timestamp_source = 'authority') = (authority_timestamp IS NOT NULL))
+
+statutory_submission_attempt(id, company_id, statutory_artefact_id, attempt_no integer,
+    endpoint text, request_hash char(64), request_payload jsonb,
+    response_code text NULL, response_payload jsonb NULL,
+    outcome attempt_outcome_enum /*issued|duplicate_reconciled|rejected|transport_error|
+                                  timeout_unknown|refused_locally*/,
+    started_at timestamptz, completed_at timestamptz NULL,
+    idempotency_key varchar(128) NOT NULL, command_receipt_id)
+   UNIQUE (company_id, statutory_artefact_id, attempt_no)
+   UNIQUE (company_id, idempotency_key)
+   -- inserted BEFORE the call. `timeout_unknown` is first-class: the next action is RECONCILE,
+   -- never blind resubmission.
+
+statutory_submission_work(id, company_id, statutory_artefact_id,
+    state work_state_enum /*queued|running|retryable|failed|completed|cancelled*/,
+    attempts integer NOT NULL DEFAULT 0, next_attempt_at timestamptz,
+    lease_owner text NULL, lease_until timestamptz NULL, terminal_reason text NULL)
+   UNIQUE (company_id, statutory_artefact_id) WHERE state IN ('queued','running','retryable')
+   -- replaces an `Auto-Retry` status string as the queue, and a Single flag cleared before the work
+
+statutory_cancellation_window(id, company_id, tax_jurisdiction_revision_id, artefact_type,
+    window_hours integer NOT NULL, basis window_basis_enum /*authority_issue_time|posting_date*/)
+   UNIQUE (company_id, tax_jurisdiction_revision_id, artefact_type)
+   -- the 24-hour IRN rule is a jurisdiction rule evaluated against the stored authority issued_at,
+   -- never a literal `days=1` read from an onload cache (doc 47 §4.1)
+```
+
+---
+
+## 27. Return periods, reconciliation and imports
+
+```sql
+return_period(id, company_id, tax_registration_id, return_type text,
+    period_start date, period_end date, frequency return_frequency_enum, due_on date,
+    state return_period_state_enum /*open|working|ready|filed|revised*/)
+   UNIQUE (company_id, tax_registration_id, return_type, period_start)
+   EXCLUDE USING gist (company_id WITH =, tax_registration_id WITH =, return_type WITH =,
+      daterange(period_start, period_end, '[]') WITH &&)
+   -- posting, amending or reversing inside a `filed` period is refused by the SAME period-control
+   -- trigger family as accounting periods (§2), evaluated per posting date and registration
+
+return_format_revision(id, company_id, return_type, revision_no integer,
+    schema_definition jsonb NOT NULL, output_precision smallint NOT NULL,
+    effective_from date, effective_to date NULL, state revision_state_enum)
+   UNIQUE (company_id, return_type, revision_no)
+   EXCLUDE USING gist (company_id WITH =, return_type WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&) WHERE (state = 'approved')
+   CHECK (output_precision BETWEEN 0 AND 4)
+   -- the statutory shape is a versioned row, not a JSON file on disk (doc 48 §2)
+
+return_working_set(id, company_id, return_period_id, version integer,
+    source_watermark bigint NOT NULL, content_hash char(64) NOT NULL,
+    return_format_revision_id bigint NOT NULL, built_at timestamptz,
+    generator_version varchar(64), command_receipt_id)
+   UNIQUE (company_id, return_period_id, version)
+   -- immutable; rebuilding appends a version. Staleness is detected by comparing the watermark,
+   -- never asserted by an `is_latest_data` boolean (doc 48 §1.2)
+return_working_set_line(id, company_id, return_working_set_id,
+    statutory_category text, statutory_subcategory text, natural_key text,
+    source_doc_type text, source_doc_id bigint, tax_determination_id bigint,
+    taxable_value numeric(19,4), component_amounts jsonb)
+   UNIQUE (company_id, return_working_set_id, statutory_subcategory, natural_key)
+
+authority_dataset(id, company_id, tax_registration_id, dataset_type text,
+    period_start date, period_end date, retrieved_at timestamptz,
+    payload_hash char(64), source authority_source_enum /*api|upload*/,
+    statutory_submission_attempt_id bigint NULL, uploaded_by bigint NULL)
+   UNIQUE (company_id, tax_registration_id, dataset_type, period_start, payload_hash)
+   CHECK ((source = 'api') = (statutory_submission_attempt_id IS NOT NULL))
+   CHECK ((source = 'upload') = (uploaded_by IS NOT NULL))
+
+match_policy_revision(id, company_id, tax_jurisdiction_revision_id, dataset_type text,
+    revision_no integer, effective_from date, effective_to date NULL, state revision_state_enum)
+   UNIQUE (company_id, tax_jurisdiction_revision_id, dataset_type, revision_no)
+   EXCLUDE USING gist (company_id WITH =, tax_jurisdiction_revision_id WITH =, dataset_type WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&) WHERE (state = 'approved')
+match_policy_tier(id, company_id, match_policy_revision_id, tier_no integer,
+    resulting_finding finding_enum)
+   UNIQUE (company_id, match_policy_revision_id, tier_no)
+match_policy_field(id, company_id, match_policy_tier_id, field_code text,
+    comparison comparison_mode_enum /*exact|fuzzy|rounding|ignored*/,
+    tolerance numeric(19,4) NULL, fuzzy_threshold numeric(9,6) NULL)
+   UNIQUE (company_id, match_policy_tier_id, field_code)
+   -- promotes doc 48 §3's declarative rule ladder from a Python tuple to versioned data, so a filed
+   -- reconciliation can name the policy that produced it and tolerance changes need no deploy
+
+reconciliation_run(id, company_id, return_period_id, return_working_set_id,
+    authority_dataset_id, match_policy_revision_id, comparison_precision smallint NOT NULL,
+    run_at timestamptz, command_receipt_id)
+   UNIQUE (company_id, command_receipt_id)
+reconciliation_finding(id, company_id, reconciliation_run_id,
+    statutory_subcategory text, natural_key text,
+    finding finding_enum /*matched|mismatch|missing_in_books|missing_at_authority|
+                          suggested|residual|manual*/,
+    match_tier integer NULL, differing_fields text[] NULL,
+    books_payload jsonb, authority_payload jsonb, signed_difference jsonb,
+    books_source_doc_type text NULL, books_source_doc_id bigint NULL,
+    authority_row_id bigint NULL)
+   UNIQUE (company_id, reconciliation_run_id, statutory_subcategory, natural_key)
+   -- keeps upstream's best idea (the difference IS the payload, both sides retained) while never
+   -- writing back into the working set it compares (doc 48 §1.3)
+reconciliation_decision(id, company_id, reconciliation_finding_id,
+    decision decision_enum /*accept_match|reject_match|link|unlink|defer|write_off|dispute*/,
+    actor_id, decided_at timestamptz, reason_code text, reason text,
+    match_policy_revision_id bigint NOT NULL, reverses_decision_id bigint NULL,
+    command_receipt_id)
+   UNIQUE (company_id, command_receipt_id)
+   -- append-only; current linkage is a projection over unreversed decisions
+
+return_filing(id, company_id, return_period_id, return_working_set_id,
+    payload jsonb NOT NULL, payload_hash char(64) NOT NULL,
+    acknowledgement_no text, filed_at timestamptz, authority_timestamp timestamptz,
+    evidence_class evidence_class_enum, statutory_artefact_id bigint NULL,
+    supersedes_filing_id bigint NULL, command_receipt_id)
+   UNIQUE (company_id, return_period_id, payload_hash)
+   -- one unreversed current filing per period by deferred trigger under the period lock
+
+customs_assessment(id, company_id, doc_no, import_declaration_no text, assessed_on date,
+    supplier_id, currency_id, exchange_rate numeric(21,9),
+    assessable_value numeric(19,4), voucher_id bigint NOT NULL REFERENCES voucher(id),
+    state posting_state_enum, command_receipt_id, reverses_assessment_id bigint NULL)
+   UNIQUE (company_id, doc_no)
+   UNIQUE (company_id, import_declaration_no)
+customs_assessment_allocation(id, company_id, customs_assessment_id,
+    source_line_type text, source_line_id bigint, tax_component_id NULL, duty_code text NULL,
+    amount numeric(19,4), destination credit_destination_enum,
+    stock_value_event_id NULL, asset_cost_event_id NULL, expense_account_id NULL, ordinal integer)
+   UNIQUE (company_id, customs_assessment_id, source_line_id, tax_component_id, duty_code, ordinal)
+      NULLS NOT DISTINCT
+   CHECK (num_nonnulls(stock_value_event_id, asset_cost_event_id, expense_account_id) = 1)
+   CHECK ((destination = 'inventory_valuation') = (stock_value_event_id IS NOT NULL))
+   CHECK ((destination = 'asset_cost')          = (asset_cost_event_id  IS NOT NULL))
+   CHECK ((destination = 'named_expense')       = (expense_account_id   IS NOT NULL))
+   CHECK (destination <> 'creditable' OR tax_component_id IS NOT NULL)
+   -- deferred: Σ allocation per source line ≤ that line's assessed residual, under a source-line lock.
+   -- Coverage between the commercial invoice and the assessment is a doc_link graph with a derived
+   -- residual — never a `pending_boe_qty` counter (doc 48 §4).
+```
+
+### 27.1 Localisation write ordering
+
+```text
+determination (inside the §8 posting funnel)
+1  claim idempotency
+2  resolve OUR tax_registration_id for the company and jurisdiction  ← the return_period guard keys on it
+3  guard accounting period AND return_period state for that registration
+4  capture tax_registration_snapshot for both parties — BLOCKING; refuse when
+   now - retrieved_at > tax_jurisdiction_revision.snapshot_max_age_hours
+5  resolve jurisdiction revision, place of supply + basis, source area + basis, supply type
+6  resolve classification and rate revisions per line (by scheme + code, effective on the posting date)
+7  compute components purely, per component_role; assign the residual deterministically
+8  insert determination + lines + components
+9  insert voucher + gl_entry, then tax_credit_block rows referencing it, with their
+   stock_value_event / asset_cost_event rows  (voucher_id is DEFERRABLE, so these may interleave)
+10 derive doc_tax / doc_tax_line_alloc from the components
+11 run deferred checks: applicability, per-line and per-role sums, per-component total against doc_tax,
+   forward/reverse cancellation, refund net-zero, treatment/rate agreement
+12 lock the domain_aggregate_owner for aggregate_type='tax_determination'; take next_event_position;
+   insert one domain_event and exactly one transactional_outbox row referencing it
+13 commit ; projectors advance projection_checkpoint and rebuild registers
+
+external artefact
+1 obligation from the dated jurisdiction rule → statutory_artefact(state=required), with
+  carries_signed_payload set from that artefact type's wire format
+2 claim statutory_submission_work FOR UPDATE SKIP LOCKED ; set lease
+3 insert statutory_submission_attempt BEFORE the call
+4 call ; then: issued → statutory_artefact_event with the authority timestamp, set authority_identifier
+  and (for signed types) signature_verified ; duplicate → fetch, VERIFY signature, compare full
+  identifying content, attach only on exact match ; rejected → terminal ;
+  transport/timeout → outcome='timeout_unknown', retryable with backoff, never blind resubmit
+5 release the lease
+6 lock the domain_aggregate_owner for aggregate_type='statutory_artefact'; insert domain_event + outbox
+7 commit
+
+return period
+1 build return_working_set version N from determination facts up to a watermark
+2 fetch authority_dataset via a submission attempt
+3 reconciliation_run pins working set, dataset, match policy and comparison precision
+4 insert reconciliation_finding rows — pure, no writes to either input
+5 append reconciliation_decision rows ; linkage is projected
+6 insert return_filing ; record the acknowledgement and authority timestamp
+7 lock the domain_aggregate_owner for aggregate_type='return_period'; insert domain_event + outbox
+8 return_period.state = filed → the posting guard now refuses that period for that registration
+```
+
+---
+
+## 28. Localisation invariant register
+
+The exact **G1–G29** names and their primary enforcement layers are consolidated in
+[`docs/logic/49`](../logic/49-tranche-f-closure-and-our-localisation-spec.md#3-g1g29-exact-register-and-enforcement-owner).
+They extend the registers in §9, §18 and §23. Structurally:
+
+- **G1/G2** — jurisdiction, rates, formats and match policies are approved revisions; statutory columns live
+  in versioned schema and never appear or disappear with a settings checkbox;
+- **G3** — `tax_registration_snapshot` is immutable and captured synchronously, so registration validation
+  cannot arrive after the write;
+- **G4/G5** — `tax_rate_component`'s exact-sum trigger generalises the intra-state doubling rule, and
+  classification and rates are effective-dated revisions items merely reference;
+- **G10/G11** — place of supply is an area FK with a recorded basis, and an unmapped component account is a
+  refusal;
+- **G12** — forward and reverse amounts cancel exactly at the document's declared precision;
+- **G13** — blocked credit is a typed allocation into `stock_move` value components and `asset_cost_event`
+  rows, never an in-place valuation edit;
+- **G14/G24/G25** — `return_period` and `return_filing` are the statutory period-control and filing facts;
+  working sets are versioned and hashed;
+- **G18/G19** — every submission is an attempt record committed before the call, and an authority identifier
+  is append-only with `signature_verified` gating `authority_confirmed`;
+- **G26** — match tiers are versioned data and every match decision is an append-only fact; and
+- **G27** — customs assessment is a posting document with typed allocations and a link-graph residual.
+
+Every G invariant requires a schema refusal test; submission, reconciliation and filing invariants
+additionally require concurrency, retry and duplicate-response tests. **S12** is the end-to-end acceptance
+fixture.
+
+---
+
+## 29. Identity, credentials and the authenticated session
+
+Tranche G ([docs 50–57](../logic/50-authentication-session-and-tenant-context.md)) specifies the foundation
+every section above assumed. Twenty-three sections asserted `company_id`, `ENABLE ROW LEVEL SECURITY`,
+`FORCE ROW LEVEL SECURITY` and a policy bound to authenticated tenant context. This section onward is where
+those four things actually come from, and §31 is where the assertion becomes a build gate.
+
+The driving constraint: **there is no tenant isolation mechanism in the pinned tree.** No RLS, no tenant
+context, no scope on the session record — every use of Postgres's `current_setting()` in either repository is
+in one query-builder test (`frappe/tests/test_query_builder.py:368` and five siblings) — and `892` call sites
+switch the application-level check off
+(`ignore_permissions=True`). Worse than absent, the mechanism that exists **fails open**: an empty result from
+the scoping lookup means *unrestricted* (`frappe/permissions.py:351-380`).
+
+**Naming.** The conventions header at the top of this file is canonical. Docs 50–57 and S13 use shorthand:
+`auth_session` is `principal_auth_session` here, `auth.current_company()` is `authenticated_company_id()`,
+`auth_event` is `principal_auth_event`, `auth_throttle` is `principal_auth_throttle`. The behaviour is
+identical; only the identifiers differ.
+
+**One refinement, not a contradiction.** [Doc 50 §6.1](../logic/50-authentication-session-and-tenant-context.md)
+states the context function as a lookup against the session table on every call. §29.1 below resolves the
+session **once per transaction** into a protected context row and reads that instead. Both are non-forgeable
+and both return `NULL` — hence deny — when anything is wrong; the §29.1 form is canonical because it verifies
+membership once under `FOR SHARE` rather than per statement, and because it gives the boundary a single
+protected write point to revoke privileges on. What is **rejected in both** is the obvious third option, a
+custom GUC read with `current_setting('…', true)`: it is correct-looking and forgeable, because `SET LOCAL` is
+a statement the application role may execute. [Doc 57 §5](../logic/57-tranche-g-closure-and-our-security-spec.md#5-the-signature-finding)
+works through why.
+
+**Deliberate exceptions to the company-scoping convention.** `principal`, `principal_credential`,
+`principal_auth_session`, `principal_company_membership`, `principal_auth_throttle` and
+`authenticated_tenant_context` are **not** company-scoped, because they are what *establishes* company scope
+and a policy keyed on `authenticated_company_id()` could not be evaluated before they are read. They are
+protected instead: `REVOKE ALL … FROM app_role`, written only by the authentication-gateway role, and reachable
+from the application only through `begin_tenant_transaction`. They are one of three exemption classes; the
+complete, normative register — global reference data, protected identity/infrastructure, and the group-level
+tables that name two or more companies — is **§31.1**, and it is the only list §31's conformance gate accepts.
+
+```sql
+principal(id, kind principal_kind_enum /*human|service|integration|anonymous*/,
+    display_name text, external_ref text NULL,
+    state principal_state_enum /*active|suspended|retired*/ NOT NULL,
+    retired_at timestamptz NULL)
+   UNIQUE (kind, external_ref) WHERE external_ref IS NOT NULL
+   CHECK ((state = 'retired') = (retired_at IS NOT NULL))
+   -- No 'Administrator'. There is no value of `kind` that skips a check, and no row that is exempt
+   -- from `state`. Upstream: Administrator bypasses authorisation first and unconditionally
+   -- (`frappe/permissions.py:80-226`), bypasses the `enabled` check (`frappe/auth.py:265-300`) and is
+   -- exempt from forced session clearing (`frappe/auth.py:249-264`).  [NOT COMPANY-SCOPED]
+
+principal_company_membership(id, principal_id, company_id,
+    granted_at timestamptz NOT NULL, granted_by bigint NOT NULL, reason text NULL,
+    expires_at timestamptz NULL, revoked_at timestamptz NULL, revoked_by bigint NULL,
+    revoked_reason text NULL)
+   UNIQUE (principal_id, company_id)          -- TOTAL, deliberately: see the note below
+   CHECK (expires_at IS NULL OR expires_at > granted_at)
+   CHECK ((revoked_at IS NULL) = (revoked_by IS NULL))
+   -- The outer bound on every session's scope, enforced at TWO layers with different jobs:
+   --   L1  the FK from principal_auth_session proves the pair was EVER granted;
+   --   L2  begin_tenant_transaction (§29.1) proves the grant is LIVE right now.
+   -- The unique constraint is total rather than `WHERE revoked_at IS NULL`, because PostgreSQL cannot
+   -- use a PARTIAL unique index as a foreign-key target — a partial index would make the FK below
+   -- undeclarable, and dropping the FK would put the whole bound in application-reachable code. So
+   -- there is exactly ONE row per (principal, company) for all time: revocation sets `revoked_at`,
+   -- and a re-grant clears it and writes a fresh `granted_at`/`granted_by`. The audit history of
+   -- grant/revoke/re-grant is `principal_auth_event` (`membership_granted` / `membership_revoked`),
+   -- not this row, which is current state.
+   -- Revoking membership invalidates outstanding sessions immediately, because §29.1 re-checks
+   -- liveness on every transaction rather than trusting the session row.
+   -- Administered outside the application role.  [NOT COMPANY-SCOPED]
+
+principal_credential(id, principal_id,
+    credential_kind credential_kind_enum /*password|api_key|totp|webauthn|oidc_subject|sms|email_otp*/,
+    assurance_level smallint NOT NULL,        -- what a session authenticated by it may claim (§29.1)
+    secret_ref text NULL,                     -- a REFERENCE into the secret store; never the secret
+    subject_ref text NULL,                    -- for federated kinds
+    issued_at timestamptz NOT NULL, expires_at timestamptz NULL,
+    rotated_from_credential_id bigint NULL,   -- the rotation chain
+    revoked_at timestamptz NULL, revoked_by bigint NULL, revoked_reason text NULL,
+    last_used_at timestamptz NULL)
+   UNIQUE (principal_id, credential_kind, subject_ref) NULLS NOT DISTINCT
+      WHERE revoked_at IS NULL
+   CHECK (num_nonnulls(secret_ref, subject_ref) = 1)
+   -- NULLS NOT DISTINCT matters here and is not boilerplate: `subject_ref` is NULL for every
+   -- secret-backed kind, and under default NULL-distinct semantics a principal could hold any number
+   -- of unrevoked passwords simultaneously — each invisible to the others. With it, one live
+   -- credential per kind, which is what "rotation chain" presupposes.
+   CHECK (expires_at IS NULL OR expires_at > issued_at)
+   CHECK (rotated_from_credential_id <> id)
+   CHECK (assurance_level BETWEEN 1 AND 3)
+   -- Every credential is a managed object with an issue instant, an expiry, a rotation chain and a
+   -- revocation record. Upstream, API keys are permanent fields on `User` with neither
+   -- (`frappe/auth.py:735-763`).  [NOT COMPANY-SCOPED]
+   -- L2 trigger: at most one unrevoked successor per credential, so the rotation chain is linear.
+
+principal_auth_session(id uuid PRIMARY KEY,          -- opaque token identity, not a sequence
+    principal_id, company_id NOT NULL,               -- THE SCOPE. Fixed at issue.
+    authenticated_by_credential_id, assurance_level smallint NOT NULL,
+    issued_at timestamptz NOT NULL,
+    absolute_expiry_at timestamptz NOT NULL,         -- bound 1: never extended
+    idle_expiry_at timestamptz NOT NULL,             -- bound 2: slides, capped by bound 1
+    bound_address inet NOT NULL, bound_agent_hash bytea NOT NULL,
+    csrf_token_hash bytea NOT NULL,
+    revoked_at timestamptz NULL, revoked_by bigint NULL, revoked_reason text NULL)
+   CHECK (absolute_expiry_at > issued_at)
+   CHECK (idle_expiry_at <= absolute_expiry_at)
+   CHECK (assurance_level BETWEEN 1 AND 3)
+   FOREIGN KEY (principal_id, company_id)
+      REFERENCES principal_company_membership (principal_id, company_id)
+   -- The FK is the point: a session cannot exist for a company the principal is not a member of, so
+   -- scope cannot be widened by writing a session row. Upstream the session record carries NO company
+   -- at all (`frappe/sessions.py:256-310`), which is why there is nothing for a policy to bind to.
+   -- Adopted from upstream: two independent bounds (`frappe/sessions.py:371-395`), address binding on
+   -- both login and resume, and a per-session CSRF token.
+   -- REJECTED: cache-first expiry evaluated by two mechanisms (`frappe/sessions.py:371-395`,
+   -- `frappe/sessions.py:396-420`). There is one rule, in one place, over this row; any cache is a
+   -- strict subset and revocation is immediate in both.  [NOT COMPANY-SCOPED]
+
+principal_auth_event(id, occurred_at timestamptz NOT NULL,
+    principal_id bigint NULL,                 -- NULL only when the principal could not be resolved
+    attempted_identifier text NULL,           -- what was presented, when resolution failed
+    company_id bigint NULL,                   -- the company at stake, where one was named
+    session_id uuid NULL, credential_id bigint NULL,
+    event_kind auth_event_kind_enum
+      /*authenticated|denied_credential|denied_disabled|denied_expired|denied_scope|
+        denied_membership|locked_out|session_issued|session_revoked|session_expired|
+        credential_issued|credential_rotated|credential_revoked|
+        membership_granted|membership_revoked|
+        delegation_granted|delegation_used|delegation_revoked|authenticator_error*/,
+    mechanism credential_kind_enum NULL,
+    source_address inet NULL, agent_hash bytea NULL,
+    delegation_grant_id bigint NULL, detail jsonb NOT NULL DEFAULT '{}')
+   -- APPEND-ONLY: REVOKE UPDATE, DELETE FROM app_role.
+   -- `authenticator_error` exists as its own kind because upstream cannot distinguish an internal
+   -- error from a non-match: the authenticators swallow exceptions (`frappe/auth.py:660-708`,
+   -- `frappe/auth.py:709-734`). Here an error denies AND is recorded as an error.
+   -- Isolation claims are proved by reconciling these rows against attempted access, which is what
+   -- makes doc 52 §7's matrix checkable.  [NOT COMPANY-SCOPED]
+
+principal_auth_throttle(id, subject_kind throttle_subject_enum /*address|principal|identifier*/,
+    subject_key text NOT NULL, window_started_at timestamptz NOT NULL,
+    failure_count integer NOT NULL, locked_until timestamptz NULL)
+   UNIQUE (subject_kind, subject_key, window_started_at)
+   CHECK (failure_count >= 0)
+   -- Two-axis lockout adopted wholesale from `frappe/auth.py:249-264` — address AND account — plus a
+   -- third axis for the presented identifier, so enumeration of non-existent principals is also
+   -- throttled. The uniform failure message is adopted with it.  [NOT COMPANY-SCOPED]
+
+delegation_grant(id, from_principal_id, to_principal_id, company_id NOT NULL,
+    grant_kind delegation_kind_enum /*impersonation|elevation|group_read|break_glass*/,
+    company_group_id bigint NULL,             -- required for group_read (§35), else NULL
+    object_class text NULL, object_id bigint NULL,     -- object-scoped delegation (doc 51 §5)
+    operations operation_enum[] NOT NULL,
+    reason text NOT NULL,                     -- NOT NULL: there is no unreasoned elevation
+    granted_at timestamptz NOT NULL, granted_by bigint NOT NULL,
+    expires_at timestamptz NOT NULL,          -- NOT NULL: every grant is time-boxed
+    revoked_at timestamptz NULL, revoked_by bigint NULL, revoked_reason text NULL,
+    used_count integer NOT NULL DEFAULT 0, last_used_at timestamptz NULL)
+   CHECK (expires_at > granted_at)
+   CHECK (from_principal_id <> to_principal_id)
+   CHECK (array_length(operations, 1) >= 1)
+   CHECK ((grant_kind = 'group_read') = (company_group_id IS NOT NULL))
+   CHECK ((object_id IS NULL) OR (object_class IS NOT NULL))
+   -- This is the ONLY elevated path in the design. It replaces: `ignore_permissions=True` (892 sites),
+   -- `frappe.set_user` (34 sites in ERPNext), sharing that grants what roles denied, and impersonation
+   -- by session swap. Both the grant and each use produce a `principal_auth_event`.
+   -- `group_read` is what a `consolidation_run` (§35) executes under: the most privileged read in the
+   -- system is the most explicitly authorised one.
+```
+
+### 29.1 The context function, and what makes it non-forgeable
+
+The conventions header defines the shape; this is what the six protected tables above are for.
+
+```sql
+-- The protected context table. Named in the conventions header; defined here.
+-- `app_role` holds NO privileges on it: it cannot INSERT (so it cannot forge a context), cannot
+-- SELECT (so it reads scope only through the STABLE function below), and cannot DELETE.
+authenticated_tenant_context(
+    backend_pid   integer     NOT NULL,
+    txid          bigint      NOT NULL,
+    principal_id  bigint      NOT NULL,
+    company_id    bigint      NOT NULL,
+    established_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+    PRIMARY KEY (backend_pid, txid))
+   -- The PK is what makes "raises on ambiguity" true rather than aspirational: a second
+   -- begin_tenant_transaction in the same transaction cannot insert a conflicting row, so a
+   -- connection cannot acquire two scopes and let the reader pick. Re-calling with the SAME
+   -- (principal, company) is idempotent; re-calling with a different company raises.
+   -- Rows are transaction-scoped: an ON COMMIT/ON ROLLBACK cleanup plus a pid-and-txid predicate in
+   -- the reader mean a pooled connection reused by the next request starts with no tenant, which is
+   -- one of the required application-role tests in the conventions header.  [NOT COMPANY-SCOPED]
+
+-- Written only by the authentication gateway role, after credential verification.
+-- The application role never sees a session token's plaintext beyond the request that presented it.
+
+CREATE FUNCTION begin_tenant_transaction(p_token uuid, p_company_id bigint)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public AS $$
+DECLARE v_principal bigint; v_company bigint;
+BEGIN
+  SELECT s.principal_id, s.company_id INTO v_principal, v_company
+    FROM principal_auth_session s
+    JOIN principal p ON p.id = s.principal_id
+    JOIN principal_company_membership m
+      ON m.principal_id = s.principal_id AND m.company_id = s.company_id
+   WHERE s.id = p_token
+     AND s.revoked_at IS NULL
+     AND s.absolute_expiry_at > now() AND s.idle_expiry_at > now()   -- ONE expiry rule, here
+     AND p.state = 'active'                                          -- no principal is exempt
+     AND m.revoked_at IS NULL
+     AND (m.expires_at IS NULL OR m.expires_at > now())
+     AND s.company_id = p_company_id                                 -- scope is not selectable per call
+   FOR SHARE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'tenant context unresolved';   -- a DENIAL, never a downgrade
+  END IF;
+  INSERT INTO authenticated_tenant_context (backend_pid, txid, principal_id, company_id)
+  VALUES (pg_backend_pid(), txid_current(), v_principal, v_company)
+  ON CONFLICT (backend_pid, txid) DO NOTHING;         -- idempotent for the same scope
+  IF NOT EXISTS (SELECT 1 FROM authenticated_tenant_context
+                  WHERE backend_pid = pg_backend_pid() AND txid = txid_current()
+                    AND principal_id = v_principal AND company_id = v_company) THEN
+    RAISE EXCEPTION 'tenant context already established for a different scope';
+  END IF;
+END $$;
+
+CREATE FUNCTION authenticated_company_id() RETURNS bigint
+LANGUAGE sql STABLE AS $$
+  SELECT company_id FROM authenticated_tenant_context
+   WHERE backend_pid = pg_backend_pid() AND txid = txid_current()
+$$;   -- returns NULL when absent, and NULL denies every policy row; the PK makes it single-valued
+
+CREATE FUNCTION authenticated_principal_id() RETURNS bigint
+LANGUAGE sql STABLE AS $$
+  SELECT principal_id FROM authenticated_tenant_context
+   WHERE backend_pid = pg_backend_pid() AND txid = txid_current()
+$$;   -- the sibling §30's row predicates and §31.1's group policy read
+```
+
+Four properties, each the negation of a specific upstream defect:
+
+| Property | Upstream defect it negates |
+|---|---|
+| Context is derived from a durable row, not a GUC the caller can set | company is a document field the application filters on, or does not |
+| Absence yields `NULL`, and `company_id = NULL` is unknown, so every policy denies | resumption failure downgrades to `Guest` (`frappe/sessions.py:346-360`); a missing `Authorization` header proceeds (`frappe/auth.py:642-658`) |
+| The mechanism is fixed by server configuration, and the function takes a token, not a mechanism name | the authenticating DocType is chosen by a caller-supplied `Frappe-Authorization-Source` header (`frappe/auth.py:709-734`) |
+| Exactly one context per transaction; `FOR SHARE` blocks concurrent revocation | a supplied API key is ignored when a session exists, rather than reconciled (`frappe/auth.py:735-763`) |
+
+**Authentication ordering** (L4, doc 50 §6.2), and every step denies rather than falling through:
+
+1. Resolve the mechanism from **server configuration** for this route class. One mechanism. No header input.
+2. Check `principal_auth_throttle` on all three axes. A lockout is a denial before any secret is compared.
+3. Resolve the principal. Failure → `denied_credential` with a uniform message.
+4. Verify the credential in constant time; reject if `expires_at <= now()` or `revoked_at IS NOT NULL`.
+5. Check `principal.state = 'active'`. No principal is exempt.
+6. Check live `principal_company_membership` for the requested company.
+7. Apply the session policy for `principal.kind` (concurrency bound, assurance requirement).
+8. Insert `principal_auth_session`; record `session_issued`.
+9. Every subsequent request: `begin_tenant_transaction(token, company)` first, then business code.
+
+Any exception in steps 1–8 is a denial recorded as `authenticator_error`. There is no `auth_hooks` equivalent:
+no application code runs inside authentication (`frappe/auth.py:764-768` is rejected).
+
+---
+
+## 30. Authorisation, delegation and access decisions
+
+RLS (§29.1) answers *which rows*. This section answers *which operations on which object classes*. **Both must
+say yes, and both start at deny.** The upstream polarity is the opposite: absence of a rule is a grant
+(`frappe/permissions.py:351-380`), an empty allowed-list skips the check
+(`frappe/permissions.py:351-412`), an empty link value evades scope unless a setting is on
+(`frappe/permissions.py:413-476`), and that setting is off by default and switched off again for local
+documents (`frappe/permissions.py:351-395`).
+
+```sql
+permission_role(id, company_id, code varchar(64), name text,
+    is_assignable_by_role_id bigint NULL,     -- who may grant this role; NULL = platform-administered
+    state role_state_enum /*active|closed*/ NOT NULL)
+   UNIQUE (company_id, code)
+   -- Role → object class → operation, adopted from upstream's matrix, which is the right vocabulary.
+
+permission_grant(id, company_id, permission_role_id, object_class text NOT NULL,
+    operation operation_enum
+      /*read|select|create|update|submit|cancel|amend|delete|print|export|report|import|share*/,
+    field_scope text[] NULL,                  -- NULL = all fields; replaces `permlevel`
+    row_predicate_id bigint NULL,             -- additional narrowing (below)
+    capability_flags text[] NOT NULL DEFAULT '{}')
+   UNIQUE (company_id, permission_role_id, object_class, operation)
+   -- AFFIRMATIVE ROWS ONLY. The absence of a row is a denial; there is no deny-row and no ordering
+   -- question, which is what makes the evaluation total and explainable.
+   -- `select` is a DISTINCT operation from `read`: upstream silently aliases them
+   -- (`frappe/permissions.py:80-226`), so an interface that only needs to offer a picker receives
+   -- full read.
+   -- `submit`, `import` and `export` are separate operations, adopting upstream's recognition that
+   -- these are distinct capabilities.
+
+permission_row_predicate(id, company_id, code varchar(64),
+    basis predicate_basis_enum /*owner|assigned|dimension|delegated|expression*/,
+    dimension_id bigint NULL, expression text NULL,
+    is_monotone bool NOT NULL DEFAULT true)
+   UNIQUE (company_id, code)
+   CHECK (is_monotone)                        -- a predicate may only SUBTRACT
+   CHECK ((basis = 'dimension') = (dimension_id IS NOT NULL))
+   CHECK ((basis = 'expression') = (expression IS NOT NULL))
+   -- `basis = 'owner'` is upstream's `if_owner`, adopted as a QUERY CONSTRAINT rather than a
+   -- post-filter — which is how upstream already does it (`frappe/model/db_query.py:1659-1678`) and
+   -- the one thing its query layer gets right.
+   -- The CHECK is not decorative: it is the schema statement of T8. A predicate that could grant
+   -- would make the layer non-monotone and the composition in §30.1 unsound.
+
+permission_assignment(id, company_id, principal_id, permission_role_id,
+    granted_at timestamptz NOT NULL, granted_by bigint NOT NULL, reason text NULL,
+    expires_at timestamptz NULL,
+    revoked_at timestamptz NULL, revoked_by bigint NULL, revoked_reason text NULL)
+   UNIQUE (company_id, principal_id, permission_role_id) WHERE revoked_at IS NULL
+   CHECK (expires_at IS NULL OR expires_at > granted_at)
+   -- APPEND-ONLY revocation: a grant is never deleted, so "who could do what at instant X" is a
+   -- projection over these rows. Upstream role assignments have no expiry and no history at all.
+
+permission_delegation(id, company_id, from_principal_id, to_principal_id,
+    object_class text NOT NULL, object_id bigint NOT NULL,     -- PER OBJECT, always
+    operations operation_enum[] NOT NULL,
+    granted_at timestamptz NOT NULL, expires_at timestamptz NOT NULL,
+    revoked_at timestamptz NULL, revoked_by bigint NULL)
+   CHECK (expires_at > granted_at)
+   CHECK (array_length(operations, 1) >= 1)
+   CHECK (from_principal_id <> to_principal_id)
+   -- Replaces `DocShare`. Three changes: it is per OBJECT (upstream, one shared document confers
+   -- doctype-level access — `frappe/permissions.py:80-226`), it EXPIRES, and it is bounded by the
+   -- grantor's own live grants at evaluation time (L2 trigger), so sharing cannot manufacture
+   -- authority the grantor does not hold. Upstream's bounding of share rights by type is adopted as
+   -- `operations[]`; a per-company policy may disable delegation entirely.
+
+access_decision(id, company_id, decided_at timestamptz NOT NULL,
+    principal_id, session_id uuid NULL, object_class text NOT NULL, object_id bigint NULL,
+    operation operation_enum NOT NULL,
+    outcome decision_outcome_enum /*allow|deny*/ NOT NULL,
+    deciding_layer decision_layer_enum /*membership|grant|predicate|delegation|extension|rls*/,
+    permission_grant_id bigint NULL, permission_row_predicate_id bigint NULL,
+    permission_delegation_id bigint NULL, delegation_grant_id bigint NULL,
+    reason_code text NOT NULL, trace jsonb NOT NULL,
+    retention_class retention_class_enum /*denial|sampled_allow*/ NOT NULL)
+   -- APPEND-ONLY. Every DENIAL is stored; allows are sampled by policy (`retention_class`), because
+   -- these are the highest-volume tables in the design (§38).
+   -- Upstream builds exactly this trace — correctly — and then throws it away, because it exists to
+   -- populate a message (`frappe/permissions.py:43-79`, `frappe/permissions.py:798-805`). Keeping it
+   -- is what turns an access review from an interview into a query.
+```
+
+### 30.1 How the layers compose, and in what order
+
+Five layers. Each may only **narrow**. The composition is sound precisely because
+`permission_row_predicate.is_monotone` is a `CHECK`, not a convention.
+
+| # | Layer | Enforced at | May grant? |
+|---|---|---|---|
+| 1 | `principal_company_membership` → session scope | L1 FK + L2 `begin_tenant_transaction` | no — it bounds |
+| 2 | Company RLS policy on the row | **L2, unbypassable** | no |
+| 3 | `permission_grant` for (role, object class, operation) | L4 evaluator over L1 rows | **yes — the only affirmative layer** |
+| 4 | `permission_row_predicate` / `dimension_read_narrowing` (§34) | L2 predicate composed **after** layer 2 | no |
+| 5 | Deny-only extension points | L4, monotone | no |
+
+Two consequences worth stating because upstream inverts both:
+
+- **Layer 2 is beneath layers 3–5.** A defect in the evaluator, a mis-authored predicate or a broken extension
+  can only *over-deny*. Upstream, layers 3–5 **are** the boundary, so any defect in them over-grants.
+- **Layer 4 narrows within a company and never reaches across one.** A dimension narrowing whose rules are
+  absent narrows nothing — which is acceptable for a fifth layer and would be catastrophic for a second one.
+  This is the whole content of T24.
+
+Evaluation order, and the first denial wins: resolve context (§29.1) → RLS → operation grant → field scope →
+row predicate → delegation, if no grant → extension hooks → record `access_decision`. Extension hooks adopt
+upstream's semantics wholesale — reverse order, first falsy result wins, deny-only
+(`frappe/permissions.py:80-226`) — because that is the single best design decision in the permission system.
+
+---
+
+## 31. Boundary conformance and isolation evidence
+
+This section is what makes §2–§30's `company_id` assertions verifiable rather than aspirational. It is the
+only section in this file whose primary artefact is a **build gate**.
+
+```sql
+isolation_denial(id, occurred_at timestamptz NOT NULL,
+    principal_id bigint NULL, session_id uuid NULL,
+    context_company_id bigint NULL,           -- what the session was scoped to
+    table_name text NOT NULL, statement_kind stmt_kind_enum /*select|insert|update|delete*/,
+    denial_kind isolation_denial_kind_enum /*policy_using|policy_with_check|context_absent|
+                                            context_ambiguous|membership_revoked*/,
+    detail jsonb NOT NULL DEFAULT '{}')
+   -- APPEND-ONLY, aggregated and alerted on. `context_absent` is the row that appears when a
+   -- connection reaches business code without `begin_tenant_transaction` — a bug that manifests as
+   -- NO ROWS, never as ALL ROWS, and is now visible instead of silent.  [NOT COMPANY-SCOPED]
+
+business_table_catalogue(table_name text PRIMARY KEY,
+    scope_exemption_reason text NULL,         -- NON-NULL only for the reviewed allow-list
+    exemption_approved_by bigint NULL, exemption_approved_at timestamptz NULL,
+    isolation_matrix_case_count integer NOT NULL DEFAULT 0)
+   CHECK ((scope_exemption_reason IS NULL) = (exemption_approved_at IS NULL))
+   -- The allow-list is exactly the register in §31.1 — global reference data, protected identity and
+   -- infrastructure, and group-scoped tables (which are checked against the GROUP policy shape, not
+   -- exempted from checking). Anything else requires a reviewed, attributed row.
+   -- [NOT COMPANY-SCOPED]
+
+CREATE VIEW rls_conformance AS
+SELECT c.relname AS table_name,
+       (a.attnotnull AND a.attname = 'company_id')  AS has_scope_column,
+       c.relrowsecurity                             AS rls_enabled,
+       c.relforcerowsecurity                        AS rls_forced,
+       EXISTS (SELECT 1 FROM pg_policy p WHERE p.polrelid = c.oid
+                 AND pg_get_expr(p.polqual, c.oid)      LIKE '%authenticated_company_id()%'
+                 AND pg_get_expr(p.polwithcheck, c.oid) LIKE '%authenticated_company_id()%')
+                                                    AS has_both_clause_policy,
+       NOT has_table_privilege('app_role', c.oid, 'TRUNCATE') AS app_role_not_owner,
+       b.scope_exemption_reason,
+       b.isolation_matrix_case_count
+  FROM pg_class c
+  JOIN business_table_catalogue b ON b.table_name = c.relname
+  LEFT JOIN pg_attribute a ON a.attrelid = c.oid AND a.attname = 'company_id' AND NOT a.attisdropped
+ WHERE c.relkind = 'r';
+```
+
+**The gate.** CI fails when any row of `rls_conformance` has a `NULL` `scope_exemption_reason` and is missing
+any of `has_scope_column`, `rls_enabled`, `rls_forced`, `has_both_clause_policy`, `app_role_not_owner` — or has
+`isolation_matrix_case_count = 0`. Group-scoped tables (§31.1) are **not** waved through: they are checked
+against the group policy shape instead, substituting `company_group_id` for `company_id` and
+`authenticated_group_ids()` for `authenticated_company_id()`, with the same `ENABLE`/`FORCE`/both-clause and
+matrix-coverage requirements. A second check fails when a table exists in `pg_class` and **not** in
+`business_table_catalogue`, so a new table cannot be introduced by omission. A third check asserts the
+application role holds no `BYPASSRLS`: `FORCE ROW LEVEL SECURITY` constrains the owner, but only the absence of
+`BYPASSRLS` constrains a superuser-adjacent role.
+
+**The isolation matrix** (doc 52 §7) is generated from `business_table_catalogue`, not hand-written, and
+executed against a two-company fixture for **every** table — including child, ledger, projection, outbox, job
+and audit tables. Four families:
+
+| Family | Asserts |
+|---|---|
+| Read isolation | company B's row is invisible by primary key, by filter, by `JOIN`, by aggregate, by report SQL, by export, by link-title fetch and by count |
+| Write isolation | insert, update and delete naming company B's `company_id` are rejected by `WITH CHECK`, including through child rows and `ON CONFLICT` |
+| Execution-context isolation | a work row without a resolvable principal/company **fails**; a pooled connection starts with no context; context vanishes on commit and on rollback |
+| Authorisation edges | absent grant denies; expired assignment denies; revoked membership invalidates a live session; a non-monotone predicate is rejected; a delegation exceeding the grantor's own authority is rejected |
+
+The generated-coverage discipline is deliberately the same one `tools/coverage_audit.py` applies to
+documentation in this repository: enumerate the population, assert each member is exercised, fail on a gap. A
+table absent from the matrix is not deployable.
+
+---
+
+### 31.1 The complete exemption register
+
+`business_table_catalogue.scope_exemption_reason` is non-null for exactly the tables below and nothing else.
+This register is normative: §29's identity tables, §24's reference data and the group-level tables in §32–§35
+are **all** of it, and a table not listed here that lacks the standard policy fails the §31 gate.
+
+There are three exemption classes, and only the first is genuinely unscoped.
+
+| Class | Tables | Why exempt | How it is protected instead |
+|---|---|---|---|
+| **Global reference** | `tax_jurisdiction`, `tax_area`, `tax_area_postal_range` (§24); `currency`, `country` (§2); `rate_source`, `exchange_rate`, `currency_peg_revision` (§33) | country codes, state codes and published exchange rates are not tenant data; two companies must resolve the *same* rate for the same date or §33's reproducibility claim is false | read-only to `app_role`; written by migration or by out-of-band rate feeds; append-only and superseding where dated |
+| **Protected identity and infrastructure** | `principal`, `principal_credential`, `principal_auth_session`, `principal_company_membership`, `principal_auth_throttle`, `authenticated_tenant_context` (§29); `principal_auth_event` (§29); `isolation_denial`, `business_table_catalogue` (§31) | these *establish* company scope, so a policy keyed on `authenticated_company_id()` could not be evaluated before they are read — the circularity is real, not stylistic | `REVOKE ALL … FROM PUBLIC, app_role`; written only by the authentication-gateway role; reachable from the application solely through `begin_tenant_transaction`; append-only tables additionally `REVOKE UPDATE, DELETE` |
+| **Group-scoped** | `company_group`, `company_group_edge`, `intercompany_relationship`, `transfer_price_policy_revision`, `intercompany_transaction`, `unrealised_margin`, `unrealised_margin_realisation`, `common_party_netting_policy` (§32); `group_account`, `group_account_map`, `fiscal_calendar_alignment`, `consolidation_run`, `consolidation_member`, `consolidation_member_contribution`, `consolidation_line`, `consolidation_elimination`, `minority_interest` (§35) | each names **two or more** companies by definition, so a single `company_id` column would be a lie rather than a constraint | **not unscoped** — a different policy, on group membership (below) |
+
+**Group-scoped tables carry `company_group_id NOT NULL` and their own policy.** The §31 gate checks them
+against this shape rather than exempting them from checking:
+
+```sql
+ALTER TABLE <group_table> ENABLE ROW LEVEL SECURITY;
+ALTER TABLE <group_table> FORCE ROW LEVEL SECURITY;
+CREATE POLICY group_scope ON <group_table>
+  USING      (company_group_id = ANY (authenticated_group_ids()))
+  WITH CHECK (company_group_id = ANY (authenticated_group_ids()));
+
+-- SECURITY DEFINER, and that is load-bearing rather than convenient: `delegation_grant` is itself
+-- company-scoped, so a STABLE INVOKER function would be evaluated under the caller's own company
+-- policy and could not see a grant issued in a sibling company. The group boundary would then depend
+-- on the company boundary it is supposed to sit beside. Owned by the authentication-gateway role,
+-- fixed search_path, EXECUTE granted to app_role only.
+CREATE FUNCTION authenticated_group_ids() RETURNS bigint[]
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public AS $$
+  SELECT coalesce(array_agg(DISTINCT g.company_group_id), '{}')
+    FROM delegation_grant g
+   WHERE g.to_principal_id = authenticated_principal_id()
+     AND g.grant_kind = 'group_read'
+     AND g.company_group_id IS NOT NULL
+     AND g.revoked_at IS NULL
+     AND g.expires_at > now()
+$$;
+REVOKE ALL ON FUNCTION authenticated_group_ids() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION authenticated_group_ids() TO app_role;
+```
+
+The function is `SECURITY DEFINER` and therefore bypasses the company policy on `delegation_grant` — which is
+a privilege escalation if written carelessly, so two things bound it. It takes **no arguments**: the principal
+comes from `authenticated_principal_id()`, i.e. from the protected context row, so a caller cannot ask about
+someone else's grants. And it returns only `company_group_id` values, never grant rows, so it cannot be used to
+enumerate the grant table. Its owner, grants and fixed `search_path` are migration-tested exactly as
+`begin_tenant_transaction`'s are.
+
+Three properties follow, and each is the point of doing it this way rather than exempting:
+
+- **Absence still denies.** A principal with no live `group_read` grant gets `'{}'`, and
+  `company_group_id = ANY ('{}')` is false for every row. The polarity of T1 is preserved at the group level:
+  no grant means no rows, not all rows.
+- **The grant is time-boxed and audited.** `delegation_grant.expires_at` is `NOT NULL` (§29), so group
+  visibility expires by construction, and both the grant and each use produce a `principal_auth_event`. This is
+  what makes "who could read across companies, and when" answerable — the question upstream cannot answer,
+  because cross-company consolidation is an ordinary report permission
+  (`accounts/report/consolidated_trial_balance/consolidated_trial_balance.py:32-45`).
+- **The legs stay company-scoped.** `intercompany_transaction` is group-scoped, but
+  `intercompany_transaction_leg_line` carries `company_id NOT NULL` and the ordinary company policy, so each
+  company sees its own leg without a group grant. Only the *fact that a crossing exists* needs group
+  visibility. That asymmetry is deliberate: it is what lets AlphaCo's accountant work normally while keeping
+  the group view privileged (S13 §7.8).
+
+`delegation_grant` itself is **company-scoped**, not exempt: it carries `company_id NOT NULL` (§29), and a
+`group_read` grant additionally names `company_group_id`. `authenticated_principal_id()` is the sibling of
+`authenticated_company_id()` over the same protected context row.
+
+---
+
+## 32. Group structure, inter-company crossings and transfer pricing
+
+Upstream's group model is `Company.parent_company` — a nested set carrying no ownership percentage, no
+consolidation method, no acquisition date and no functional currency distinct from the reporting currency
+(`setup/doctype/company/company.py:1044-1069`). Crossings are two mutable scalar references that
+`unlink_inter_company_doc` can clear **after posting**
+(`accounts/doctype/sales_invoice/services/inter_company.py:66-86`), cross-currency crossings are refused
+outright (`accounts/doctype/sales_invoice/mapper.py:149-175`), leg-rate agreement is opt-in and off by default
+(`accounts/services/internal_transfer.py:104-119`), and intra-group margin is parked in a per-company account
+with no realisation mechanism (`accounts/services/internal_transfer.py:37-53`).
+
+```sql
+company_group(id, code varchar(32), name text,
+    presentation_currency_id bigint NOT NULL,     -- the group's DEFAULT; a run may override (§35)
+    fiscal_calendar_id bigint NOT NULL)
+   UNIQUE (code)
+   -- [GROUP-SCOPED (§31.1): a group spans companies by definition. `company_group_id` + the
+   --  group_scope policy; reads require a live `group_read` delegation_grant (§29); writes are
+   --  platform-administered.]
+
+company_group_edge(id, company_group_id, parent_company_id, child_company_id,
+    ownership_pct numeric(9,6) NOT NULL,
+    consolidation_method consolidation_method_enum /*full|proportional|equity|none*/ NOT NULL,
+    elimination_policy elimination_policy_enum /*full|proportional|none*/ NOT NULL,
+    effective_from date NOT NULL, effective_to date NULL,
+    acquisition_reference text NULL)
+   CHECK (ownership_pct > 0 AND ownership_pct <= 100)
+   CHECK (parent_company_id <> child_company_id)
+   EXCLUDE USING gist (company_group_id WITH =, parent_company_id WITH =, child_company_id WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&)
+   -- Effective-dated because acquisitions and disposals change membership and prior periods must
+   -- remain reproducible. The exclusion constraint is what makes "who owned what on 31 March"
+   -- single-valued. A cycle is rejected by an L2 trigger over the recursive closure.
+   -- `company.functional_currency_id` (§33) is recorded on the company, separately from any
+   -- presentation currency — the distinction upstream's `default_currency` collapses.
+
+intercompany_relationship(id, company_group_id,
+    seller_company_id, buyer_company_id,
+    seller_party_id, buyer_party_id,               -- the two party identities that represent them
+    effective_from date NOT NULL, effective_to date NULL,
+    allows_goods bool NOT NULL, allows_services bool NOT NULL)
+   EXCLUDE USING gist (seller_company_id WITH =, buyer_company_id WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&)
+   CHECK (seller_company_id <> buyer_company_id)
+   -- ORDERED pair, unique per period. This is what replaces `parties[0]`
+   -- (`accounts/doctype/sales_invoice/mapper.py:126-148`) and the `get_value` on a multi-match filter
+   -- (`accounts/doctype/sales_invoice/services/inter_company.py:40-49`): resolution is a lookup with
+   -- exactly one answer, enforced. Upstream's `Allowed To Transact With` becomes this row's existence
+   -- — the relationship IS the permission — and `Party Link`'s non-chaining rules
+   -- (`accounts/doctype/party_link/party_link.py:24-68`) become the two constraints above.
+
+transfer_price_policy_revision(id, company_group_id,
+    seller_company_id, buyer_company_id, item_class_id bigint NULL,
+    method transfer_price_method_enum /*cost_plus|resale_minus|cup|declared|cost*/ NOT NULL,
+    markup_pct numeric(9,6) NULL, declared_price numeric(19,4) NULL,
+    price_currency_id bigint NULL,
+    revision_no integer NOT NULL, effective_from date NOT NULL, effective_to date NULL,
+    state revision_state_enum NOT NULL, approved_at timestamptz NULL, approved_by bigint NULL)
+   UNIQUE (company_group_id, seller_company_id, buyer_company_id, item_class_id, revision_no)
+   EXCLUDE USING gist (seller_company_id WITH =, buyer_company_id WITH =, item_class_id WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&) WHERE (state = 'approved')
+   CHECK ((method = 'declared') = (declared_price IS NOT NULL))
+   CHECK ((method IN ('cost_plus','resale_minus')) = (markup_pct IS NOT NULL))
+   CHECK ((state <> 'approved') OR (approved_at IS NOT NULL))
+   -- A transfer price is an APPROVED POLICY for a company pair, item class and period. Upstream has
+   -- three optional rules instead: a price list that must be both buying and selling, an
+   -- `ignore_pricing_rule` field, and an opt-in rate check
+   -- (`accounts/services/internal_transfer.py:120-135`, `:104-119`).
+   -- Promotional and discount rules (§7) are NEVER consulted for a crossing. That intent is
+   -- upstream's and correct; what changes is that it is a policy rather than a document field.
+
+intercompany_transaction(id, company_group_id,
+    seller_company_id, buyer_company_id,
+    intercompany_relationship_id NOT NULL, transfer_price_policy_revision_id NOT NULL,
+    crossing_kind crossing_kind_enum /*goods|service|journal|asset_transfer|settlement*/,
+    transaction_currency_id NOT NULL, transaction_amount numeric(19,4) NOT NULL,
+    effective_date date NOT NULL,
+    seller_leg_id bigint NULL, buyer_leg_id bigint NULL,
+    authorising_delegation_grant_id bigint NOT NULL,
+    reverses_intercompany_transaction_id bigint NULL)
+   CHECK (transaction_amount <> 0)
+   CHECK (reverses_intercompany_transaction_id <> id)
+   -- IMMUTABLE once both legs are present (L2 trigger). REVOKE UPDATE, DELETE FROM app_role except
+   -- the one-time leg attachment. There is NO unlink: a pair is reversed as a whole by a reversing
+   -- transaction that cites it, and at most one direct reversal exists.
+   -- [GROUP-SCOPED (§31.1) — it names two companies. Visible under a live `group_read` grant. The
+   --  two LEGS are ordinary company-scoped rows, so each company sees its own leg WITHOUT a group
+   --  grant; only the fact that a crossing exists needs group visibility.]
+   -- The `authorising_delegation_grant_id` is NOT NULL because of §29.1: the seller's session
+   -- physically cannot write the buyer's leg (`WITH CHECK` rejects it), so a crossing is two scoped
+   -- writes and the second one requires a named, expiring authority. Upstream writes both legs in one
+   -- request as the same user, which is exactly why its pairing can be two mutable fields.
+
+intercompany_transaction_leg_line(id, intercompany_transaction_id, side leg_side_enum /*seller|buyer*/,
+    company_id NOT NULL, line_no integer NOT NULL, item_id, qty numeric(21,9) NOT NULL,
+    transfer_price numeric(19,4) NOT NULL, transaction_currency_id NOT NULL,
+    functional_amount numeric(19,4) NOT NULL, exchange_rate_id NOT NULL)
+   UNIQUE (intercompany_transaction_id, side, line_no)
+   CHECK (qty > 0)
+   -- DEFERRED CONSTRAINTS (the whole of T17): for every line_no, the seller and buyer rows must agree
+   -- EXACTLY on item_id, qty, transfer_price, transaction_currency_id — and the header's
+   -- effective_date applies to both. They may differ in functional_amount and exchange_rate_id,
+   -- because they are in different functional currencies. That is the cross-currency crossing
+   -- `accounts/doctype/sales_invoice/mapper.py:149-175` refuses and this makes ordinary: the legs
+   -- agree on the TRANSACTION amount,
+   -- and each converts it with a recorded rate identity (§33).
+   -- Adopted from upstream: partial mirroring via quantities (residual derived, never a stored
+   -- `received_items` scalar), directional warehouse assignment on the leg, and the deliberate
+   -- exclusion of accounts and cost centres from the mapping — each company's chart is its own
+   -- (`accounts/doctype/sales_invoice/mapper.py:176-260`).
+
+unrealised_margin(id, company_group_id, intercompany_transaction_id, item_id,
+    transferred_qty numeric(21,9) NOT NULL,
+    margin_currency_id NOT NULL, margin_amount numeric(19,4) NOT NULL,
+    seller_company_id NOT NULL)
+   UNIQUE (intercompany_transaction_id, item_id)
+   CHECK (transferred_qty > 0)
+unrealised_margin_realisation(id, unrealised_margin_id,
+    realised_qty numeric(21,9) NOT NULL, realised_at timestamptz NOT NULL,
+    realisation_kind realisation_kind_enum /*external_sale|external_consumption|write_off|scrap|
+                                            disposal|reversal*/,
+    triggering_stock_move_id bigint NULL, triggering_voucher_id bigint NULL,
+    triggering_asset_id bigint NULL)
+   CHECK (realised_qty > 0)
+   -- APPEND-ONLY. Deferred: Σ realised_qty <= transferred_qty per margin row.
+   -- Group margin at any instant is DERIVED: transferred minus realised. Nothing is parked in an
+   -- account and nothing is realised by a manual journal — which is the entirety of upstream's
+   -- mechanism (`accounts/services/internal_transfer.py:37-53`), whose `is_internal_transfer()` test
+   -- of `represents_company == company` (`:19-29`) does not even cover every crossing.
+   -- `unrealised_margin` is the ONLY table in Tranche G that is a source for another Tranche G table:
+   -- §35's eliminations cite it, and T29's completeness constraint reads it.
+
+common_party_netting_policy(id, company_group_id, enabled bool NOT NULL,
+    netting_account_id bigint NULL, effective_from date NOT NULL, effective_to date NULL)
+   -- Adopted from upstream's common-party accounting, and kept explicitly DISTINCT from elimination:
+   -- netting a customer who is also a supplier is a settlement operation, not a group consolidation
+   -- operation. Upstream shares a module between the two
+   -- (`accounts/services/internal_transfer.py:54-75`,
+   --  `accounts/doctype/accounts_settings/accounts_settings.py:126-140`), which is what conflates them.
+```
+
+---
+
+## 33. Currency layers, rates, revaluation and translation
+
+Three named layers, two of them stored. **Transaction** currency and amount, **functional** currency of the
+owning company and amount, and the **identity** of the rate row used between them, on every monetary fact.
+**Presentation** currency is derived by a `translation_run` and is never a column on a fact.
+
+Upstream has two: `Company.default_currency` is the functional currency in all but name, and
+`reporting_currency` is used in exactly one place — a fallback inside a report, taken from the root company,
+only when the group's currencies differ
+(`accounts/report/consolidated_trial_balance/consolidated_trial_balance.py:323-336`). There is no CTA account
+(`setup/doctype/company/company.json:14-30`), no stored translated balances, and no translation run.
+
+```sql
+-- On `company` (§2), stated here because it is a Tranche G guarantee:
+--   functional_currency_id bigint NOT NULL
+--   cta_account_id bigint NOT NULL          -- declared, never positional
+-- L2 trigger: functional_currency_id is IMMUTABLE once any posted fact exists in the company.
+-- Upstream it is a mutable field with nothing freezing it (`setup/doctype/company/company.json:14-30`).
+
+rate_source(id, code varchar(32), name text, trust_rank smallint NOT NULL,
+    is_authoritative bool NOT NULL)
+   UNIQUE (code)
+   UNIQUE (trust_rank)
+   -- `trust_rank` is what makes same-date resolution DETERMINISTIC. Upstream disambiguates by `name`
+   -- — a series counter — via `order_by "date desc, name desc"` (`setup/utils.py:76-99`).  [GLOBAL]
+
+exchange_rate(id, from_currency_id, to_currency_id,
+    purpose rate_purpose_enum /*buying|selling|closing|average|historical|statutory*/,
+    effective_date date NOT NULL, rate numeric(21,9) NOT NULL,
+    rate_source_id NOT NULL, retrieved_at timestamptz NOT NULL,
+    supersedes_exchange_rate_id bigint NULL, superseded_at timestamptz NULL)
+   UNIQUE (from_currency_id, to_currency_id, purpose, effective_date, rate_source_id)
+      WHERE superseded_at IS NULL
+   CHECK (rate > 0)
+   CHECK (from_currency_id <> to_currency_id)
+   CHECK (supersedes_exchange_rate_id <> id)
+   -- APPEND-ONLY and SUPERSEDING: a correction is a new row plus an explicit restatement, never a
+   -- changed historical number. `CHECK (rate > 0)` makes upstream's `0.00`-on-disabled-settings
+   -- (`setup/utils.py:100-108`) UNREPRESENTABLE rather than merely discouraged — the single most
+   -- valuable constraint in this section, because a 0.00 rate does not raise: it values a whole
+   -- balance sheet at zero and still produces a report.
+   -- Purposes adopted and extended from upstream's `for_buying`/`for_selling`
+   -- (`setup/utils.py:76-99`); closing, average and historical exist for §33.2.  [GLOBAL]
+
+rate_resolution_policy(id, company_id, purpose rate_purpose_enum,
+    max_age_days integer NOT NULL, minimum_trust_rank smallint NOT NULL,
+    allow_peg_derivation bool NOT NULL, allow_inverse bool NOT NULL)
+   UNIQUE (company_id, purpose)
+   CHECK (max_age_days >= 0)
+   -- Staleness is a POLICY PER COMPANY AND PURPOSE, not an `allow_stale` setting permitting
+   -- arbitrarily old rates (`setup/utils.py:76-99`). Peg derivation is declared here rather than
+   -- opt-in per pair (`setup/utils.py:100-160`), so one pair cannot resolve two ways by setting.
+
+currency_peg_revision(id, pegged_currency_id, base_currency_id, rate numeric(21,9) NOT NULL,
+    revision_no integer NOT NULL, effective_from date NOT NULL, effective_to date NULL,
+    authority text NOT NULL, state revision_state_enum NOT NULL)
+   UNIQUE (pegged_currency_id, base_currency_id, revision_no)
+   EXCLUDE USING gist (pegged_currency_id WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&) WHERE (state = 'approved')
+   CHECK (rate > 0)
+   -- Upstream's four-case peg arithmetic including cross-peg recursion via the base pair is ADOPTED
+   -- WHOLE (`setup/utils.py:30-60`) — the most careful arithmetic in its currency layer. What changes
+   -- is that pegs are effective-dated: upstream's single child table means a changed peg rewrites
+   -- history (`setup/utils.py:13-28`). Both rate identities are recorded when a cross-peg is used.
+   -- `authority` is NOT NULL because a peg is a central bank's declaration, not a convenience.  [GLOBAL]
+```
+
+**Resolution ordering** (L2 function, doc 54 §6.1) — and every branch either returns a rate **identity** or
+raises:
+
+1. `from = to` → rate 1, no row needed.
+2. Direct row for (pair, purpose, `effective_date <= d`), newest, then highest `trust_rank`. Reject if older
+   than `max_age_days` or below `minimum_trust_rank`.
+3. Inverse, if `allow_inverse`.
+4. Peg derivation over `currency_peg_revision` effective at `d`, if `allow_peg_derivation`; record **both**
+   identities.
+5. **Raise.** No path returns `NULL`, `0.00`, or a logged warning — the four upstream failures
+   (`setup/utils.py:62-75`, `:100-108`, `:112-160`, `:76-99`).
+
+No HTTP call exists in this function. Feeds write `exchange_rate` rows out of band; upstream's synchronous
+fetch sits inside whatever transaction is posting (`setup/utils.py:112-160`), with a cache key built from
+unsubstituted currency codes while the request used substituted ones. Caching is retained as an advisory,
+strict-subset optimisation keyed on the resolved pair.
+
+### 33.1 Revaluation
+
+```sql
+revaluation_run(id, company_id, as_of_date date NOT NULL,
+    purpose rate_purpose_enum NOT NULL DEFAULT 'closing',
+    rounding_loss_allowance numeric(19,4) NOT NULL,
+    booked_gain_account_id, booked_loss_account_id,
+    unbooked_gain_account_id, unbooked_loss_account_id,
+    voucher_id bigint NULL, result_hash bytea NULL)
+   UNIQUE (company_id, as_of_date, purpose)
+revaluation_line(id, company_id, revaluation_run_id, account_id, party_id bigint NULL,
+    currency_id NOT NULL, balance_transaction numeric(19,4) NOT NULL,
+    balance_functional_before numeric(19,4) NOT NULL,
+    exchange_rate_id NOT NULL, balance_functional_after numeric(19,4) NOT NULL,
+    difference numeric(19,4) NOT NULL, is_booked bool NOT NULL)
+   -- The BOOKED vs UNBOOKED split is adopted from upstream — a real distinction
+   -- (`accounts/doctype/exchange_rate_revaluation/exchange_rate_revaluation.py:51-73`) — as is
+   -- `rounding_loss_allowance` as an explicit tolerance ON THE REVALUATION rather than in the ledger
+   -- (`exchange_rate_revaluation.py:43-50`), and dropping accounts with no difference (`:74-80`).
+   -- `exchange_rate_id` is NOT NULL and REJECTED: deriving the rate from the last GL entry
+   -- (`exchange_rate_revaluation.py:649-697`) makes the result posting-order dependent.
+   -- S13 §7.4 is why this matters beyond one company: restating an INR-denominated payable at the
+   -- DERIVED closing rate is the only reason an intra-group balance eliminates to exactly zero in
+   -- the presentation currency.
+```
+
+### 33.2 Translation
+
+Distinct from revaluation, and stored.
+
+```sql
+translation_run(id, company_id, period_id NOT NULL,
+    presentation_currency_id NOT NULL,
+    method translation_method_enum /*current_rate|temporal*/ NOT NULL,
+    closing_rate_id NOT NULL, average_rate_id NOT NULL,
+    source_watermark bigint NOT NULL,          -- domain_event position (§10)
+    cta_account_id NOT NULL, result_hash bytea NOT NULL,
+    consolidation_run_id bigint NULL,          -- set when produced for a run (§35)
+    supersedes_translation_run_id bigint NULL)
+   UNIQUE (company_id, period_id, presentation_currency_id) WHERE supersedes_translation_run_id IS NULL
+   -- IMMUTABLE. A restatement is a new superseding run.
+translated_balance(id, company_id, translation_run_id, account_id,
+    functional_amount numeric(19,4) NOT NULL,       -- as POSTED, never an unrounded intermediate
+    rate_class rate_class_enum /*closing|average|historical|transaction_date*/ NOT NULL,
+    exchange_rate_id NOT NULL, presentation_amount numeric(19,4) NOT NULL)
+   UNIQUE (company_id, translation_run_id, account_id)
+   -- `rate_class` is PRESCRIBED per account by the method — closing for balance-sheet items, average
+   -- or transaction-date for income, historical for equity — and stored per line. That is what makes
+   -- the residual below a CONSEQUENCE.
+   -- ROUNDING RULE: presentation_amount is a function of functional_amount AS STORED. A translation
+   -- never reaches behind a posted amount to an unrounded intermediate, because a consolidated
+   -- statement must be derivable from figures that exist in a ledger. S13 §7.4 is where this moves a
+   -- cent: a posted FX gain of GBP 333.33 translates to EUR 387.59, not the 387.60 an unrounded
+   -- 333.3333 would give.
+translation_adjustment(id, company_id, translation_run_id,
+    cta_account_id NOT NULL, amount numeric(19,4) NOT NULL, is_debit bool NOT NULL)
+   UNIQUE (company_id, translation_run_id)
+   -- The CTA. It is the arithmetic consequence of prescribed rates, posted to a DECLARED account.
+   -- REJECTED, twice over: upstream derives the reserve from the post-conversion debit/credit
+   -- difference (`consolidated_trial_balance.py:255-292`), so a missing rate, a 0.00 rate, an
+   -- unbalanced source ledger and a genuine translation difference all land in the same number,
+   -- indistinguishable; and it is inserted beside LIABILITY when no Equity row exists
+   -- (`consolidated_trial_balance.py:293-312`). Surfacing it as a named line is right and is kept.
+   -- Deferred: Σ presentation_amount over translated_balance ± this row = 0.
+```
+
+**Reproducibility (T22).** Re-running any conversion, revaluation or translation over a closed period
+reproduces the stored result exactly, because rate rows are append-only and superseding, pegs are
+effective-dated, and every converted fact names the rate identity it used. `result_hash` makes the claim
+checkable rather than asserted.
+
+---
+
+## 34. Dimensions, operating locations, registrations and segments
+
+**One** dimension definition, as data, applied to accounting, stock, production and quality facts alike.
+Upstream has **two** systems — `Accounting Dimension`
+(`accounts/doctype/accounting_dimension/accounting_dimension.py:129-165`) and `Inventory Dimension`
+(`stock/doctype/inventory_dimension/inventory_dimension.py:25-319`) — with no constraint that a shared
+dimension is defined consistently in both, and **both perform runtime DDL**, creating Custom Fields across
+doctypes (doc 18 §4). Deletion and disabling have no stated effect on posted history
+(`accounting_dimension.py:198-245`, `inventory_dimension.py:418-423`).
+
+```sql
+dimension(id, company_id, code varchar(32), name text,
+    value_domain value_domain_enum /*lookup|hierarchy|reference*/ NOT NULL,
+    reference_table text NULL,
+    applies_to object_class_enum[] NOT NULL,   -- accounting|stock|production|quality|asset|tax
+    is_hierarchical bool NOT NULL,
+    effective_from date NOT NULL, effective_to date NULL,
+    state dimension_state_enum /*active|closed*/ NOT NULL)
+   UNIQUE (company_id, code)
+   CHECK (array_length(applies_to, 1) >= 1)
+   CHECK ((value_domain = 'reference') = (reference_table IS NOT NULL))
+   -- `applies_to[]` is what replaces the two-system split: one definition covers stock AND accounting
+   -- AND production AND quality. No DDL is emitted to add a dimension.
+   -- `state = 'closed'` replaces `disable_dimension` / `delete_dimension`
+   -- (`accounting_dimension.py:198-245`): a dimension used on a posted fact can be CLOSED and can
+   -- never be deleted or retrospectively disabled.
+   -- Adopted as constraints, from `Inventory Dimension`'s three named refusals
+   -- (`stock/doctype/inventory_dimension/inventory_dimension.py:13-24`): DoNotChangeError becomes
+   -- immutability of `value_domain` and `reference_table` once any fact cites the dimension;
+   -- CanNotBeChildDoc and CanNotBeDefaultDimension become CHECKs on where a dimension may apply.
+
+dimension_value(id, company_id, dimension_id, value_code varchar(64), name text,
+    parent_id bigint NULL, is_postable bool NOT NULL,
+    state dimension_state_enum NOT NULL)
+   UNIQUE (company_id, dimension_id, value_code)
+   CHECK (parent_id <> id)
+   -- `is_postable` is DECLARED. Upstream infers `Warehouse.is_group` from whether children exist
+   -- (`stock/doctype/warehouse/warehouse.py:138-161`), which makes tree shape mutable state that
+   -- changes meaning when a child is added. Descendant resolution by recursive CTE over `parent_id`
+   -- adopts upstream's approach (`accounting_dimension.py:286-300`).
+
+fact_dimension(id, company_id, fact_table text NOT NULL, fact_id bigint NOT NULL,
+    dimension_id NOT NULL, dimension_value_id NOT NULL,
+    resolved_by resolution_basis_enum /*explicit|rule|inherited|default*/ NOT NULL,
+    dimension_write_rule_id bigint NULL)
+   UNIQUE (company_id, fact_table, fact_id, dimension_id)
+   -- One row per fact per dimension. This is the whole of "no runtime DDL": adding a dimension adds
+   -- rows here, never columns anywhere.
+   -- `resolved_by` + `dimension_write_rule_id` replace upstream's evaluated expressions
+   -- (`inventory_dimension.py:354-384`), which compute a value per document at runtime. The rule is
+   -- validated, and the RESULT is stored on the fact.
+
+dimension_write_rule(id, company_id, dimension_id, object_class object_class_enum,
+    account_id bigint NULL, applies_when jsonb NOT NULL,
+    rule_kind write_rule_enum /*require|permit|forbid*/ NOT NULL,
+    dimension_value_id bigint NULL,
+    effective_from date NOT NULL, effective_to date NULL)
+   -- Upstream's allow / restrict / mandatory vocabulary
+   -- (`accounts/doctype/accounting_dimension_filter/accounting_dimension_filter.py:109-115`) and its
+   -- mandatory-for-P&L / balance-sheet flags (`accounting_dimension.py:263-285`) are ADOPTED as typed
+   -- rules. Enforced by an L2 trigger on the fact write.
+
+dimension_read_narrowing(id, company_id, principal_id bigint NULL, permission_role_id bigint NULL,
+    dimension_id NOT NULL, dimension_value_id NOT NULL, include_descendants bool NOT NULL)
+   CHECK (num_nonnulls(principal_id, permission_role_id) = 1)
+   -- ADDITIVE-ONLY, and composed STRICTLY AFTER the company policy (§30.1 layer 4). Its absence
+   -- narrows nothing. That is acceptable for a fifth layer and would be catastrophic for a second:
+   -- the company boundary is NEVER reached through a dimension. Upstream has no read narrowing at
+   -- all — dimension filters constrain writes only
+   -- (`accounts/doctype/accounting_dimension_filter/accounting_dimension_filter.py:72-115`).
+
+operating_location(id, company_id, code varchar(32), name text,
+    location_kind location_kind_enum /*establishment|warehouse|branch|office|site|plant*/ NOT NULL,
+    parent_id bigint NULL, is_postable bool NOT NULL,
+    tax_area_id bigint NULL, address_id bigint NULL,
+    dimension_value_id bigint NULL,            -- its identity as a dimension value
+    effective_from date NOT NULL, effective_to date NULL)
+   UNIQUE (company_id, code)
+   CHECK (parent_id <> id)
+   -- ONE hierarchy with a typed kind, replacing five parallel place-like trees — `Warehouse`,
+   -- `Branch`, `Department`, `Territory` and `Address`. `Warehouse` already carries its company
+   -- (`stock/doctype/warehouse/warehouse.py:30-60`), which is what makes location a NARROWING of the
+   -- boundary rather than a competing axis; that is adopted and generalised.
+
+location_registration(id, company_id, operating_location_id, tax_registration_id,
+    effective_from date NOT NULL, effective_to date NULL,
+    is_primary_for_location bool NOT NULL)
+   EXCLUDE USING gist (company_id WITH =, operating_location_id WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&) WHERE (is_primary_for_location)
+   -- Binds a §24 registration to the PLACES it covers. Upstream carries GSTIN on the `Address`
+   -- (`india_compliance/gst_india/overrides/address.py:13-50`), which is not a modelled dimension, so
+   -- the statutory axis cannot be reasoned about.
+   -- CONSEQUENCE (T25): a `tax_determination` (§25) resolves its registration from the transaction's
+   -- location dimension and records WHICH registration and BY WHICH RULE; `return_period` (§27) is
+   -- keyed per registration, so a company with several registrations has several INDEPENDENT
+   -- statutory periods and closing one does not close another. S13 §7.3 walks this: a crossing
+   -- shipped from Bengaluru lands in Karnataka's return, not Maharashtra's.
+
+reporting_segment(id, company_id, code varchar(32), name text,
+    is_unallocated bool NOT NULL DEFAULT false,
+    effective_from date NOT NULL, effective_to date NULL)
+   UNIQUE (company_id, code)
+   UNIQUE (company_id) WHERE is_unallocated
+   -- The partial unique enforces AT MOST one unallocated segment. It cannot enforce that one EXISTS
+   -- — no unique index can — so existence is a seed row created by the same migration that creates
+   -- the company, plus an L2 trigger on segment_mapping that refuses the first mapping for a company
+   -- with no unallocated segment. Both halves are needed: without existence, T30 direction 3 fails
+   -- silently the first time a dimension value is unmapped.
+segment_mapping(id, company_id, reporting_segment_id, dimension_id NOT NULL,
+    dimension_value_id NOT NULL, include_descendants bool NOT NULL,
+    effective_from date NOT NULL, effective_to date NULL)
+   EXCLUDE USING gist (company_id WITH =, dimension_id WITH =, dimension_value_id WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&)
+   -- The exclusion constraint IS the partition: a dimension value belongs to at most one segment per
+   -- period, and everything unmapped falls to the mandatory unallocated segment. That is why
+   -- "segment amounts sum to the entity amount" (T30 direction 3) is a CONSTRAINT and not a
+   -- reconciliation exercise. Upstream has no segment reporting at all, and the alternative —
+   -- numbers maintained per report — cannot reconcile by construction.
+```
+
+---
+
+## 35. Consolidation and group reporting
+
+Two upstream reports aggregate a company subtree. The codebase's only structural group rule lives here and is
+correct — all selected companies must share a root
+(`accounts/report/consolidated_trial_balance/consolidated_trial_balance.py:51-76`) — as are deterministic
+`lft` member ordering (`consolidated_trial_balance.py:77-83`) and per-company opening balances for unclosed
+years (`consolidated_financial_statement.py:127-169`). All three are adopted.
+
+What the reports do not do: aggregation joins on **`account_name`**
+(`consolidated_trial_balance.py:337-369`, `consolidated_financial_statement.py:480-505`); there are **no
+eliminations**, so intra-group revenue, cost, receivables and payables are double-counted; there is **no
+ownership weighting**, so a 60%-owned subsidiary consolidates at 100%
+(`consolidated_financial_statement.py:519-529`); there is **no minority interest**; and **nothing is stored**,
+so a group statement cannot be reproduced and a consolidation adjustment cannot be posted.
+
+```sql
+group_account(id, company_group_id, code varchar(32), name text,
+    account_class account_class_enum /*asset|liability|equity|income|expense*/ NOT NULL,
+    parent_id bigint NULL, statement_line_order integer NOT NULL)
+   UNIQUE (company_group_id, code)
+group_account_map(id, company_group_id, company_id NOT NULL, account_id NOT NULL,
+    group_account_id NOT NULL,
+    effective_from date NOT NULL, effective_to date NULL)
+   EXCLUDE USING gist (company_group_id WITH =, company_id WITH =, account_id WITH =,
+      daterange(effective_from, effective_to, '[)') WITH &&)
+   -- EXACTLY ONE group account per local account per period, and aggregation joins on
+   -- `group_account_id` — an IDENTITY. This replaces joining on `account_name`, under which two
+   -- accounts meaning the same thing stay separate and two accounts named the same thing merge
+   -- regardless of meaning. It is the same rule as U7 (doc 30 §3.2), applied where the consequence is
+   -- a group balance sheet.
+
+fiscal_calendar_alignment(id, company_group_id, company_id, period_id,
+    member_period_start date NOT NULL, member_period_end date NOT NULL,
+    method alignment_method_enum /*coterminous|interim_accounts|adjusted_for_significant_events*/,
+    justification text NOT NULL)
+   UNIQUE (company_group_id, company_id, period_id)
+   -- Upstream aggregates by period filter with NOTHING recording how a subsidiary with a different
+   -- year-end was handled. This records the method and requires a justification. It does not
+   -- prescribe a method — see §38.
+
+consolidation_run(id, company_group_id, period_id NOT NULL,
+    presentation_currency_id NOT NULL,
+    source_watermark bigint NOT NULL,              -- domain_event position (§10)
+    authorising_delegation_grant_id NOT NULL,      -- the `group_read` grant (§29)
+    mi_attribution_policy_id NOT NULL,             -- how §35.1's attribution is decided
+    started_at timestamptz NOT NULL, completed_at timestamptz NULL,
+    result_hash bytea NULL,
+    supersedes_consolidation_run_id bigint NULL)
+   UNIQUE (company_group_id, period_id, presentation_currency_id)
+      WHERE supersedes_consolidation_run_id IS NULL
+   CHECK (supersedes_consolidation_run_id <> id)
+   -- IMMUTABLE once `completed_at` is set. A restatement is a NEW run that supersedes; nothing is
+   -- overwritten. `source_watermark` makes a consolidation a statement about a KNOWN PREFIX of the
+   -- event stream: a crossing posted after it appears in the next run, not silently in this one.
+   -- `authorising_delegation_grant_id` is NOT NULL because this is the most privileged read in the
+   -- system. Upstream it is an ordinary report permission on a doctype.  [GROUP-SCOPED (§31.1)]
+
+-- Every child of a group-scoped parent carries `company_group_id NOT NULL` denormalised, for the same
+-- reason `company_id` is repeated on child tables in §2: a policy must be evaluable on the row itself,
+-- without a join. An L2 trigger asserts it equals the parent's.
+consolidation_member(id, consolidation_run_id, company_group_id NOT NULL, company_id NOT NULL,
+    company_group_edge_id bigint NULL,             -- NULL for the parent
+    ownership_pct numeric(9,6) NOT NULL,
+    consolidation_method consolidation_method_enum NOT NULL,
+    elimination_policy elimination_policy_enum NOT NULL,
+    translation_run_id bigint NULL,                -- NULL only when functional = presentation
+    member_order integer NOT NULL,
+    opening_balance_basis opening_basis_enum /*closed_year|unclosed_year_derived*/ NOT NULL)
+   UNIQUE (consolidation_run_id, company_id)
+   CHECK (ownership_pct > 0 AND ownership_pct <= 100)
+   -- Ownership, method and elimination policy are RESOLVED FROM DATED EDGES and RECORDED PER RUN, so
+   -- re-running March in June uses March's ownership. `member_order` adopts upstream's deterministic
+   -- `lft` ordering; `opening_balance_basis` adopts its explicit unclosed-year handling.
+   -- L2 trigger: all members share a root in `company_group_edge` at the period — upstream's
+   -- same-root validation, kept as a constraint.
+
+consolidation_member_contribution(id, consolidation_run_id, company_id,
+    group_account_id NOT NULL, presentation_amount numeric(19,4) NOT NULL, is_debit bool NOT NULL,
+    reporting_segment_id bigint NULL)
+   UNIQUE (consolidation_run_id, company_id, group_account_id, reporting_segment_id)
+   -- The side-by-side per-company view upstream produces as a report
+   -- (`consolidated_financial_statement.py:294-339`) becomes a PROJECTION over these rows. Both
+   -- upstream reports then answer the same question from one set of facts, rather than being two
+   -- reports with different semantics that read as if they agree.
+
+consolidation_elimination(id, consolidation_run_id,
+    elimination_kind elimination_kind_enum
+      /*intragroup_balance|intragroup_turnover|unrealised_margin|buyer_cost_restatement|
+        buyer_inventory_restatement|investment_equity|translation_residual|dividend*/,
+    intercompany_transaction_id bigint NULL,       -- the FACT it derives from
+    unrealised_margin_id bigint NULL,
+    attributed_company_id bigint NOT NULL,         -- whose result it adjusts (drives §35.1)
+    debit_group_account_id bigint NULL, debit_segment_id bigint NULL,
+    credit_group_account_id bigint NULL, credit_segment_id bigint NULL,
+    amount numeric(19,4) NOT NULL,
+    derived_rate_id bigint NULL, note text NOT NULL)
+   CHECK (amount <> 0)
+   CHECK (num_nonnulls(debit_group_account_id, credit_group_account_id) >= 1)
+   CHECK (
+     (elimination_kind IN ('investment_equity','translation_residual','dividend'))
+     OR (num_nonnulls(intercompany_transaction_id, unrealised_margin_id) >= 1))
+   -- Every trading elimination CITES the fact it derives from, which is what makes T29's
+   -- completeness constraint expressible: for a period, Σ eliminations citing a crossing = Σ
+   -- crossings in scope. No elimination is a manual journal, and no crossing lacks one.
+   -- PER-LEG SEGMENT ATTRIBUTION (`debit_segment_id` / `credit_segment_id`) exists because the two
+   -- halves of an intra-group trade belong to DIFFERENT segments: S13 §7.5's E2 debits revenue in
+   -- the seller's segment and credits cost in the same one, while E3 and E4 credit the buyer's. A
+   -- single-segment elimination row cannot express this, and segment reporting then cannot
+   -- reconcile — one reason it does not exist upstream.
+   -- `attributed_company_id` is what makes minority interest ARITHMETIC rather than a guess.
+
+minority_interest(id, consolidation_run_id, company_id NOT NULL,
+    minority_pct numeric(9,6) NOT NULL,
+    share_of_opening_reserves numeric(19,4) NOT NULL,
+    share_of_profit numeric(19,4) NOT NULL,
+    share_of_cta numeric(19,4) NOT NULL,
+    equity_group_account_id NOT NULL, profit_group_account_id NOT NULL)
+   UNIQUE (consolidation_run_id, company_id)
+   CHECK (minority_pct > 0 AND minority_pct < 100)
+
+consolidation_line(id, consolidation_run_id, group_account_id NOT NULL,
+    reporting_segment_id bigint NULL,
+    contributions numeric(19,4) NOT NULL, eliminations numeric(19,4) NOT NULL,
+    minority numeric(19,4) NOT NULL, amount numeric(19,4) NOT NULL, is_debit bool NOT NULL)
+   UNIQUE (consolidation_run_id, group_account_id, reporting_segment_id)
+   -- Deferred: amount = contributions - eliminations - minority, per row (T30 direction 2).
+   -- The three components are stored, so any group figure decomposes without re-deriving it.
+```
+
+### 35.1 The run's guards and its three reconciliations
+
+Guards, each a refusal rather than a warning:
+
+- A local account with a non-zero balance and **no** `group_account_map` row for the period **blocks the run**.
+  Upstream, an unmapped account appears as its own line and quietly enters the group statement.
+- A member whose functional currency differs from the presentation currency and has **no**
+  `translation_run_id` blocks the run.
+- A crossing in scope with no citing elimination blocks the run (T29).
+- Members not sharing a root at the period block the run.
+
+**T30, as three deferred constraints on the transaction that writes the run** — not three footnotes:
+
+1. **The consolidated trial balance balances exactly.** Σ debit `amount` = Σ credit `amount` over
+   `consolidation_line` where `reporting_segment_id IS NULL`.
+2. **Each group account decomposes.** `amount = contributions − eliminations − minority`, per
+   `consolidation_line`, with `contributions` reconciling to Σ `consolidation_member_contribution`.
+3. **Segments sum to the entity.** For every `group_account_id`, Σ `amount` over rows with a non-null
+   `reporting_segment_id` = the `amount` on the null-segment row. §34's `segment_mapping` exclusion constraint
+   plus the mandatory unallocated segment are what make this hold by construction.
+
+**Minority-interest attribution** is a declared policy on the run, referenced by `mi_attribution_policy_id`,
+because it is genuinely a choice and an unrecorded choice is unauditable. The policy fixes: which base
+(subsidiary's own translated profit), which eliminations adjust it (those whose `attributed_company_id` is that
+subsidiary **and** whose legs are P&L accounts), and whether the subsidiary's CTA share reduces minority
+equity. S13 §7.5 works this through to the cent for a 60%-owned member.
+
+**S13** is the end-to-end acceptance fixture for §32–§35: an INR seller crossing to a GBP buyer, 40 of 100
+units sold onward, a closing revaluation, three translation runs, and an EUR consolidation whose trial balance
+ties exactly (Dr = Cr = 24,829.27) with group profit 2,566.02 of which 1,459.61 is attributable to the parent.
+
+---
+
+## 36. Tranche G write and refusal order
+
+Two orderings do the most work, and both are placements rather than algorithms.
+
+**Context is established at connection acquisition, before any statement.**
+
+1. Resolve the presented token → `begin_tenant_transaction(token, company)`.
+2. On failure: **raise**. Record `principal_auth_event`. Do not proceed with a narrower identity, an anonymous
+   identity, or none.
+3. Only then hand the connection to the unit of work.
+
+A connection that reaches business code without a resolved context produces **no rows**, never all rows, and
+`isolation_denial.context_absent` makes that visible instead of silent.
+
+**Scope is fixed at session issue, not per request.** Selecting a company is an act of session *creation*. This
+removes the entire class of "the request switched tenant mid-transaction" reasoning, and it is why a change of
+scope is a new session bounded by `principal_company_membership`.
+
+**A crossing, in order** (§32) — note step 3, which is a consequence of the boundary rather than a policy:
+
+1. Seller's session writes `intercompany_transaction` (header) and its own leg + lines.
+2. `unrealised_margin` is written from the transfer price and the seller's cost.
+3. A durable work row is enqueued carrying `principal_id` **and** `company_id = <buyer>`, both `NOT NULL`. The
+   seller's session **cannot** write the buyer's leg: `WITH CHECK` rejects it.
+4. The worker claims the row, calls `begin_tenant_transaction` for the buyer, writes the buyer's leg + lines
+   under a `delegation_grant`, and records its use.
+5. Deferred leg-agreement constraints are checked at commit. A disagreement fails the whole crossing.
+6. A job that cannot resolve its principal or company **fails and is recorded as failed** (T11). It never
+   proceeds with more authority than it was given — upstream's default is `Administrator`
+   (`frappe/utils/background_jobs.py:245-266`, `frappe/__init__.py:410-421`).
+
+**A consolidation, in order** (§35):
+
+1. Acquire a `group_read` `delegation_grant`; record it on the run.
+2. Resolve members, ownership, method and elimination policy from dated edges at the period.
+3. Require a `translation_run` per member whose functional currency differs from the presentation currency.
+4. Write contributions on `group_account_id`.
+5. Derive eliminations **from** crossings and margins, with per-leg segment attribution.
+6. Apportion ownership; write `minority_interest` under the run's attribution policy.
+7. Write `consolidation_line`, then let the **three deferred constraints** decide whether the transaction
+   commits. A consolidation that would not reconcile cannot be committed and then explained.
+8. Set `completed_at` and `result_hash`; the run becomes immutable.
+
+---
+
+## 37. Security and group invariant register
+
+The exact **T1–T30** names and their primary enforcement layers are consolidated in
+[`docs/logic/57`](../logic/57-tranche-g-closure-and-our-security-spec.md#3-t1t30-exact-register-and-enforcement-owner).
+They are beneath, not beside, the registers in §9, §18, §23 and §28: those sections asserted the boundary this
+one supplies. Structurally:
+
+- **T1/T7/T10** — every business table has `company_id NOT NULL`, `ENABLE` **and** `FORCE ROW LEVEL SECURITY`,
+  and a policy with both `USING` and `WITH CHECK` bound to `authenticated_company_id()`; the application role
+  holds neither `BYPASSRLS` nor ownership, and no in-code bypass flag exists to be found;
+- **T2/T3/T4** — one server-configured authenticator that denies on any error, `principal_auth_session` with a
+  scope FK to live membership and two independent expiry bounds, and credentials as managed objects with
+  rotation and revocation;
+- **T5/T8/T9** — `principal_auth_event`, `access_decision` and append-only grant revocation, so current
+  authorisation state is a projection and any past instant is answerable;
+- **T6** — `permission_grant` holds affirmative rows only; absence denies, and no principal is exempt;
+- **T11** — every durable work row carries `principal_id` and `company_id`, both `NOT NULL`; an unresolvable
+  pair fails the job;
+- **T12/T13** — `business_table_catalogue` + the `rls_conformance` view gate the build, and the isolation
+  matrix is generated from the catalogue rather than hand-written;
+- **T14–T18** — dated `company_group_edge`, `intercompany_relationship` unique per ordered pair and period,
+  approved `transfer_price_policy_revision`, one immutable `intercompany_transaction` with deferred leg
+  agreement, and `unrealised_margin` tracked to realisation;
+- **T19–T22** — three currency layers with the rate **identity** on every fact, `CHECK (rate > 0)` making a
+  zero rate unrepresentable, revaluation and translation as separate stored runs, and reproducibility by
+  append-only superseding rates;
+- **T23–T26** — one `dimension` as data with `fact_dimension` rows and no runtime DDL, typed write rules,
+  additive-only read narrowing composed after company scope, `location_registration` as the statutory place
+  axis, and partitioning `segment_mapping`; and
+- **T27–T30** — `group_account_map` on identity, an immutable `consolidation_run` with watermark and result
+  hash, eliminations citing identified facts with per-leg attribution, and the three-way reconciliation as
+  deferred constraints.
+
+Every T invariant requires a schema refusal test. T1, T7 and T10 additionally require the full doc 52 §7
+matrix per table; T11 requires a job-without-principal failure test; T13 requires the gate itself to be tested
+by a deliberately non-conforming migration; T30 requires a per-direction reconciliation on a group containing a
+partially-owned, cross-currency member. **S13** is the end-to-end acceptance fixture.
+
+---
+
+## 38. What remains open
 
 - **Application implementation has not started.** This file is the target schema contract produced by
   investigation.
-- **Localisation, including India GST, is a required capability and is not yet specified here.** It will
-  add jurisdiction-scoped tax determination, HSN/SAC classification, place-of-supply resolution,
-  CGST/SGST/IGST/cess component splitting, reverse charge, TDS/TCS, document-numbering rules and statutory
-  reporting extracts. It must reuse the existing `doc_tax` / `doc_tax_line_alloc` / `gl_entry` boundary and
-  **must not** be layered as an ERPNext-style `@allow_regional` runtime override
-  (doc 21 §4, doc 28). Because more than one regime is in scope, the regional-overlay replacement is the
-  next design priority.
-- Tranches A, B, C and E are complete: accounting/trade, production/ownership/quality, assets, and
-  permissions/RLS, numbering, jobs, migrations, reporting and orchestration — the last specified in doc 25
-  and represented here by the company/RLS, idempotency and outbox contracts.
+- **Localisation is specified in §24–§28** (jurisdiction as data, registration snapshots, classification and
+  rate revisions, determination, statutory artefacts, return periods and imports). Two items from the original
+  scope were tracked in doc 49 §7.2 and are now **closed by
+  [doc 58](../logic/58-statutory-numbering-and-the-withholding-gst-seam.md)**, register **G30–G41**:
+  statutory numbering becomes `statutory_series` + `statutory_number_allocation` (the number is an attribute,
+  never the row's identity), and the withholding base becomes `withholding_regime` +
+  `withholding_section_revision` + `withholding_base` (the base is derived from the statutory section, never
+  chosen on a category). **These five tables are specified in doc 58 §5 and are not yet transcribed into this
+  file** — that is the one outstanding schema task. **GST TDS/TCS (s.51/s.52)** is absent upstream and is
+  modelled but not walked.
+- **Security, tenancy and group reporting are specified in §29–§37.** This is the section that supplies the
+  boundary §2–§28 assumed, so §31's conformance gate is **step 0** of the build sequence
+  ([doc 57 §8](../logic/57-tranche-g-closure-and-our-security-spec.md#8-build-sequence-and-boundary)):
+  retrofitting `NOT NULL` scope columns, policies and an execution-context contract onto populated tables is a
+  rewrite, not a migration. Five items remain genuinely open:
+  - **Retention and archival for `principal_auth_event` and `access_decision`.** These are the
+    highest-volume tables in the design and the ones an audit most wants intact. `retention_class` exists on
+    `access_decision`; the policy that reads it does not. This must be closed before §29–§30 are final.
+  - **Cryptographic primitives are deliberately unspecified**: password hash function and parameters, secret
+    store backend, TOTP window, token format and length. Doc 50 fixes the *contract* — secrets referenced not
+    stored, constant-time comparison, credentials as managed objects with rotation — and the primitives are an
+    implementation-time decision with its own review.
+  - **Consolidation methods beyond full.** `consolidation_method` admits `proportional` and `equity`, and only
+    `full` (with minority interest) is specified end to end. Equity-method mechanics are named, not walked.
+  - **`fiscal_calendar_alignment` records a method without prescribing one.** A subsidiary with a different
+    year-end is a real accounting problem; the table stores *how* it was handled and requires a justification,
+    but does not constrain the choice.
+  - **Jurisdictions beyond India** remain unread at controller depth (§24 and doc 49 §7.2). Each is a
+    rule-revision mapping exercise over §24–§28, not new code.
+- **Scale targets are still the open question that changes this file.** Materialised versus computed balances
+  (doc 01 §1.9) is one decision it blocks; whether `access_decision` retains sampled allows at all is a second.
+  Both need a number rather than a judgement.
+- Tranches A, B, C, E, F and G are complete: accounting/trade, production/ownership/quality, assets, platform
+  mechanics, localisation, and security/tenancy/group reporting. Invariant registers: `L/S/D/P`, `F/T/R/V/U`,
+  `M1–M69`, `A1–A26`, `G1–G29`, `T1–T30`. Acceptance fixtures **S01–S13**.
 - Presentation-layer contracts (form layout, grid, customisation) are being specified separately; see
-  `docs/agents/PROMPT-frontend-form-ui.md`.
+  `docs/agents/PROMPT-frontend-form-ui.md`. The seam between `permission_grant.field_scope` (§30) and
+  field-level display rules belongs to that document.
