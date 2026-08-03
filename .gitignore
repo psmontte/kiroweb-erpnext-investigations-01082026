@@ -1,3 +1,7 @@
 __pycache__/
 *.pyc
 pgdata/
+
+# Pinned upstream source trees, cloned locally for citation verification.
+# Recreate with the commands in docs/HANDOFF.md section 6.
+upstream/
